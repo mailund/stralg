@@ -1,0 +1,3 @@
+add_executable(border_array_test border_array_test.c)
+target_link_libraries(border_array_test stralg)
+add_test(BorderArray border_array_test)
