@@ -7,3 +7,13 @@ cmake_install.cmake
 install_manifest.txt
 compile_commands.json
 CTestTestfile.cmake
+DartConfiguration.tcl
+DerivedData/
+StrAlg.build/
+StrAlg.xcodeproj/
+stralg/Debug/
+stralg/StrAlg.build/
+stralg/libstralg.dylib
+tests/Debug/
+tests/StrAlg.build/
+tests/border_array_test

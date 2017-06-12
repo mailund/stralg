@@ -1,6 +1,6 @@
 #include "stralg.h"
 
-void build_border_array(char * str, unsigned long n, unsigned long *ba)
+void build_border_array(const char * str, unsigned long n, unsigned long *ba)
 {
     ba[0] = 0;
     for (unsigned long i = 1; i < n; ++i) {

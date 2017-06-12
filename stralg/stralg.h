@@ -6,7 +6,7 @@
  * we compute the border array.
  */
 void
-build_border_array(char * str, unsigned long n, unsigned long *ba);
+build_border_array(const char * str, unsigned long n, unsigned long *ba);
 
 
 #endif
