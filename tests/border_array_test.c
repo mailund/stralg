@@ -21,9 +21,28 @@ static void test1()
     assert(b[6] == 5);
 }
 
+static void test2()
+{
+    const char * test_str = "abababa";
+    unsigned long n = strlen(test_str);
+    unsigned long Z[n];
+    
+    build_z_array(test_str, n, Z);
+    
+    assert(Z[0] == 0);
+    assert(Z[1] == 0);
+    assert(Z[2] == 5);
+    assert(Z[3] == 0);
+    assert(Z[4] == 3);
+    assert(Z[5] == 0);
+    assert(Z[6] == 1);
+}
+
+
 int main(int argc, char * argv[])
 {
     test1();
+    test2();
     
     return EXIT_SUCCESS;
 }

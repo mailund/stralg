@@ -1,6 +1,6 @@
 
 set(CMAKE_MACOSX_RPATH 1)
-add_library(stralg SHARED stralg.h border_array.c)
+add_library(stralg SHARED stralg.h match.c border_array.c)
 target_include_directories(stralg
   PUBLIC
     # Headers used from source/build location:
