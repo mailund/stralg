@@ -23,5 +23,10 @@ void build_border_array(const char * str, unsigned long n, unsigned long * ba);
  */
 void build_z_array(const char * str, unsigned long n, unsigned long * Z);
 
+/* Builds the Z array from a border array.
+ * The Z array must be allocated before calling
+ * the function.
+ */
+void build_z_array_from_ba(const unsigned long * ba, unsigned long n, unsigned long * Z);
 
 #endif

@@ -38,11 +38,37 @@ static void test2()
     assert(Z[6] == 1);
 }
 
+#include <stdio.h>
+static void test3()
+{
+    const char * test_str = "abababa";
+    unsigned long n = strlen(test_str);
+    unsigned long ba[n], Z[n];
+    
+    build_border_array(test_str, n, ba);
+    build_z_array_from_ba(ba, n, Z);
+    
+    for (unsigned long i = 0; i < n; ++i)
+        printf("ba[%lu] == %lu\n", i, ba[i]);
+    for (unsigned long i = 0; i < n; ++i)
+        printf("Z[%lu] == %lu\n", i, Z[i]);
+    
+    
+    assert(Z[0] == 0);
+    assert(Z[1] == 0);
+    assert(Z[2] == 5);
+    assert(Z[3] == 0);
+    assert(Z[4] == 3);
+    assert(Z[5] == 0);
+    assert(Z[6] == 1);
+}
+
 
 int main(int argc, char * argv[])
 {
     test1();
     test2();
+    test3();
     
     return EXIT_SUCCESS;
 }

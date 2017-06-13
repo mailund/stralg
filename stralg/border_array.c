@@ -40,3 +40,19 @@ void build_z_array(const char * str, unsigned long n, unsigned long * Z)
         }
     }
 }
+
+void build_z_array_from_ba(const unsigned long * ba, unsigned long n, unsigned long * Z)
+{
+    for (unsigned long i = 0; i < n; ++i) {
+        Z[i] = 0;
+    }
+    for (unsigned long i = n; i > 0; --i) {
+        unsigned long b = ba[i-1];
+        unsigned long k = i - b;
+        while (b != 0 && Z[k] == 0) {
+            Z[k] = b;
+            b = ba[b-1];
+            k = i - b;
+        }
+    }
+}
