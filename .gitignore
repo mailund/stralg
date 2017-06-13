@@ -16,4 +16,5 @@ stralg/StrAlg.build/
 stralg/libstralg.dylib
 tests/Debug/
 tests/StrAlg.build/
+tests/match_test
 tests/border_array_test
