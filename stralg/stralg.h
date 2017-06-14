@@ -25,6 +25,20 @@ unsigned long match(const char * s1, const char * s2);
 void build_border_array(const char * str, unsigned long n, unsigned long * ba);
 
 /**
+ Build the reverse border array for string str, of length n,
+ and store it in ba. The border array ba has the
+ property that ba[i] is the length of the longest
+ border of str[i:n].
+ 
+ The array must be allocated before we compute the border array.
+ 
+ @param str A string of length n.
+ @param n The length of str
+ @param ba A pre-allocated array to put the border information in.
+ */
+void build_reverse_border_array(const char * str, unsigned long n, unsigned long * ba);
+
+/**
  The fundamental preprocessing from Gusfield 1.4,
  computing the Z array. The Z array has the property
  that Z[i] is the length of the longest substring

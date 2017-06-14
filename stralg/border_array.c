@@ -11,6 +11,17 @@ void build_border_array(const char * str, unsigned long n, unsigned long * ba)
     }
 }
 
+void build_reverse_border_array(const char * str, unsigned long n, unsigned long * ba)
+{
+    ba[n - 1] = 0;
+    for (long i = n - 2; i >= 0; --i) {
+        unsigned long b = ba[i+1];
+        while (b > 0 && str[i] != str[n - 1 - b])
+            b = ba[n - b];
+        ba[i] = (str[i] == str[n - 1 - b]) ? b + 1 : 0;
+    }
+}
+
 void build_z_array(const char * str, unsigned long n, unsigned long * Z)
 {
     Z[0] = 0;

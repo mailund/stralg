@@ -38,7 +38,6 @@ static void test2()
     assert(Z[6] == 1);
 }
 
-#include <stdio.h>
 static void test3()
 {
     const char * test_str = "abababa";
@@ -57,6 +56,23 @@ static void test3()
     assert(Z[6] == 1);
 }
 
+static void test4()
+{
+    const char * test_str = "abababa";
+    unsigned long n = strlen(test_str);
+    unsigned long b[n];
+    
+    build_reverse_border_array(test_str, n, b);
+    
+    assert(b[0] == 5);
+    assert(b[1] == 4);
+    assert(b[2] == 3);
+    assert(b[3] == 2);
+    assert(b[4] == 1);
+    assert(b[5] == 0);
+    assert(b[6] == 0);
+}
+
 void sample_random_string(char * str, unsigned long n)
 {
     for (unsigned long i = 0; i < n; ++i) {
@@ -64,6 +80,7 @@ void sample_random_string(char * str, unsigned long n)
     }
 }
 
+#include <stdio.h>
 static void test_random()
 {
     unsigned long n = 10;
@@ -99,6 +116,7 @@ int main(int argc, char * argv[])
     test1();
     test2();
     test3();
+    test4();
     
     srandom(123);
     test_random();
