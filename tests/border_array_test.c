@@ -1,5 +1,6 @@
 #include <stralg.h>
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
@@ -78,10 +79,42 @@ void sample_random_string(char * str, unsigned long n)
     for (unsigned long i = 0; i < n; ++i) {
         str[i] = "ab"[random()&01];
     }
+    str[n] = '\0';
 }
 
-#include <stdio.h>
-static void test_random()
+void reverse_string(const char * str, unsigned long n, char * rev_str)
+{
+    for (unsigned int i = 0; i < n; ++i) {
+        rev_str[i] = str[n - 1 - i];
+    }
+}
+
+static void test_random_reverse_border()
+{
+    unsigned long n = 10;
+    char test_str[n + 1], reverse_test_str[n + 1];
+    unsigned long ba[n], rba[n];
+    
+    sample_random_string(test_str, n);
+    reverse_string(test_str, n, reverse_test_str);
+    reverse_test_str[n] = '\n';
+    
+    build_border_array(test_str, n, ba);
+    build_reverse_border_array(reverse_test_str, n, rba);
+  
+    printf("%s\n", test_str);
+    printf("%s\n", reverse_test_str);
+    for (unsigned long i = 0; i < n; ++i)
+        printf("ba[%lu] == %lu\n", i, ba[i]);
+    for (unsigned long i = 0; i < n; ++i)
+        printf("rba[%lu] == %lu\n", i, rba[i]);
+    
+    for (unsigned long i = 0; i < n; ++i)
+        assert(ba[i] == rba[n - 1 - i]);
+}
+
+
+static void test_random_z()
 {
     unsigned long n = 10;
     char test_str[n];
@@ -119,7 +152,8 @@ int main(int argc, char * argv[])
     test4();
     
     srandom(123);
-    test_random();
+    test_random_reverse_border();
+    test_random_z();
     
     return EXIT_SUCCESS;
 }
