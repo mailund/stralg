@@ -25,6 +25,40 @@ unsigned long match(const char * s1, const char * s2);
 void build_border_array(const char * str, unsigned long n, unsigned long * ba);
 
 /**
+ Build the restricted border array for a string. This is a border array
+ with the additional requirement that rba[i] is the longest border of
+ str[0..i] where str[rba[i] + 1] != str[i + 1].
+ 
+ The rba array must be allocated before the function is called
+
+ @param str The string
+ @param n The length of the string (and the border arrays)
+ @param ba The border array of str; must be computed before this function is called
+ @param rba The restricted border array
+ */
+void build_restricted_border_array(const char * str, unsigned long n,
+                                   const unsigned long * ba,
+                                   unsigned long * rba);
+
+/**
+ Build the restricted reverse border array for a string.
+ This is a reverse border array with the additional requirement that
+ rba[i] is the longest border of
+ str[i..n] where str[i - 1] != str[n - 1 - rba[i]].
+ 
+ The rba array must be allocated before the function is called
+ 
+ @param str The string
+ @param n The length of the string (and the border arrays)
+ @param ba The border array of str; must be computed before this function is called
+ @param rba The restricted border array
+ */
+void build_restricted_reverse_border_array(const char * str, unsigned long n,
+                                           const unsigned long * ba,
+                                           unsigned long * rba);
+
+
+/**
  Build the reverse border array for string str, of length n,
  and store it in ba. The border array ba has the
  property that ba[i] is the length of the longest

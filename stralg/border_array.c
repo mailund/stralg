@@ -11,6 +11,30 @@ void build_border_array(const char * str, unsigned long n, unsigned long * ba)
     }
 }
 
+void build_restricted_border_array(const char * str, unsigned long n,
+                                   const unsigned long * ba,
+                                   unsigned long * rba)
+{
+    // rba[i] is either ba[i], when the next character is different
+    // or it is rba[rba[i] - 1] because the next-longest border where the
+    // next character differs must then be it.
+    for (unsigned long i = 0; i < n - 1; ++i) {
+        rba[i] = (str[ba[i]] != str[i + 1] || ba[i] == 0) ? ba[i] : rba[ba[i] - 1];
+    }
+    rba[n - 1] = ba[n - 1];
+}
+
+void build_restricted_reverse_border_array(const char * str, unsigned long n,
+                                           const unsigned long * ba,
+                                           unsigned long * rba)
+{
+    rba[n - 1] = 0;
+    for (long i = n - 2; i > 0; --i) {
+        rba[i] = (str[i-1] != str[n - 1 - ba[i]] || ba[i] == 0) ? ba[i] : rba[n - ba[i]];
+    }
+    rba[0] = ba[0];
+}
+
 void build_reverse_border_array(const char * str, unsigned long n, unsigned long * ba)
 {
     ba[n - 1] = 0;

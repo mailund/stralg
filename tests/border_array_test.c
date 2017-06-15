@@ -22,6 +22,42 @@ static void test1()
     assert(b[6] == 5);
 }
 
+static void test1r()
+{
+    const char * test_str = "abababa";
+    unsigned long n = strlen(test_str);
+    unsigned long b[n], r[n];
+    
+    build_border_array(test_str, n, b);
+    build_restricted_border_array(test_str, n, b, r);
+    
+    assert(r[0] == 0);
+    assert(r[1] == 0);
+    assert(r[2] == 0);
+    assert(r[3] == 0);
+    assert(r[4] == 0);
+    assert(r[5] == 0);
+    assert(r[6] == 5);
+}
+
+static void test1r2()
+{
+    const char * test_str = "ababcaa";
+    unsigned long n = strlen(test_str);
+    unsigned long b[n], r[n];
+    
+    build_border_array(test_str, n, b);
+    build_restricted_border_array(test_str, n, b, r);
+    
+    assert(r[0] == 0);
+    assert(r[1] == 0);
+    assert(r[2] == 0);
+    assert(r[3] == 2);
+    assert(r[4] == 0);
+    assert(r[5] == 1);
+    assert(r[6] == 1);
+}
+
 static void test2()
 {
     const char * test_str = "abababa";
@@ -70,6 +106,42 @@ static void test4()
     assert(b[2] == 3);
     assert(b[3] == 2);
     assert(b[4] == 1);
+    assert(b[5] == 0);
+    assert(b[6] == 0);
+}
+
+static void test4r()
+{
+    const char * test_str = "abababa";
+    unsigned long n = strlen(test_str);
+    unsigned long b[n], r[n];
+    
+    build_reverse_border_array(test_str, n, b);
+    build_restricted_reverse_border_array(test_str, n, b, r);
+    
+    assert(b[0] == 5);
+    assert(b[1] == 0);
+    assert(b[2] == 0);
+    assert(b[3] == 0);
+    assert(b[4] == 0);
+    assert(b[5] == 0);
+    assert(b[6] == 0);
+}
+
+static void test4r2()
+{
+    const char * test_str = "aacbaba";
+    unsigned long n = strlen(test_str);
+    unsigned long b[n], r[n];
+    
+    build_reverse_border_array(test_str, n, b);
+    build_restricted_reverse_border_array(test_str, n, b, r);
+    
+    assert(b[0] == 1);
+    assert(b[1] == 1);
+    assert(b[2] == 0);
+    assert(b[3] == 2);
+    assert(b[4] == 0);
     assert(b[5] == 0);
     assert(b[6] == 0);
 }
@@ -147,6 +219,8 @@ static void test_random_z()
 int main(int argc, char * argv[])
 {
     test1();
+    test1r();
+    test1r2();
     test2();
     test3();
     test4();
