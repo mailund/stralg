@@ -24,17 +24,6 @@ void build_restricted_border_array(const char * str, unsigned long n,
     rba[n - 1] = ba[n - 1];
 }
 
-void build_restricted_reverse_border_array(const char * str, unsigned long n,
-                                           const unsigned long * ba,
-                                           unsigned long * rba)
-{
-    rba[n - 1] = 0;
-    for (long i = n - 2; i > 0; --i) {
-        rba[i] = (str[i-1] != str[n - 1 - ba[i]] || ba[i] == 0) ? ba[i] : rba[n - ba[i]];
-    }
-    rba[0] = ba[0];
-}
-
 void build_reverse_border_array(const char * str, unsigned long n, unsigned long * ba)
 {
     ba[n - 1] = 0;
@@ -44,6 +33,17 @@ void build_reverse_border_array(const char * str, unsigned long n, unsigned long
             b = ba[n - b];
         ba[i] = (str[i] == str[n - 1 - b]) ? b + 1 : 0;
     }
+}
+
+void build_restricted_reverse_border_array(const char * str, unsigned long n,
+                                           const unsigned long * ba,
+                                           unsigned long * rba)
+{
+    rba[n - 1] = 0;
+    for (long i = n - 2; i > 0; --i) {
+        rba[i] = (str[i-1] != str[n - 1 - ba[i]] || ba[i] == 0) ? ba[i] : rba[n - ba[i]];
+    }
+    rba[0] = ba[0];
 }
 
 void build_z_array(const char * str, unsigned long n, unsigned long * Z)
