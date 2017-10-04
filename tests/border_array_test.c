@@ -110,7 +110,7 @@ static void test4r()
     assert(b[6] == 0);
 }
 
-void sample_random_string(char * str, unsigned long n)
+static void sample_random_string(char * str, unsigned long n)
 {
     for (unsigned long i = 0; i < n; ++i) {
         str[i] = "ab"[random()&01];
@@ -118,7 +118,7 @@ void sample_random_string(char * str, unsigned long n)
     str[n] = '\0';
 }
 
-void reverse_string(const char * str, unsigned long n, char * rev_str)
+static void reverse_string(const char * str, unsigned long n, char * rev_str)
 {
     for (unsigned int i = 0; i < n; ++i) {
         rev_str[i] = str[n - 1 - i];
