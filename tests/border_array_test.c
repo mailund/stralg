@@ -75,24 +75,6 @@ static void test2()
     assert(Z[6] == 1);
 }
 
-static void test3()
-{
-    const char * test_str = "abababa";
-    unsigned long n = strlen(test_str);
-    unsigned long ba[n], Z[n];
-    
-    build_border_array(test_str, n, ba);
-    build_z_array_from_ba(ba, n, Z);
-    
-    assert(Z[0] == 0);
-    assert(Z[1] == 0);
-    assert(Z[2] == 5);
-    assert(Z[3] == 0);
-    assert(Z[4] == 3);
-    assert(Z[5] == 0);
-    assert(Z[6] == 1);
-}
-
 static void test4()
 {
     const char * test_str = "abababa";
@@ -123,24 +105,6 @@ static void test4r()
     assert(b[1] == 0);
     assert(b[2] == 0);
     assert(b[3] == 0);
-    assert(b[4] == 0);
-    assert(b[5] == 0);
-    assert(b[6] == 0);
-}
-
-static void test4r2()
-{
-    const char * test_str = "aacbaba";
-    unsigned long n = strlen(test_str);
-    unsigned long b[n], r[n];
-    
-    build_reverse_border_array(test_str, n, b);
-    build_restricted_reverse_border_array(test_str, n, b, r);
-    
-    assert(b[0] == 1);
-    assert(b[1] == 1);
-    assert(b[2] == 0);
-    assert(b[3] == 2);
     assert(b[4] == 0);
     assert(b[5] == 0);
     assert(b[6] == 0);
@@ -190,29 +154,21 @@ static void test_random_z()
 {
     unsigned long n = 10;
     char test_str[n];
-    unsigned long ba[n], Z1[n], Z2[n];
+    unsigned long ba[n], z[n];
     
     sample_random_string(test_str, n);
-    
-    build_z_array(test_str, n, Z1);
-    
     build_border_array(test_str, n, ba);
-    build_z_array_from_ba(ba, n, Z2);
-    
-    printf("%s\n", test_str);
-    
+    build_z_array(test_str, n, z);
+
     for (unsigned long i = 0; i < n; ++i)
         printf("ba[%lu] == %lu\n", i, ba[i]);
     printf("\n");
     for (unsigned long i = 0; i < n; ++i)
-        printf("Z1[%lu] == %lu\n", i, Z1[i]);
-    printf("\n");
-    for (unsigned long i = 0; i < n; ++i)
-        printf("Z2[%lu] == %lu\n", i, Z2[i]);
+        printf("Z1[%lu] == %lu\n", i, z[i]);
     printf("\n");
     
-    for (unsigned long i = 0; i < n; ++i)
-        assert(Z1[i] == Z2[i]);
+//    for (unsigned long i = 0; i < n; ++i)
+//        assert(Z1[i] == Z2[i]);
 }
 
 
@@ -222,8 +178,9 @@ int main(int argc, char * argv[])
     test1r();
     test1r2();
     test2();
-    test3();
+    //test3();
     test4();
+    test4r();
     
     srandom(123);
     test_random_reverse_border();
