@@ -37,6 +37,8 @@ typedef void (*exact_match_func)(const char *text, size_t n,
 void naive_exact_match(const char *text, size_t n,
                        const char *pattern, size_t m,
                        callback_func callback, void *callback_data);
-
+void boyer_moore_horspool(const char *text, size_t n,
+                          const char *pattern, size_t m,
+                          callback_func callback, void *callback_data);
 
 #endif
