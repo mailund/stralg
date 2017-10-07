@@ -47,5 +47,9 @@ void boyer_moore_horspool(const char *text, size_t n,
 void knuth_morris_pratt(const char *text, size_t n,
                         const char *pattern, size_t m,
                         callback_func callback, void *callback_data);
+void knuth_morris_pratt_r(const char *text, size_t n,
+                          const char *pattern, size_t m,
+                          callback_func callback, void *callback_data);
+
 
 #endif
