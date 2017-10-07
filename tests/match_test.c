@@ -130,6 +130,7 @@ int main(int argc, char * argv[])
 {
     assert(match_tests(naive_exact_match));
     assert(match_tests(boyer_moore_horspool));
+    assert(match_tests(knuth_morris_pratt));
     
     for (size_t i = 0; i < 10; i++)
         assert(match_test_random(boyer_moore_horspool));

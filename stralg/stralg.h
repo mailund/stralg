@@ -22,6 +22,10 @@ void copy_array_to_buffer(size_t array[], size_t array_size, struct buffer *buff
 bool buffers_equal(struct buffer *x, struct buffer *y);
 
 
+// preprocessing functions
+void build_prefix_table(const char *str, size_t n, size_t *prefixtab);
+
+
 // matching callbacks
 typedef void (*callback_func)(size_t index, void * data);
 
@@ -40,5 +44,8 @@ void naive_exact_match(const char *text, size_t n,
 void boyer_moore_horspool(const char *text, size_t n,
                           const char *pattern, size_t m,
                           callback_func callback, void *callback_data);
+void knuth_morris_pratt(const char *text, size_t n,
+                        const char *pattern, size_t m,
+                        callback_func callback, void *callback_data);
 
 #endif
