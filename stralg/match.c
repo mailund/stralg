@@ -119,8 +119,8 @@ void knuth_morris_pratt_r(const char *text, size_t n,
     
     // matching
     size_t j = 0, q = 0;
-    size_t max_match_len = n - m + 1; // same as for the naive algorithm
-    while (j < max_match_len + q) {   // here we compensate for j pointing q into match
+    size_t max_match_index = n - m + 1; // same as for the naive algorithm
+    while (j < max_match_index + q) {   // here we compensate for j pointing q into match
         while (q < m && text[j] == pattern[q]) {
             q++; j++;
         }
