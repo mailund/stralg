@@ -18,3 +18,4 @@ tests/Debug/
 tests/StrAlg.build/
 tests/match_test
 tests/border_array_test
+tests/trie_test
