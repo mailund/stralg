@@ -44,12 +44,10 @@ int main(int argc, char * argv[])
     extract_label(t, buffer);
     printf("'%s'\n", buffer);
     
-#if 0
     t = get_trie_node(trie, "ab");
     assert(t != 0);
     extract_label(t, buffer);
     printf("'%s'\n", buffer);
-#endif
     
     assert(!string_in_trie(trie, "a"));
     assert(!string_in_trie(trie, "ab"));

@@ -69,20 +69,18 @@ void add_string_to_trie(struct trie *trie, const char *str, int string_label)
     }
 }
 
-struct trie *get_trie_node(const struct trie *trie, const char *str)
+struct trie *get_trie_node(struct trie *trie, const char *str)
 {
-    struct trie *t = trie->children;
-    while (t && *str) {
-        if (t->in_edge_label == *str) {
-            if (*(str + 1) == '\0' && t->string_label >= 0)
-                return t;
-            t = t->children;
-            str++;
+    while (*str) {
+        struct trie *child = out_link(trie, *str);
+        if (!child) {
+            return 0; // we can't find the string
         } else {
-            t = t->sibling;
+            trie = child;
+            str++;
         }
     }
-    return 0;
+    return trie;
 }
 
 void delete_trie(struct trie *trie)
