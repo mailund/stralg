@@ -77,3 +77,12 @@ void delete_trie(struct trie *trie)
     if (trie->sibling) delete_trie(trie->sibling);
     free(trie);
 }
+
+
+
+void compute_failure_links(struct trie *trie)
+{
+    // FIXME
+}
+
+

@@ -4,6 +4,7 @@ add_library(stralg SHARED
 	stralg.h
 	buffer.c border-arrays.c match.c
 	trie.h trie.c
+	queue.h queue.c
 	)
 target_include_directories(stralg
   PUBLIC
@@ -14,4 +15,4 @@ target_include_directories(stralg
 )
 
 install(TARGETS stralg DESTINATION lib)
-install(FILES stralg.h trie.h DESTINATION include)
+install(FILES stralg.h trie.h queue.h DESTINATION include)
