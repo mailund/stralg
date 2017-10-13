@@ -1,22 +1,14 @@
 #include "trie.h"
 #include <stdlib.h>
 
-static struct trie* new_trie_node(char in_edge_label,
-                                  int string_label,
-                                  struct trie *children,
-                                  struct trie *siblings)
-{
-    struct trie *trie = (struct trie*)malloc(sizeof(struct trie));
-    trie->in_edge_label = in_edge_label;
-    trie->string_label = string_label;
-    trie->sibling = siblings;
-    trie->children = children;
-    return trie;
-}
-
 struct trie *empty_trie()
 {
-    return new_trie_node('\0', -1, 0, 0);
+    struct trie *trie = (struct trie*)malloc(sizeof(struct trie));
+    trie->in_edge_label = '\0';
+    trie->string_label = -1;
+    trie->sibling = 0;
+    trie->children = 0;
+    return trie;
 }
 
 static struct trie *string_to_trie(const char *str, int string_label)
@@ -27,7 +19,11 @@ static struct trie *string_to_trie(const char *str, int string_label)
     struct trie *trie = 0;
     do {
         s--;
-        trie = new_trie_node(*s, string_label, trie, 0);
+        struct trie *new_node = empty_trie();
+        new_node->in_edge_label = *s;
+        new_node->string_label = string_label;
+        new_node->children = trie;
+        trie = new_node;
         string_label = -1; // so we only label the leaf...
     } while (s != str);
     
