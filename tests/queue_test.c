@@ -48,5 +48,10 @@ int main(int argc, char * argv[])
     
     delete_queue(queue);
     
+    
+    // make sure we can delete empty queues.
+    queue = empty_queue();
+    delete_queue(queue);
+    
     return EXIT_SUCCESS;
 }

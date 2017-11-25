@@ -1,6 +1,7 @@
 #include "trie.h"
 #include "queue.h"
 #include <stdlib.h>
+#include <assert.h>
 
 struct trie *empty_trie()
 {
@@ -59,7 +60,8 @@ void add_string_to_trie(struct trie *trie, const char *str, int string_label)
 
     if (*str == '\0') {
         // the string was already in the trie -- update with label
-        trie->string_label = string_label;
+        trie->string_label = string_label; // FIXME: only works if we never insert
+                                           // two identical strings.
     } else {
         // insert new suffix as a child of parent
         struct trie *new_suffix = string_to_trie(str, string_label);
@@ -97,7 +99,9 @@ static void enqueue_siblings(struct queue *queue, struct trie *siblings)
         enqueue(queue, (void*)s);
 }
 
-static void compute_failure_link_for_node(struct trie *v, struct trie *root, struct queue *queue)
+static void compute_failure_link_for_node(struct trie *v,
+                                          struct trie *root,
+                                          struct queue *queue)
 {
     enqueue_siblings(queue, v->children); // breadth first traversal...
     
@@ -125,6 +129,8 @@ void compute_failure_links(struct trie *trie)
         dequeue(nodes);
         compute_failure_link_for_node(v, trie, nodes);
     }
+    
+    delete_queue(nodes);
 }
 
 

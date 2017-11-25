@@ -35,8 +35,6 @@ int main(int argc, char * argv[])
     add_string_to_trie(trie, "b", 2);
     add_string_to_trie(trie, "bab", 3);
     
-    compute_failure_links(trie);
-    
     struct trie *t = get_trie_node(trie, "aba");
     assert(t);
     
@@ -58,6 +56,8 @@ int main(int argc, char * argv[])
     assert(!string_in_trie(trie, "ba"));
     assert(string_in_trie(trie, "bab"));
     assert(!string_in_trie(trie, "babc"));
+    
+    compute_failure_links(trie);
     
     delete_trie(trie);
     
