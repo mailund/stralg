@@ -2,6 +2,7 @@
 #include "queue.h"
 #include <stdlib.h>
 #include <assert.h>
+#include <stdio.h>
 
 struct trie *empty_trie()
 {
@@ -39,8 +40,10 @@ static struct trie *string_to_trie(const char *str, int string_label)
 
 static struct trie *out_link(struct trie *v, char label)
 {
+    assert(v);
     for (struct trie *w = v->children; w; w = w->sibling) {
-        if (w->in_edge_label == label) return w;
+        if (w->in_edge_label == label)
+            return w;
     }
     return 0;
 }
@@ -99,29 +102,40 @@ static void enqueue_siblings(struct queue *queue, struct trie *siblings)
         enqueue(queue, (void*)s);
 }
 
+
+
 static void compute_failure_link_for_node(struct trie *v,
                                           struct trie *root,
                                           struct queue *queue)
 {
     enqueue_siblings(queue, v->children); // breadth first traversal...
+    if (is_trie_root(v->parent)) {
+        // special case: immidiate children of the root should have the root
+        v->failure_link = v->parent;
+        return;
+    }
     
     char label = v->in_edge_label;
     struct trie *w = v->parent->failure_link;
-    struct trie *ww = out_link(w, label);
-    while (!is_trie_root(w) && ww) {
+    struct trie *out = out_link(w, label);
+    while (!out && !is_trie_root(w)) {
         w = w->failure_link;
-        ww = out_link(w, label);
+        out = out_link(w, label);
     }
-    if (ww) {
-        v->failure_link = ww;
+    
+    if (out) {
+        v->failure_link = out;
     } else {
         v->failure_link = root;
     }
+    
     // FIXME: compute output lists here
 }
 
 void compute_failure_links(struct trie *trie)
 {
+    trie->failure_link = trie; // make the root its own failure link.
+    
     struct queue *nodes = empty_queue();
     enqueue_siblings(nodes, trie->children);
     while (!queue_is_empty(nodes)) {

@@ -70,19 +70,16 @@ int main(int argc, char * argv[])
     struct trie *aba = get_trie_node(trie, "aba");
     struct trie *aba_failure = aba->failure_link;
     extract_label(aba_failure, buffer);
-    //assert(strcmp(buffer, "ba") == 0); fixme
-    printf("aba, failure should be ba but is %s\n", buffer);
+    assert(strcmp(buffer, "ba") == 0);
     
     struct trie *abab = get_trie_node(trie, "abab");
     struct trie *abab_failure = abab->failure_link;
     extract_label(abab_failure, buffer);
-    //assert(strcmp(buffer, "bab") == 0); fixme
-    printf("abab, failure should be bab but is %s\n", buffer);
+    assert(strcmp(buffer, "bab") == 0);
     
     struct trie *ababc = get_trie_node(trie, "ababc");
     struct trie *ababc_failure = ababc->failure_link;
     assert(is_trie_root(ababc_failure));
-    
     
     struct trie *b = get_trie_node(trie, "b");
     struct trie *b_failure = b->failure_link;
@@ -92,12 +89,11 @@ int main(int argc, char * argv[])
     struct trie *ba_failure = ba->failure_link;
     extract_label(ba_failure, buffer);
     assert(strcmp(buffer, "a") == 0);
-
+    
     struct trie *bab = get_trie_node(trie, "bab");
     struct trie *bab_failure = bab->failure_link;
     extract_label(bab_failure, buffer);
-    printf("bab, failure should be ab but is %s\n", buffer);
-    //fixme: assert(strcmp(buffer, "ab") == 0);
+    assert(strcmp(buffer, "ab") == 0);
     
     delete_trie(trie);
     
