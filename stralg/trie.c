@@ -109,6 +109,7 @@ static void compute_failure_link_for_node(struct trie *v,
                                           struct queue *queue)
 {
     enqueue_siblings(queue, v->children); // breadth first traversal...
+    
     if (is_trie_root(v->parent)) {
         // special case: immidiate children of the root should have the root
         v->failure_link = v->parent;
