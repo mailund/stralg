@@ -17,6 +17,7 @@ struct buffer *allocate_buffer(size_t buffer_size)
 
 void add_to_buffer(struct buffer *buffer, size_t value)
 {
+    assert(buffer->used < buffer->size); // FIXME: reallocate larger buffer instead
     buffer->buffer[(buffer->used)++] = value;
 }
 
@@ -57,7 +58,7 @@ void copy_array_to_buffer(size_t array[], size_t array_size,
 
 bool buffers_equal(struct buffer *x, struct buffer *y)
 {
-    if (x->size != y->size || x->used != y->used) {
+    if (x->used != y->used) {
         return false;
     }
     
