@@ -6,6 +6,7 @@ add_library(stralg SHARED
 	match.h match.c
 	trie.h trie.c
 	queue.h queue.c
+	aho_corasick.h aho_corasick.c
 	border-arrays.c 
 	)
 target_include_directories(stralg

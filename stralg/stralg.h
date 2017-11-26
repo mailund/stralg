@@ -4,7 +4,7 @@
 #include <buffer.h>
 #include <match.h>
 #include <trie.h>
-
+#include <aho_corasick.h>
 
 
 #endif

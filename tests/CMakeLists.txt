@@ -11,3 +11,7 @@ add_executable(trie_test trie_test.c)
 target_link_libraries(trie_test stralg)
 add_test(Trie trie_test)
 
+add_executable(aho_corasick_test aho_corasick_test.c)
+target_link_libraries(aho_corasick_test stralg)
+add_test(Aho-Corasick aho_corasick_test)
+

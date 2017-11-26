@@ -19,3 +19,4 @@ tests/StrAlg.build/
 tests/match_test
 tests/queue_test
 tests/trie_test
+tests/aho_corasick_test

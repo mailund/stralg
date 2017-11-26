@@ -39,7 +39,7 @@ static struct trie *string_to_trie(const char *str, int string_label)
     return trie;
 }
 
-static struct trie *out_link(struct trie *v, char label)
+struct trie *out_link(struct trie *v, char label)
 {
     assert(v);
     for (struct trie *w = v->children; w; w = w->sibling) {
