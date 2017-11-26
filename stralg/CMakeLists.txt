@@ -2,9 +2,11 @@
 set(CMAKE_MACOSX_RPATH 1)
 add_library(stralg SHARED 
 	stralg.h
-	buffer.c border-arrays.c match.c
+	buffer.h buffer.c 
+	match.h match.c
 	trie.h trie.c
 	queue.h queue.c
+	border-arrays.c 
 	)
 target_include_directories(stralg
   PUBLIC
@@ -15,4 +17,4 @@ target_include_directories(stralg
 )
 
 install(TARGETS stralg DESTINATION lib)
-install(FILES stralg.h trie.h queue.h DESTINATION include)
+install(FILES stralg.h buffer.h match.h trie.h queue.h DESTINATION include)

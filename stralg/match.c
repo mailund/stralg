@@ -2,6 +2,7 @@
 
 #include <assert.h>
 #include <stdio.h>
+#include <match.h>
 
 void naive_exact_match(const char *text, size_t n,
                        const char *pattern, size_t m,

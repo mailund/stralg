@@ -1,4 +1,4 @@
-#include "stralg.h"
+#include <buffer.h>
 
 #include <stdlib.h>
 #include <stdio.h>
