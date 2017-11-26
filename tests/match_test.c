@@ -7,6 +7,12 @@
 #include <stdbool.h>
 
 
+// exact pattern matching
+typedef void (*exact_match_func)(const char *text, size_t n,
+                                 const char *pattern, size_t m,
+                                 callback_func callback, void *callback_data);
+
+
 static bool match_test_1(exact_match_func match_func)
 {
     bool status = true;

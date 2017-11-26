@@ -7,12 +7,6 @@ typedef void (*callback_func)(size_t index, void * data);
 // callback for collecting indices
 void buffer_callback(size_t index, struct buffer *buffer);
 
-
-// exact pattern matching
-typedef void (*exact_match_func)(const char *text, size_t n,
-const char *pattern, size_t m,
-callback_func callback, void *callback_data);
-
 void naive_exact_match(const char *text, size_t n,
                        const char *pattern, size_t m,
                        callback_func callback, void *callback_data);
