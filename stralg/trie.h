@@ -3,6 +3,11 @@
 
 #include <stdbool.h>
 
+struct output_list {
+    int string_label;
+    struct output_list *next;
+};
+
 struct trie {
     char in_edge_label;
     int string_label;
@@ -12,7 +17,7 @@ struct trie {
     
     // for Aho-Corasick
     struct trie *failure_link;
-    
+    struct output_list *output;
 };
 
 struct trie *empty_trie();

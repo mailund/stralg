@@ -12,6 +12,7 @@ struct trie *empty_trie()
     trie->parent = 0;
     trie->sibling = 0;
     trie->children = 0;
+    trie->output = 0;
     return trie;
 }
 
@@ -62,9 +63,11 @@ void add_string_to_trie(struct trie *trie, const char *str, int string_label)
     }
 
     if (*str == '\0') {
-        // the string was already in the trie -- update with label
-        trie->string_label = string_label; // FIXME: only works if we never insert
-                                           // two identical strings.
+        // the string was already in the trie -- update with label.
+        // we only allow this when the string wasn't already inserted!
+        assert(trie->string_label < 0);
+        trie->string_label = string_label;
+        
     } else {
         // insert new suffix as a child of parent
         struct trie *new_suffix = string_to_trie(str, string_label);
@@ -93,6 +96,16 @@ void delete_trie(struct trie *trie)
     // depth first traversal freeing the trie.
     if (trie->children) delete_trie(trie->children);
     if (trie->sibling) delete_trie(trie->sibling);
+    
+    /* the output list is a linked list, but there is at most
+       a link per string label and that is associated with the
+       trie node with that label. We don't need to handle the
+       rest of the output list since those will be handled
+       when their corresponding trie nodes are deleted. 
+     */
+    if (trie->output && trie->string_label == trie->output->string_label)
+        free(trie->output);
+    
     free(trie);
 }
 
@@ -103,6 +116,13 @@ static void enqueue_siblings(struct queue *queue, struct trie *siblings)
 }
 
 
+static struct output_list *new_output_link(int label, struct output_list *next)
+{
+    struct output_list *link = (struct output_list *)malloc(sizeof(struct output_list));
+    link->string_label = label;
+    link->next = next;
+    return link;
+}
 
 static void compute_failure_link_for_node(struct trie *v,
                                           struct trie *root,
@@ -113,24 +133,30 @@ static void compute_failure_link_for_node(struct trie *v,
     if (is_trie_root(v->parent)) {
         // special case: immidiate children of the root should have the root
         v->failure_link = v->parent;
-        return;
-    }
-    
-    char label = v->in_edge_label;
-    struct trie *w = v->parent->failure_link;
-    struct trie *out = out_link(w, label);
-    while (!out && !is_trie_root(w)) {
-        w = w->failure_link;
-        out = out_link(w, label);
-    }
-    
-    if (out) {
-        v->failure_link = out;
+
     } else {
-        v->failure_link = root;
+        
+        char label = v->in_edge_label;
+        struct trie *w = v->parent->failure_link;
+        struct trie *out = out_link(w, label);
+        while (!out && !is_trie_root(w)) {
+            w = w->failure_link;
+            out = out_link(w, label);
+        }
+        
+        if (out) {
+            v->failure_link = out;
+        } else {
+            v->failure_link = root;
+        }
     }
     
-    // FIXME: compute output lists here
+    // compute output list
+    if (v->string_label >= 0) {
+        v->output = new_output_link(v->string_label, v->failure_link->output);
+    } else {
+        v->output = v->failure_link->output;
+    }
 }
 
 void compute_failure_links(struct trie *trie)
