@@ -10,6 +10,8 @@
 #include <stdio.h>
 
 struct search_info {
+    const char *ref_name;
+    const char *read_name;
     struct string_vector *patterns;
     struct string_vector *cigars;
     struct trie *patterns_trie;
@@ -18,6 +20,8 @@ struct search_info {
 static struct search_info *empty_search_info()
 {
     struct search_info *info = (struct search_info*)malloc(sizeof(struct search_info));
+    info->ref_name = 0;
+    info->read_name = 0;
     info->patterns = empty_string_vector(256); // arbitrary start size...
     info->cigars = empty_string_vector(256); // arbitrary start size...
     info->patterns_trie = empty_trie();
@@ -53,7 +57,10 @@ static void match_callback(int label, size_t index, void * data)
     struct search_info *info = (struct search_info*)data;
     size_t pattern_len = strlen(info->patterns->strings[label]); // FIXME: precompute
     size_t start_index = index - pattern_len + 1 + 1; // +1 for arithmetic, +1 for one indexed
-    printf("%zu\t%s\t%s\n", start_index,
+    printf("%s\t%s\t%zu\t%s\t%s\n",
+           info->read_name,
+           info->ref_name,
+           start_index,
            info->cigars->strings[label],
            info->patterns->strings[label]);
 }
@@ -90,9 +97,6 @@ int main(int argc, char * argv[])
     const char *alphabet = "ACGT";
     int max_dist = 1;
     
-    // FIXME: read from files... cacatcagt
-    const char *reference = "ACCTACAGACTACCATGTATCTCCATTTACCTAGTCTAGCATACTTTCCACACGCTGTGTGTCACTAGTGTGACTACGAAATACGTGTGTACTACGGACTACCTACTACCTA";
-    size_t n = strlen(reference); // FIXME: don't do this, store it in a vector.
     const char *read = "CCTACAGACTACCATGTATCTCCATTTACCTAGTC";
     
     // FIXME: do this per read and per reference
@@ -100,7 +104,18 @@ int main(int argc, char * argv[])
     
     generate_all_neighbours(read, alphabet, max_dist, build_trie_callback, info);
     compute_failure_links(info->patterns_trie);
-    aho_corasick_match(reference, n, info->patterns_trie, match_callback, info);
+    
+    info->read_name = "FIXME";
+    for (int i = 0; i < fasta_records->names->used; ++i) {
+        const char *name = fasta_records->names->strings[i];
+        info->ref_name = name;
+        
+        const char *ref = fasta_records->sequences->strings[i];
+        size_t n = strlen(ref); // FIXME: don't keep recomputing this one!
+        
+        aho_corasick_match(ref, n, info->patterns_trie, match_callback, info);
+    }
+    
 
     delete_search_info(info);
 

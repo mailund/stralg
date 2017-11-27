@@ -42,11 +42,12 @@ int read_fasta_records(struct fasta_records *records, FILE *file)
             // new sequence...
             add_string_copy(records->names, name); free(name);
             add_string_copy(records->sequences, seq); // don't free...reuse
+            n = 0;
             
             header  = strtok(buffer+1, "\n");
             name = (char*)malloc(strlen(header)+1);
             strcpy(name, header);
-
+            
             continue;
         }
         
