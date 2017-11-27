@@ -23,3 +23,4 @@ tests/aho_corasick_test
 tests/edit_distance_generator_test
 tests/string_vector_test
 tools/ac_readmap
+tools/Debug/
