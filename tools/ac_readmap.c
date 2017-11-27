@@ -53,7 +53,7 @@ static void match_callback(int label, size_t index, void * data)
     struct search_info *info = (struct search_info*)data;
     size_t pattern_len = strlen(info->patterns->strings[label]); // FIXME: precompute
     size_t start_index = index - pattern_len + 1 + 1; // +1 for arithmetic, +1 for one indexed
-    printf("%zu %s %s\n", start_index,
+    printf("%zu\t%s\t%s\n", start_index,
            info->cigars->strings[label],
            info->patterns->strings[label]);
 }
@@ -61,14 +61,41 @@ static void match_callback(int label, size_t index, void * data)
 
 int main(int argc, char * argv[])
 {
+    if (argc != 3) {
+        printf("Usage: %s ref.fa reads.fq\n", argv[0]);
+        return EXIT_FAILURE;
+    }
+    
+    FILE *fasta_file = fopen(argv[1], "r");
+    if (!fasta_file) {
+        printf("Could not open %s.\n", argv[1]);
+        return EXIT_FAILURE;
+    }
+    
+    FILE *fastq_file = fopen(argv[2], "r");
+    if (!fastq_file) {
+        printf("Could not open %s.\n", argv[2]);
+        return EXIT_FAILURE;
+    }
+    
+    struct fasta_records *fasta_records = empty_fasta_records();
+    read_fasta_records(fasta_records, fasta_file);
+    
+    printf("%d fasta records.\n", fasta_records->names->used);
+    printf("\t%s\n", fasta_records->names->strings[0]);
+    printf("\t%s\n", fasta_records->sequences->strings[0]);
+    printf("\t%s\n", fasta_records->names->strings[1]);
+    printf("\t%s\n", fasta_records->sequences->strings[1]);
+    
     const char *alphabet = "ACGT";
     int max_dist = 1;
     
     // FIXME: read from files... cacatcagt
-    const char *reference = "ACCACATCAGTACCATACTATCGGGCTCACACAGTACACAGT";
-    size_t n = strlen(reference);
-    const char *read = "CACACAGT";
+    const char *reference = "ACCTACAGACTACCATGTATCTCCATTTACCTAGTCTAGCATACTTTCCACACGCTGTGTGTCACTAGTGTGACTACGAAATACGTGTGTACTACGGACTACCTACTACCTA";
+    size_t n = strlen(reference); // FIXME: don't do this, store it in a vector.
+    const char *read = "CCTACAGACTACCATGTATCTCCATTTACCTAGTC";
     
+    // FIXME: do this per read and per reference
     struct search_info *info = empty_search_info();
     
     generate_all_neighbours(read, alphabet, max_dist, build_trie_callback, info);
@@ -76,6 +103,9 @@ int main(int argc, char * argv[])
     aho_corasick_match(reference, n, info->patterns_trie, match_callback, info);
 
     delete_search_info(info);
+
+    
+    delete_fasta_records(fasta_records);
     
     return EXIT_SUCCESS;
 }

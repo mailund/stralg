@@ -8,5 +8,7 @@
 #include <edit_distance_generator.h>
 #include <cigar.h>
 #include <string_vector.h>
+#include <fasta.h>
+#include <fastq.h>
 
 #endif

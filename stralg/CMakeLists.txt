@@ -10,6 +10,8 @@ add_library(stralg SHARED
 	edit_distance_generator.h edit_distance_generator.c
 	cigar.h cigar.c
 	string_vector.h string_vector.c
+	fasta.h fasta.c
+	fastq.h fastq.c
 	border-arrays.c 
 	)
 target_include_directories(stralg
