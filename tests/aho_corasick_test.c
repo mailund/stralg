@@ -22,7 +22,7 @@ struct callback_info {
     char **patterns;
 };
 
-void print_callback(int label, size_t index, void * data)
+void test_callback(int label, size_t index, void * data)
 {
     struct callback_info *info = (struct callback_info*)data;
     char *pattern = info->patterns[label];
@@ -46,7 +46,7 @@ int main(int argc, char * argv[])
     size_t n = strlen(text);
     
     struct callback_info info = { text, patterns };
-    aho_corasick_match(text, n, patterns_trie, print_callback, &info);
+    aho_corasick_match(text, n, patterns_trie, test_callback, &info);
     
     delete_trie(patterns_trie);
     
