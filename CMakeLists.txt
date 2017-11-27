@@ -5,3 +5,4 @@ include(CTest)
 
 add_subdirectory(stralg)
 add_subdirectory(tests)
+add_subdirectory(tools)
