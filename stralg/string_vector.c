@@ -33,12 +33,7 @@ static char *string_copy(const char *s)
 struct string_vector *add_string_copy(struct string_vector *v, const char *s)
 {
     if (v->used == v->size) {
-        char **new_strings = (char**)malloc(2 * v->size * sizeof(char*));
-        for (int i = 0; i < v->used; ++i) {
-            new_strings[i] = v->strings[i];
-        }
-        free(v->strings); // free the array but *not* the strings---we still have those
-        v->strings = new_strings;
+        v->strings = (char**)realloc(v->strings, 2 * v->size * sizeof(char*));
         v->size = 2 * v->size;
     }
     
