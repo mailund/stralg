@@ -20,3 +20,4 @@ tests/match_test
 tests/queue_test
 tests/trie_test
 tests/aho_corasick_test
+tests/edit_distance_generator_test
