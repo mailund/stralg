@@ -6,7 +6,7 @@
 
 void naive_exact_match(const char *text, size_t n,
                        const char *pattern, size_t m,
-                       callback_func callback, void *callback_data)
+                       match_callback_func callback, void *callback_data)
 {
     if (m > n) {
         // This is necessary because n and m are unsigned so the
@@ -28,7 +28,7 @@ void naive_exact_match(const char *text, size_t n,
 
 void boyer_moore_horspool(const char *text, size_t n,
                           const char *pattern, size_t m,
-                          callback_func callback, void *callback_data)
+                          match_callback_func callback, void *callback_data)
 {
     if (m > n) {
         // This is necessary because n and m are unsigned so the
@@ -58,7 +58,7 @@ void boyer_moore_horspool(const char *text, size_t n,
 
 void knuth_morris_pratt(const char *text, size_t n,
                         const char *pattern, size_t m,
-                        callback_func callback, void *callback_data)
+                        match_callback_func callback, void *callback_data)
 {
     if (m > n) {
         // This is necessary because n and m are unsigned so the
@@ -96,7 +96,7 @@ void knuth_morris_pratt(const char *text, size_t n,
 
 void knuth_morris_pratt_r(const char *text, size_t n,
                           const char *pattern, size_t m,
-                          callback_func callback, void *callback_data)
+                          match_callback_func callback, void *callback_data)
 {
     if (m > n) {
         // This is necessary because n and m are unsigned so the

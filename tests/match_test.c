@@ -10,7 +10,7 @@
 // exact pattern matching
 typedef void (*exact_match_func)(const char *text, size_t n,
                                  const char *pattern, size_t m,
-                                 callback_func callback, void *callback_data);
+                                 match_callback_func callback, void *callback_data);
 
 
 static bool match_test_1(exact_match_func match_func)
@@ -21,7 +21,7 @@ static bool match_test_1(exact_match_func match_func)
     struct buffer *buffer = allocate_buffer(n);
     struct buffer *test_buffer = allocate_buffer(n);
     
-    match_func(s1, n, s2, m, (callback_func)buffer_callback, buffer);
+    match_func(s1, n, s2, m, (match_callback_func)match_buffer_callback, buffer);
     size_t correct[] = { 0, 1, 2, 3 };
     copy_array_to_buffer(correct, sizeof(correct)/sizeof(size_t), test_buffer);
     if (!buffers_equal(buffer, test_buffer)) {
@@ -46,7 +46,7 @@ static bool match_test_2(exact_match_func match_func)
     struct buffer *buffer = allocate_buffer(n);
     struct buffer *test_buffer = allocate_buffer(n);
     
-    match_func(s1, n, s2, m, (callback_func)buffer_callback, buffer);
+    match_func(s1, n, s2, m, (match_callback_func)match_buffer_callback, buffer);
     size_t correct[] = { 0, 3 };
     copy_array_to_buffer(correct, sizeof(correct)/sizeof(size_t), test_buffer);
     if (!buffers_equal(buffer, test_buffer)) {
@@ -71,7 +71,7 @@ static bool match_test_3(exact_match_func match_func)
     struct buffer *buffer = allocate_buffer(n);
     struct buffer *test_buffer = allocate_buffer(n);
     
-    match_func(s1, n, s2, m, (callback_func)buffer_callback, buffer);
+    match_func(s1, n, s2, m, (match_callback_func)match_buffer_callback, buffer);
     size_t correct[] = { 1 };
     copy_array_to_buffer(correct, sizeof(correct)/sizeof(size_t), test_buffer);
     if (!buffers_equal(buffer, test_buffer)) {
@@ -109,8 +109,8 @@ static bool match_test_random(exact_match_func match_func)
     struct buffer *buffer = allocate_buffer(n);
     struct buffer *naive_buffer = allocate_buffer(n);
     
-    match_func(s1, n, s2, m, (callback_func)buffer_callback, buffer);
-    naive_exact_match(s1, n, s2, m, (callback_func)buffer_callback, naive_buffer);
+    match_func(s1, n, s2, m, (match_callback_func)match_buffer_callback, buffer);
+    naive_exact_match(s1, n, s2, m, (match_callback_func)match_buffer_callback, naive_buffer);
     if (!buffers_equal(buffer, naive_buffer)) {
         printf("Exact pattern matching for %s in %s:\n", s2, s1);
         printf("Naive algorithm: ");

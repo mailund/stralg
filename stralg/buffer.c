@@ -33,7 +33,7 @@ void delete_buffer(struct buffer *buffer)
 }
 
 // callback for collecting indices
-void buffer_callback(size_t index, struct buffer *buffer)
+void match_buffer_callback(size_t index, struct buffer *buffer)
 {
     add_to_buffer(buffer, index);
 }
