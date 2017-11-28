@@ -76,7 +76,7 @@ static void match_callback(size_t index, void * data)
     sam_line(info->search_info->sam_file,
              info->read_name,
              info->ref_name,
-             index,
+             index + 1, // + 1 for 1-indexing in SAM format.
              info->cigar,
              info->read,
              info->quality);
@@ -195,7 +195,7 @@ int main(int argc, char * argv[])
         search_info->match_func = naive_exact_match;
     } else if (strcmp(algorithm, "bmh") == 0) {
         search_info->match_func = boyer_moore_horspool;
-    } else if (strcmp(algorithm, "bmh") == 0) {
+    } else if (strcmp(algorithm, "kmp") == 0) {
         search_info->match_func = knuth_morris_pratt;
     } else {
         fprintf(stderr, "Unknown search algorithm %s.\n", algorithm);

@@ -27,3 +27,4 @@ tools/ac_readmap
 tools/match_readmap
 tools/Debug/
 tools/Release
+tools/*.sam
