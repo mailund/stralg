@@ -10,6 +10,23 @@
 #include <stdio.h>
 
 struct search_info {
+    struct fasta_records *records;
+};
+
+static struct search_info *empty_search_info()
+{
+    struct search_info *info = (struct search_info*)malloc(sizeof(struct search_info));
+    info->records = empty_fasta_records();
+    return info;
+}
+
+static void delete_search_info(struct search_info *info)
+{
+    delete_fasta_records(info->records);
+    free(info);
+}
+
+struct read_search_info {
     const char *ref_name;
     const char *read_name;
     struct string_vector *patterns;
@@ -17,9 +34,9 @@ struct search_info {
     struct trie *patterns_trie;
 };
 
-static struct search_info *empty_search_info()
+static struct read_search_info *empty_read_search_info()
 {
-    struct search_info *info = (struct search_info*)malloc(sizeof(struct search_info));
+    struct read_search_info *info = (struct read_search_info*)malloc(sizeof(struct read_search_info));
     info->ref_name = 0;
     info->read_name = 0;
     info->patterns = empty_string_vector(256); // arbitrary start size...
@@ -28,7 +45,7 @@ static struct search_info *empty_search_info()
     return info;
 }
 
-static void delete_search_info(struct search_info *info)
+static void delete_read_search_info(struct read_search_info *info)
 {
     delete_string_vector(info->patterns);
     delete_string_vector(info->cigars);
@@ -38,7 +55,7 @@ static void delete_search_info(struct search_info *info)
 
 static void build_trie_callback(const char *pattern, const char *cigar, void * data)
 {
-    struct search_info *info = (struct search_info*)data;
+    struct read_search_info *info = (struct read_search_info*)data;
     
     // patterns generated when we explore the neighbourhood of a read are not unique
     // so we need to check if we have seen it before
@@ -54,7 +71,7 @@ static void build_trie_callback(const char *pattern, const char *cigar, void * d
 
 static void match_callback(int label, size_t index, void * data)
 {
-    struct search_info *info = (struct search_info*)data;
+    struct read_search_info *info = (struct read_search_info*)data;
     size_t pattern_len = strlen(info->patterns->strings[label]); // FIXME: precompute
     size_t start_index = index - pattern_len + 1 + 1; // +1 for arithmetic, +1 for one indexed
     printf("%s\t%s\t%zu\t%s\t%s\n",
@@ -65,6 +82,34 @@ static void match_callback(int label, size_t index, void * data)
            info->patterns->strings[label]);
 }
 
+static void read_callback(const char *read_name,
+                          const char *read,
+                          const char *quality,
+                          void * callback_data) {
+    struct search_info *search_info = (struct search_info*)callback_data;
+    
+    // FIXME: put in info to make these options.
+    const char *alphabet = "ACGT";
+    int max_dist = 1;
+    
+    // I allocate and deallocate the info all the time... I might
+    // be able to save some time by not doing this, but compared to
+    // building and removeing the trie, I don't think it will be much.
+    struct read_search_info *info = empty_read_search_info();
+    
+    generate_all_neighbours(read, alphabet, max_dist, build_trie_callback, info);
+    compute_failure_links(info->patterns_trie);
+    
+    info->read_name = read_name;
+    for (int i = 0; i < search_info->records->names->used; ++i) {
+        info->ref_name = search_info->records->names->strings[i];
+        const char *ref = search_info->records->sequences->strings[i];
+        size_t n = strlen(ref); // FIXME: don't keep recomputing this one!
+        aho_corasick_match(ref, n, info->patterns_trie, match_callback, info);
+    }
+    
+    delete_read_search_info(info);
+}
 
 int main(int argc, char * argv[])
 {
@@ -85,42 +130,14 @@ int main(int argc, char * argv[])
         return EXIT_FAILURE;
     }
     
-    struct fasta_records *fasta_records = empty_fasta_records();
-    read_fasta_records(fasta_records, fasta_file);
+    struct search_info *search_info = empty_search_info();
+    read_fasta_records(search_info->records, fasta_file);
+    fclose(fasta_file);
     
-    printf("%d fasta records.\n", fasta_records->names->used);
-    printf("\t%s\n", fasta_records->names->strings[0]);
-    printf("\t%s\n", fasta_records->sequences->strings[0]);
-    printf("\t%s\n", fasta_records->names->strings[1]);
-    printf("\t%s\n", fasta_records->sequences->strings[1]);
-    
-    const char *alphabet = "ACGT";
-    int max_dist = 1;
-    
-    const char *read = "CCTACAGACTACCATGTATCTCCATTTACCTAGTC";
-    
-    // FIXME: do this per read and per reference
-    struct search_info *info = empty_search_info();
-    
-    generate_all_neighbours(read, alphabet, max_dist, build_trie_callback, info);
-    compute_failure_links(info->patterns_trie);
-    
-    info->read_name = "FIXME";
-    for (int i = 0; i < fasta_records->names->used; ++i) {
-        const char *name = fasta_records->names->strings[i];
-        info->ref_name = name;
-        
-        const char *ref = fasta_records->sequences->strings[i];
-        size_t n = strlen(ref); // FIXME: don't keep recomputing this one!
-        
-        aho_corasick_match(ref, n, info->patterns_trie, match_callback, info);
-    }
-    
+    scan_fastq(fastq_file, read_callback, search_info);
 
-    delete_search_info(info);
-
-    
-    delete_fasta_records(fasta_records);
+    delete_search_info(search_info);
+    fclose(fastq_file);
     
     return EXIT_SUCCESS;
 }

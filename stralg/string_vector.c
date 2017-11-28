@@ -1,5 +1,6 @@
 
 #include "string_vector.h"
+#include "strings.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -19,15 +20,6 @@ void delete_string_vector(struct string_vector *v)
         free(v->strings[i]);
     free(v->strings);
     free(v);
-}
-
-// this is essentially strdup, but strdup is not standard C, so we use this...
-static char *string_copy(const char *s)
-{
-    size_t n = strlen(s) + 1;
-    char *copy = (char *)malloc(n);
-    strcpy(copy, s);
-    return copy;
 }
 
 struct string_vector *add_string_copy(struct string_vector *v, const char *s)

@@ -1,5 +1,7 @@
 
 #include "fasta.h"
+#include "strings.h"
+
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
@@ -27,26 +29,24 @@ int read_fasta_records(struct fasta_records *records, FILE *file)
     fgets(buffer, MAX_LINE_SIZE, file);
     if (buffer[0] != '>') return -1;
     
-    size_t seq_size = 10; // FIXME start larger!
+    size_t seq_size = MAX_LINE_SIZE;
     size_t n = 0;
     char *seq = malloc(seq_size);
     
     // copy the name from the header
     char *header  = strtok(buffer+1, "\n");
-    char *name = (char*)malloc(strlen(header)+1);
-    strcpy(name, header);
+    char *name = string_copy(header);
     
     while (fgets(buffer, MAX_LINE_SIZE, file) != 0) {
         
         if (buffer[0] == '>') {
             // new sequence...
             add_string_copy(records->names, name); free(name);
-            add_string_copy(records->sequences, seq); // don't free...reuse
+            add_string_copy(records->sequences, seq); // don't free...reuse by setting n = 0
             n = 0;
             
             header  = strtok(buffer+1, "\n");
-            name = (char*)malloc(strlen(header)+1);
-            strcpy(name, header);
+            name = string_copy(header);
             
             continue;
         }

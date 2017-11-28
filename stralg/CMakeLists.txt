@@ -9,6 +9,7 @@ add_library(stralg SHARED
 	aho_corasick.h aho_corasick.c
 	edit_distance_generator.h edit_distance_generator.c
 	cigar.h cigar.c
+	strings.h strings.c
 	string_vector.h string_vector.c
 	fasta.h fasta.c
 	fastq.h fastq.c
