@@ -12,6 +12,7 @@ DerivedData/
 StrAlg.build/
 StrAlg.xcodeproj/
 stralg/Debug/
+stralg/Release
 stralg/StrAlg.build/
 stralg/libstralg.dylib
 tests/Debug/
@@ -23,4 +24,6 @@ tests/aho_corasick_test
 tests/edit_distance_generator_test
 tests/string_vector_test
 tools/ac_readmap
+tools/match_readmap
 tools/Debug/
+tools/Release
