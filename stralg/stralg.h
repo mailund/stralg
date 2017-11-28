@@ -11,5 +11,6 @@
 #include <fasta.h>
 #include <fastq.h>
 #include <sam.h>
+#include <suffix_array.h>
 
 #endif

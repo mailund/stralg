@@ -23,6 +23,7 @@ tests/trie_test
 tests/aho_corasick_test
 tests/edit_distance_generator_test
 tests/string_vector_test
+tests/suffix_array_test
 tools/ac_readmap
 tools/match_readmap
 tools/Debug/

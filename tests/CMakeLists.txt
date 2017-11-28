@@ -22,3 +22,7 @@ add_test(Edit-distance-generations edit_distance_generator_test)
 add_executable(string_vector_test string_vector_test.c)
 target_link_libraries(string_vector_test stralg)
 add_test(String-vector string_vector_test)
+
+add_executable(suffix_array_test suffix_array_test.c)
+target_link_libraries(suffix_array_test stralg)
+add_test(Suffix-array suffix_array_test)
