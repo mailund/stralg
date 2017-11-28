@@ -13,6 +13,7 @@ add_library(stralg SHARED
 	string_vector.h string_vector.c
 	fasta.h fasta.c
 	fastq.h fastq.c
+	sam.h sam.c
 	border-arrays.c 
 	)
 target_include_directories(stralg

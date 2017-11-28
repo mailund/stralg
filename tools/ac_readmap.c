@@ -11,6 +11,7 @@
 
 struct search_info {
     struct fasta_records *records;
+    FILE *sam_file;
 };
 
 static struct search_info *empty_search_info()
@@ -29,6 +30,10 @@ static void delete_search_info(struct search_info *info)
 struct read_search_info {
     const char *ref_name;
     const char *read_name;
+    const char *read;
+    const char *quality;
+    FILE *sam_file;
+    
     struct string_vector *patterns;
     struct string_vector *cigars;
     struct trie *patterns_trie;
@@ -36,12 +41,18 @@ struct read_search_info {
 
 static struct read_search_info *empty_read_search_info()
 {
-    struct read_search_info *info = (struct read_search_info*)malloc(sizeof(struct read_search_info));
+    struct read_search_info *info =
+        (struct read_search_info*)malloc(sizeof(struct read_search_info));
+    
     info->ref_name = 0;
     info->read_name = 0;
+    info->read = 0;
+    info->quality = 0;
+    
     info->patterns = empty_string_vector(256); // arbitrary start size...
     info->cigars = empty_string_vector(256); // arbitrary start size...
     info->patterns_trie = empty_trie();
+    
     return info;
 }
 
@@ -73,13 +84,12 @@ static void match_callback(int label, size_t index, void * data)
 {
     struct read_search_info *info = (struct read_search_info*)data;
     size_t pattern_len = strlen(info->patterns->strings[label]); // FIXME: precompute
-    size_t start_index = index - pattern_len + 1 + 1; // +1 for arithmetic, +1 for one indexed
-    printf("%s\t%s\t%zu\t%s\t%s\n",
-           info->read_name,
-           info->ref_name,
-           start_index,
-           info->cigars->strings[label],
-           info->patterns->strings[label]);
+    size_t start_index = index - pattern_len + 1 + 1; // +1 for arithmetic, +1 for 1-indexed
+    sam_line(info->sam_file,
+             info->read_name, info->ref_name, start_index,
+             info->cigars->strings[label],
+             info->read,
+             info->quality);
 }
 
 static void read_callback(const char *read_name,
@@ -89,15 +99,17 @@ static void read_callback(const char *read_name,
     struct search_info *search_info = (struct search_info*)callback_data;
     
     // FIXME: put in info to make these options.
-    const char *alphabet = "ACGT";
     int max_dist = 1;
     
     // I allocate and deallocate the info all the time... I might
     // be able to save some time by not doing this, but compared to
     // building and removeing the trie, I don't think it will be much.
     struct read_search_info *info = empty_read_search_info();
+    info->sam_file = search_info->sam_file;
+    info->read = read;
+    info->quality = quality;
     
-    generate_all_neighbours(read, alphabet, max_dist, build_trie_callback, info);
+    generate_all_neighbours(read, "ACGT", max_dist, build_trie_callback, info);
     compute_failure_links(info->patterns_trie);
     
     info->read_name = read_name;
@@ -134,8 +146,9 @@ int main(int argc, char * argv[])
     read_fasta_records(search_info->records, fasta_file);
     fclose(fasta_file);
     
+    search_info->sam_file = stdout;
+    
     scan_fastq(fastq_file, read_callback, search_info);
-
     delete_search_info(search_info);
     fclose(fastq_file);
     

@@ -10,5 +10,6 @@
 #include <string_vector.h>
 #include <fasta.h>
 #include <fastq.h>
+#include <sam.h>
 
 #endif
