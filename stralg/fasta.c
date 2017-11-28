@@ -12,6 +12,7 @@ struct fasta_records *empty_fasta_records()
         (struct fasta_records*)malloc(sizeof(struct fasta_records));
     records->names = empty_string_vector(10); // arbitrary size...
     records->sequences = empty_string_vector(10); // arbitrary size...
+    records->seq_sizes = empty_size_vector(10); // arbitrary size...
     return records;
 }
 
@@ -19,6 +20,7 @@ void delete_fasta_records(struct fasta_records *records)
 {
     delete_string_vector(records->names);
     delete_string_vector(records->sequences);
+    delete_size_vector(records->seq_sizes);
     free(records);
 }
 
@@ -43,6 +45,7 @@ int read_fasta_records(struct fasta_records *records, FILE *file)
             // new sequence...
             add_string_copy(records->names, name); free(name);
             add_string_copy(records->sequences, seq); // don't free...reuse by setting n = 0
+            add_size(records->seq_sizes, strlen(seq));
             n = 0;
             
             header  = strtok(buffer+1, "\n");

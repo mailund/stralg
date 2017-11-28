@@ -116,7 +116,7 @@ static void read_callback(const char *read_name,
     for (int i = 0; i < search_info->records->names->used; ++i) {
         info->ref_name = search_info->records->names->strings[i];
         const char *ref = search_info->records->sequences->strings[i];
-        size_t n = strlen(ref); // FIXME: don't keep recomputing this one!
+        size_t n = search_info->records->seq_sizes->sizes[i];
         aho_corasick_match(ref, n, info->patterns_trie, match_callback, info);
     }
     
