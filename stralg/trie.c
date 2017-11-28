@@ -103,8 +103,9 @@ void delete_trie(struct trie *trie)
        rest of the output list since those will be handled
        when their corresponding trie nodes are deleted. 
      */
-    if (trie->output && trie->string_label == trie->output->string_label)
+    if (trie->output && trie->string_label >= 0) {
         free(trie->output);
+    }
     
     free(trie);
 }
@@ -118,6 +119,8 @@ static void enqueue_siblings(struct queue *queue, struct trie *siblings)
 
 static struct output_list *new_output_link(int label, struct output_list *next)
 {
+    assert(label >= 0);
+    
     struct output_list *link = (struct output_list *)malloc(sizeof(struct output_list));
     link->string_label = label;
     link->next = next;

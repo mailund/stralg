@@ -8,8 +8,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <getopt.h>
 
 struct search_info {
+    int edit_dist;
     struct fasta_records *records;
     FILE *sam_file;
 };
@@ -17,6 +19,7 @@ struct search_info {
 static struct search_info *empty_search_info()
 {
     struct search_info *info = (struct search_info*)malloc(sizeof(struct search_info));
+    info->edit_dist = 0;
     info->records = empty_fasta_records();
     return info;
 }
@@ -98,9 +101,6 @@ static void read_callback(const char *read_name,
                           void * callback_data) {
     struct search_info *search_info = (struct search_info*)callback_data;
     
-    // FIXME: put in info to make these options.
-    int max_dist = 1;
-    
     // I allocate and deallocate the info all the time... I might
     // be able to save some time by not doing this, but compared to
     // building and removeing the trie, I don't think it will be much.
@@ -109,7 +109,7 @@ static void read_callback(const char *read_name,
     info->read = read;
     info->quality = quality;
     
-    generate_all_neighbours(read, "ACGT", max_dist, build_trie_callback, info);
+    generate_all_neighbours(read, "ACGT", search_info->edit_dist, build_trie_callback, info);
     compute_failure_links(info->patterns_trie);
     
     info->read_name = read_name;
@@ -125,24 +125,55 @@ static void read_callback(const char *read_name,
 
 int main(int argc, char * argv[])
 {
-    if (argc != 3) {
-        printf("Usage: %s ref.fa reads.fq\n", argv[0]);
+    const char *prog_name = argv[0];
+    
+    int opt; int edit_dist = 0;
+    static struct option longopts[] = {
+        { "help",       no_argument,            NULL,           'h' },
+        { "distance",   required_argument,      NULL,           'd' },
+        { NULL,         0,                      NULL,            0  }
+    };
+    while ((opt = getopt_long(argc, argv, "hd:", longopts, NULL)) != -1) {
+        switch (opt) {
+            case 'h':
+                printf("Usage: %s [options] ref.fa reads.fq\n\n", prog_name);
+                printf("Options:\n");
+                printf("\t-h | --help:\t\t Show this message.\n");
+                printf("\t-d | --distance:\t Maximum edit distance for the search.\n");
+                printf("\n\n");
+                return EXIT_SUCCESS;
+                
+            case 'd':
+                edit_dist = atoi(optarg);
+                break;
+
+            default:
+                fprintf(stderr, "Usage: %s [options] ref.fa reads.fq\n", prog_name);
+                return EXIT_FAILURE;
+        }
+    }
+    argc -= optind;
+    argv += optind;
+    
+    if (argc != 2) {
+        fprintf(stderr, "Usage: %s [options] ref.fa reads.fq\n", prog_name);
         return EXIT_FAILURE;
     }
     
-    FILE *fasta_file = fopen(argv[1], "r");
+    FILE *fasta_file = fopen(argv[0], "r");
     if (!fasta_file) {
-        printf("Could not open %s.\n", argv[1]);
+        fprintf(stderr, "Could not open %s.\n", argv[0]);
         return EXIT_FAILURE;
     }
     
-    FILE *fastq_file = fopen(argv[2], "r");
+    FILE *fastq_file = fopen(argv[1], "r");
     if (!fastq_file) {
-        printf("Could not open %s.\n", argv[2]);
+        fprintf(stderr, "Could not open %s.\n", argv[1]);
         return EXIT_FAILURE;
     }
     
     struct search_info *search_info = empty_search_info();
+    search_info->edit_dist = edit_dist;
     read_fasta_records(search_info->records, fasta_file);
     fclose(fasta_file);
     

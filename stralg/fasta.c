@@ -69,7 +69,8 @@ int read_fasta_records(struct fasta_records *records, FILE *file)
     // handle last record...
     add_string_copy(records->names, name);
     add_string_copy(records->sequences, seq);
-    
+    add_size(records->seq_sizes, strlen(seq));
+
     free(name);
     free(seq);
     
