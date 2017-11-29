@@ -3,6 +3,8 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
+#include <assert.h>
 
 static struct suffix_array *allocate_sa(char *string)
 {
@@ -15,11 +17,10 @@ static struct suffix_array *allocate_sa(char *string)
 }
 
 static // Wrapper of strcmp needed for qsort
-int cmpfunc (const void *a, const void *b)
+int construction_cmpfunc(const void *a, const void *b)
 {
     return strcmp(*(char **)a, *(char **)b);
 }
-
 
 struct suffix_array *qsort_sa_construction(char *string)
 {
@@ -29,7 +30,7 @@ struct suffix_array *qsort_sa_construction(char *string)
     for (int i = 0; i < sa->length; ++i)
         suffixes[i] = (char *)string + i;
     
-    qsort(suffixes, sa->length, sizeof(char *), cmpfunc);
+    qsort(suffixes, sa->length, sizeof(char *), construction_cmpfunc);
     
     for (int i = 0; i < sa->length; i++)
         sa->array[i] = suffixes[i] - string;
@@ -41,4 +42,40 @@ void delete_suffix_array(struct suffix_array *sa)
 {
     free(sa->string);
     free(sa->array);
+}
+
+// when searching, we cannot simply use bsearch because we want
+// to get a lower bound if the key isn't in the array -- bsearch
+// would give us NULL in that case.
+size_t lower_bound_search(struct suffix_array *sa, const char *key)
+{
+    int low = 0;
+    int high = sa->length;
+    int mid;
+    int cmp;
+    size_t key_len = strlen(key);
+    
+    while (low < high) {
+        mid = low + (high-low) / 2;
+        cmp = strncmp(key, sa->string + sa->array[mid], key_len);
+        if (cmp < 0) {
+            high = mid - 1;
+        } else if (cmp > 0) {
+            low = mid + 1;
+        } else {
+            // a hit, search down until we get the smallest hit...
+            for (int i = mid - 1; i > 0; --i) {
+                if (strncmp(sa->string + sa->array[i], key, key_len) < 0)
+                    return i + 1;
+            }
+            return 0; // if we get here, we didn't find a smaller string, so we
+                      // have to return 0
+        }
+    }
+    
+    // we didn't find the key -- we are either at the smallest upper bound
+    // or highest lower bound. The relative order of mid and high tells us which
+    assert(cmp != 0);
+    if (high < 0) return 0;
+    return mid < high ? mid : high;
 }

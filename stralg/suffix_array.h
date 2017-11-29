@@ -17,4 +17,6 @@ struct suffix_array {
 struct suffix_array *qsort_sa_construction(char *string);
 void delete_suffix_array(struct suffix_array *sa);
 
+size_t lower_bound_search(struct suffix_array *sa, const char *key);
+
 #endif
