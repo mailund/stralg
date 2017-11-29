@@ -13,9 +13,9 @@ static int queue_length(const struct queue *queue)
 
 static void queue_to_array(const struct queue *queue, size_t *array)
 {
-    int i = 0;
+    size_t i = 0;
     for (struct linked_list *link = queue->front; link; link = link->next) {
-        array[i++] = (int)link->data;
+        array[i++] = link->data;
     }
 }
 
@@ -27,7 +27,7 @@ int main(int argc, char * argv[])
     assert(queue_length(queue) == 0);
     enqueue(queue, (void *)1);
     assert(queue_length(queue) == 1);
-    assert((int)queue_front(queue) == 1);
+    assert(queue_front(queue) == 1);
     dequeue(queue);
     assert(queue_length(queue) == 0);
     
@@ -44,7 +44,7 @@ int main(int argc, char * argv[])
         dequeue(queue);
     }
     assert(queue_length(queue) == 5);
-    assert((int)queue_front(queue) == 5);
+    assert(queue_front(queue) == 5);
     
     delete_queue(queue);
     
