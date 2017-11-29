@@ -88,6 +88,33 @@ static bool match_test_3(exact_match_func match_func)
     return status;
 }
 
+
+static bool match_test_4(exact_match_func match_func)
+{
+    bool status = true;
+    char *s1 = "aabbaabaabbbabaabbbbababaabbbbbabbbbbababbbbabbbaa"; size_t n = strlen(s1);
+    char *s2 = "aaa"; size_t m = strlen(s2);
+    struct buffer *buffer = allocate_buffer(n);
+    struct buffer *test_buffer = allocate_buffer(n);
+    
+    match_func(s1, n, s2, m, (match_callback_func)match_buffer_callback, buffer);
+    size_t correct[] = { 1 };
+    copy_array_to_buffer(correct, sizeof(correct)/sizeof(size_t), test_buffer);
+    if (!buffers_equal(buffer, test_buffer)) {
+        printf("Exact pattern matching for %s in %s:\n", s2, s1);
+        printf("Expected: ");
+        print_buffer(test_buffer);
+        printf("Got: ");
+        print_buffer(buffer);
+        status = false;
+    }
+    
+    delete_buffer(buffer);
+    delete_buffer(test_buffer);
+    return status;
+}
+
+
 static void sample_random_string(char * str, size_t n)
 {
     for (size_t i = 0; i < n; ++i) {
@@ -153,7 +180,8 @@ static bool match_tests(exact_match_func match_func)
 {
     return match_test_1(match_func)
         && match_test_2(match_func)
-        && match_test_3(match_func);
+        && match_test_3(match_func)
+        && match_test_4(match_func);
 }
 
 int main(int argc, char * argv[])

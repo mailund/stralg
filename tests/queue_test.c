@@ -11,7 +11,7 @@ static int queue_length(const struct queue *queue)
     return i;
 }
 
-static void queue_to_array(const struct queue *queue, int *array)
+static void queue_to_array(const struct queue *queue, long int *array)
 {
     int i = 0;
     for (struct linked_list *link = queue->front; link; link = link->next) {
