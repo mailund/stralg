@@ -15,7 +15,7 @@ static void queue_to_array(const struct queue *queue, size_t *array)
 {
     size_t i = 0;
     for (struct linked_list *link = queue->front; link; link = link->next) {
-        array[i++] = link->data;
+        array[i++] = (size_t)link->data;
     }
 }
 
