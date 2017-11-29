@@ -1,6 +1,8 @@
 
 cmake_minimum_required(VERSION 3.2.0)
-set(CMAKE_C_FLAGS "-std=c99")
+
+set(CMAKE_C_STANDARD 11)
+
 project(StrAlg)
 include(CTest)
 
