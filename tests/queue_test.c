@@ -27,7 +27,7 @@ int main(int argc, char * argv[])
     assert(queue_length(queue) == 0);
     enqueue(queue, (void *)1);
     assert(queue_length(queue) == 1);
-    assert(queue_front(queue) == 1);
+    assert((size_t)queue_front(queue) == 1);
     dequeue(queue);
     assert(queue_length(queue) == 0);
     
@@ -44,7 +44,7 @@ int main(int argc, char * argv[])
         dequeue(queue);
     }
     assert(queue_length(queue) == 5);
-    assert(queue_front(queue) == 5);
+    assert((size_t)queue_front(queue) == 5);
     
     delete_queue(queue);
     
