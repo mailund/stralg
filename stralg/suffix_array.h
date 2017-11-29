@@ -2,6 +2,7 @@
 #ifndef SUFFIX_ARRAY_H
 #define SUFFIX_ARRAY_H
 
+#include <match.h>
 #include <stddef.h>
 
 struct suffix_array {
@@ -18,5 +19,11 @@ struct suffix_array *qsort_sa_construction(char *string);
 void delete_suffix_array(struct suffix_array *sa);
 
 size_t lower_bound_search(struct suffix_array *sa, const char *key);
+
+
+void suffix_array_exact_match(const char *text, size_t n,
+                              const char *pattern, size_t m,
+                              match_callback_func callback,
+                              void *callback_data);
 
 #endif

@@ -1,6 +1,9 @@
 #ifndef MATCH_H
 #define MATCH_H
 
+#include <buffer.h>
+#include <stddef.h>
+
 // matching callbacks
 typedef void (*match_callback_func)(size_t index, void * data);
 

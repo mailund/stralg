@@ -1,5 +1,6 @@
 
 #include "suffix_array.h"
+#include "strings.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -64,7 +65,7 @@ size_t lower_bound_search(struct suffix_array *sa, const char *key)
             low = mid + 1;
         } else {
             // a hit, search down until we get the smallest hit...
-            for (int i = mid - 1; i > 0; --i) {
+            for (int i = mid - 1; i >= 0; --i) {
                 if (strncmp(sa->string + sa->array[i], key, key_len) < 0)
                     return i + 1;
             }
@@ -78,4 +79,21 @@ size_t lower_bound_search(struct suffix_array *sa, const char *key)
     assert(cmp != 0);
     if (high < 0) return 0;
     return mid < high ? mid : high;
+}
+
+void suffix_array_exact_match(const char *text, size_t n,
+                              const char *pattern, size_t m,
+                              match_callback_func callback,
+                              void *callback_data)
+{
+    struct suffix_array *sa = qsort_sa_construction(string_copy(text));
+    
+    size_t lb = lower_bound_search(sa, pattern);
+    for (size_t i = lb; i < sa->length; ++i) {
+         if (strncmp(pattern, sa->string + sa->array[i], m) < 0)
+             break;
+        callback(sa->array[i], callback_data);
+    }
+    
+    delete_suffix_array(sa);
 }

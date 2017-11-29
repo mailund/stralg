@@ -125,6 +125,30 @@ static bool match_test_random(exact_match_func match_func)
     return status;
 }
 
+
+// I have to modify the suffix array search function to get the output ordered
+static int index_cmp(const void * a, const void * b)
+{
+    return ( *(int*)a - *(int*)b );
+}
+static void sa_wrapper(const char *text, size_t n,
+                       const char *pattern, size_t m,
+                       match_callback_func callback, void *callback_data)
+{
+    struct buffer *buffer = allocate_buffer(n);
+    
+    suffix_array_exact_match(text, n, pattern, m,
+                             (match_callback_func)match_buffer_callback,
+                             buffer);
+    
+    qsort(buffer->buffer, buffer->used, sizeof(size_t), index_cmp);
+
+    for (size_t i = 0; i < buffer->used; ++i)
+        callback(buffer->buffer[i], callback_data);
+    
+    delete_buffer(buffer);
+}
+
 static bool match_tests(exact_match_func match_func)
 {
     return match_test_1(match_func)
@@ -138,11 +162,13 @@ int main(int argc, char * argv[])
     assert(match_tests(boyer_moore_horspool));
     assert(match_tests(knuth_morris_pratt));
     assert(match_tests(knuth_morris_pratt_r));
-    
+    assert(match_tests(sa_wrapper));
+
     for (size_t i = 0; i < 10; i++) {
         assert(match_test_random(boyer_moore_horspool));
         assert(match_test_random(knuth_morris_pratt));
         assert(match_test_random(knuth_morris_pratt_r));
+        assert(match_test_random(sa_wrapper));
     }
     
     return EXIT_SUCCESS;
