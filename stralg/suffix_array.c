@@ -81,10 +81,10 @@ size_t lower_bound_search(struct suffix_array *sa, const char *key)
     return mid < high ? mid : high;
 }
 
-void suffix_array_exact_match(const char *text, size_t n,
-                              const char *pattern, size_t m,
-                              match_callback_func callback,
-                              void *callback_data)
+void suffix_array_bsearch_match(const char *text, size_t n,
+                                const char *pattern, size_t m,
+                                match_callback_func callback,
+                                void *callback_data)
 {
     struct suffix_array *sa = qsort_sa_construction(string_copy(text));
     

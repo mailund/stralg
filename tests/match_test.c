@@ -164,7 +164,7 @@ static void sa_wrapper(const char *text, size_t n,
 {
     struct buffer *buffer = allocate_buffer(n);
     
-    suffix_array_exact_match(text, n, pattern, m,
+    suffix_array_bsearch_match(text, n, pattern, m,
                              (match_callback_func)match_buffer_callback,
                              buffer);
     
