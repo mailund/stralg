@@ -44,6 +44,7 @@ struct read_search_info {
     const char *read;
     const char *quality;
     const char *cigar;
+    const char *pattern;
     struct trie *patterns_trie;
     struct search_info *search_info;
 };
@@ -73,12 +74,14 @@ static void delete_read_search_info(struct read_search_info *info)
 static void match_callback(size_t index, void * data)
 {
     struct read_search_info *info = (struct read_search_info*)data;
+    // FIXME: I'm not sure if I should print the read or the pattern...
     sam_line(info->search_info->sam_file,
              info->read_name,
              info->ref_name,
              index + 1, // + 1 for 1-indexing in SAM format.
              info->cigar,
              info->read,
+             //info->pattern,
              info->quality);
 }
 
@@ -95,7 +98,7 @@ static void pattern_callback(const char *pattern, const char *cigar, void * data
     // when we add the pattern to the vector, so we insert in the trie first.
     add_string_to_trie(info->patterns_trie, pattern, 1); // id 1 is arbitrary...
     info->cigar = cigar;
-    
+    info->pattern = pattern;
     int no_refs = info->search_info->records->sequences->used;
     for (int i = 0; i < no_refs; ++i) {
         struct fasta_records *records = info->search_info->records;
@@ -152,6 +155,7 @@ int main(int argc, char * argv[])
                 printf("\t\t\t\t\t\"naive\"\n");
                 printf("\t\t\t\t\t\"bmh\" (Boyer-Moore-Horspool)\n");
                 printf("\t\t\t\t\t\"kmp\" (Knuth-Morris-Pratt)\n");
+                printf("\t\t\t\t\t\"bsearch\" (suffix array binary search)\n");
                 printf("\n\n");
                 return EXIT_SUCCESS;
                 
@@ -197,6 +201,8 @@ int main(int argc, char * argv[])
         search_info->match_func = boyer_moore_horspool;
     } else if (strcmp(algorithm, "kmp") == 0) {
         search_info->match_func = knuth_morris_pratt;
+    } else if (strcmp(algorithm, "bsearch") == 0) {
+        search_info->match_func = suffix_array_bsearch_match;
     } else {
         fprintf(stderr, "Unknown search algorithm %s.\n", algorithm);
         return EXIT_FAILURE;

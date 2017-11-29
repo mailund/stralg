@@ -77,8 +77,24 @@ size_t lower_bound_search(struct suffix_array *sa, const char *key)
     // we didn't find the key -- we are either at the smallest upper bound
     // or highest lower bound. The relative order of mid and high tells us which
     assert(cmp != 0);
+    //printf("fell through ... %d %d %d\n", low, mid, high);
     if (high < 0) return 0;
-    return mid < high ? mid : high;
+    if (low >= sa->length) return sa->length - 1;
+    
+    if (high < mid) {
+        // we moved down so mid points to a larger string. This means
+        // that the largest that is smaller must be one below mid (which is high)
+        return mid - 1;
+    } else {
+        // we moved up, so mid is smaller. we have two possible cases, then
+        // either low points to a match or mid is the largest that is smaller
+        assert(low > mid);
+        if (strncmp(sa->string + sa->array[low], key, key_len) == 0)
+            return low;
+        else
+            return mid;
+    }
+    assert(false); // we should never get here.
 }
 
 void suffix_array_bsearch_match(const char *text, size_t n,

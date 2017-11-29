@@ -165,8 +165,8 @@ static void sa_wrapper(const char *text, size_t n,
     struct buffer *buffer = allocate_buffer(n);
     
     suffix_array_bsearch_match(text, n, pattern, m,
-                             (match_callback_func)match_buffer_callback,
-                             buffer);
+                               (match_callback_func)match_buffer_callback,
+                               buffer);
     
     qsort(buffer->buffer, buffer->used, sizeof(size_t), index_cmp);
 
