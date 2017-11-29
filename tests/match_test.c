@@ -98,7 +98,7 @@ static bool match_test_4(exact_match_func match_func)
     struct buffer *test_buffer = allocate_buffer(n);
     
     match_func(s1, n, s2, m, (match_callback_func)match_buffer_callback, buffer);
-    size_t correct[] = { 1 };
+    size_t correct[] = {  };
     copy_array_to_buffer(correct, sizeof(correct)/sizeof(size_t), test_buffer);
     if (!buffers_equal(buffer, test_buffer)) {
         printf("Exact pattern matching for %s in %s:\n", s2, s1);
