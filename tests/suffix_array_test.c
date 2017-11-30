@@ -69,7 +69,7 @@ int main(int argc, char *argv[])
 
     compute_lcp(sa);
     
-#if 1
+#if 0
     for (int i = 0; i < sa->length; ++i)
         printf("sa[%d] == %zu\t%s\n", i, sa->array[i], string + sa->array[i]);
     printf("\n");
