@@ -29,6 +29,7 @@ void compute_lcp(struct suffix_array *sa);
 void compute_super_cartesian_tree(struct suffix_array *sa);
 void delete_suffix_array(struct suffix_array *sa);
 
+
 inline int sct_left(struct suffix_array *sa, size_t i)
 {
     if (i == 0) return -1; // first suffix doesn't have a left child
