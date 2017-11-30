@@ -51,6 +51,27 @@ void compute_inverse(struct suffix_array *sa)
         sa->inverse[sa->array[i]] = i;
 }
 
+void compute_lcp(struct suffix_array *sa)
+{
+    if (sa->lcp) return; // only compute if we have to
+    
+    compute_inverse(sa);
+    
+    sa->lcp = (int*)malloc((1 + sa->length) * sizeof(int));
+    sa->lcp[0] = sa->lcp[sa->length] = -1;
+    
+    int l = 0;
+    for (int i = 0; i < sa->length; ++i) {
+        int j = sa->inverse[i];
+        if (j == 0) continue; // don't handle index 0 -- lcp here is always -1
+        int k = sa->array[j - 1];
+        while (sa->string[k+l] == sa->string[i+l])
+            ++l;
+        sa->lcp[j] = l;
+        l = l > 0 ? l - 1 : 0;
+    }
+}
+
 void delete_suffix_array(struct suffix_array *sa)
 {
     free(sa->string);

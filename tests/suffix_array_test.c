@@ -40,20 +40,51 @@ static void test_inverse(struct suffix_array *sa)
     }
 }
 
+static int lcp(const char *a, const char *b)
+{
+    int l = 0;
+    while (*a && *b && *a == *b) {
+        ++a; ++b; ++l;
+    }
+    return l;
+}
+
+static void test_lcp(struct suffix_array *sa)
+{
+    compute_lcp(sa);
+    
+    assert(sa->lcp[0] == sa->lcp[sa->length]);
+    assert(sa->lcp[0] == -1);
+    
+    for (size_t i = 1; i < sa->length; ++i) {
+        int l = lcp(sa->string + sa->array[i-1], sa->string + sa->array[i]);
+        assert(sa->lcp[i] == l);
+    }
+}
+
 int main(int argc, char *argv[])
 {
     char *string = string_copy("ababacabac");
     struct suffix_array *sa = qsort_sa_construction(string);
+
+    compute_lcp(sa);
     
-    
-#if 0
+#if 1
     for (int i = 0; i < sa->length; ++i)
-        printf("sa[%d] == %zu %s\n", i, sa->array[i], string + sa->array[i]);
+        printf("sa[%d] == %zu\t%s\n", i, sa->array[i], string + sa->array[i]);
+    printf("\n");
+    for (int i = 0; i < sa->length; ++i)
+        printf("isa[%d] == %zu\t%s\n", i, sa->inverse[i], string + i);
+    printf("\n");
+    for (int i = 0; i < sa->length; ++i)
+        printf("lcp[%d] == %d\t%s\n", i, sa->lcp[i], string + sa->array[i]);
+    printf("\n");
 #endif
 
     test_order(sa);
     test_search(sa);
     test_inverse(sa);
+    test_lcp(sa);
 
     delete_suffix_array(sa);
     

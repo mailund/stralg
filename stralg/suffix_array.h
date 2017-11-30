@@ -16,11 +16,12 @@ struct suffix_array {
     
     // these arrays are optional but used in extended suffix arrays
     size_t *inverse;
-    size_t *lcp;
+    int *lcp;
 };
 
 struct suffix_array *qsort_sa_construction(char *string);
 void compute_inverse(struct suffix_array *sa);
+void compute_lcp(struct suffix_array *sa);
 void delete_suffix_array(struct suffix_array *sa);
 
 
