@@ -13,13 +13,18 @@ struct suffix_array {
     size_t length;
     // the actual suffix array
     size_t *array;
+    
+    // these arrays are optional but used in extended suffix arrays
+    size_t *inverse;
+    size_t *lcp;
 };
 
 struct suffix_array *qsort_sa_construction(char *string);
+void compute_inverse(struct suffix_array *sa);
 void delete_suffix_array(struct suffix_array *sa);
 
-size_t lower_bound_search(struct suffix_array *sa, const char *key);
 
+size_t lower_bound_search(struct suffix_array *sa, const char *key);
 
 void suffix_array_bsearch_match(const char *text, size_t n,
                               const char *pattern, size_t m,

@@ -31,6 +31,15 @@ static void test_search(struct suffix_array *sa)
     assert(idx == 0); //printf("0 idx == %d\n", idx);
 }
 
+static void test_inverse(struct suffix_array *sa)
+{
+    compute_inverse(sa);
+    for (size_t i = 0; i < sa->length; ++i) {
+        assert(sa->inverse[sa->array[i]] == i);
+        assert(sa->array[sa->inverse[i]] == i);
+    }
+}
+
 int main(int argc, char *argv[])
 {
     char *string = string_copy("ababacabac");
@@ -44,6 +53,7 @@ int main(int argc, char *argv[])
 
     test_order(sa);
     test_search(sa);
+    test_inverse(sa);
 
     delete_suffix_array(sa);
     

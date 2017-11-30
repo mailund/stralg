@@ -14,6 +14,10 @@ static struct suffix_array *allocate_sa(char *string)
     sa->string = string;
     sa->length = strlen(string);
     sa->array = (size_t*)malloc(sa->length * sizeof(size_t));
+    
+    sa->inverse = 0;
+    sa->lcp = 0;
+    
     return sa;
 }
 
@@ -39,10 +43,20 @@ struct suffix_array *qsort_sa_construction(char *string)
     return sa;
 }
 
+void compute_inverse(struct suffix_array *sa)
+{
+    if (sa->inverse) return; // only compute if it is needed
+    sa->inverse = (size_t*)malloc(sa->length * sizeof(size_t));
+    for (size_t i = 0; i < sa->length; ++i)
+        sa->inverse[sa->array[i]] = i;
+}
+
 void delete_suffix_array(struct suffix_array *sa)
 {
     free(sa->string);
     free(sa->array);
+    if (sa->inverse) free(sa->inverse);
+    if (sa->lcp) free(sa->lcp);
 }
 
 // when searching, we cannot simply use bsearch because we want
