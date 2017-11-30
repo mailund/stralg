@@ -15,6 +15,7 @@ add_library(stralg SHARED
 	fasta.h fasta.c
 	fastq.h fastq.c
 	sam.h sam.c
+	pair_stack.h pair_stack.c
 	suffix_array.h suffix_array.c
 	border-arrays.c 
 	)

@@ -17,6 +17,7 @@ static struct suffix_array *allocate_sa(char *string)
     
     sa->inverse = 0;
     sa->lcp = 0;
+    sa->sct_children = 0;
     
     return sa;
 }
@@ -72,12 +73,18 @@ void compute_lcp(struct suffix_array *sa)
     }
 }
 
+void compute_super_cartesian_tree(struct suffix_array *sa)
+{
+    
+}
+
 void delete_suffix_array(struct suffix_array *sa)
 {
     free(sa->string);
     free(sa->array);
     if (sa->inverse) free(sa->inverse);
     if (sa->lcp) free(sa->lcp);
+    if (sa->sct_children) free(sa->sct_children);
 }
 
 // when searching, we cannot simply use bsearch because we want
