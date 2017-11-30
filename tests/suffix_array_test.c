@@ -62,12 +62,25 @@ static void test_lcp(struct suffix_array *sa)
     }
 }
 
+static void test_sct(struct suffix_array *sa)
+{
+    size_t n = sa->length + 1;
+    int L[] = { -1, -1, -1, 1, -1, 3, -1, -1, 6, -1, 5 };
+    int R[] = { 10, 2, -1, 4, -1, 8, 7, -1, 9, -1, -1 };
+    
+    for (size_t i = 0; i < n; ++i) {
+        assert(L[i] == sct_left(sa, i));
+        assert(R[i] == sct_right(sa, i));
+    }
+}
+
 int main(int argc, char *argv[])
 {
     char *string = string_copy("ababacabac");
     struct suffix_array *sa = qsort_sa_construction(string);
 
     compute_lcp(sa);
+    compute_super_cartesian_tree(sa);
     
 #if 0
     for (int i = 0; i < sa->length; ++i)
@@ -78,6 +91,13 @@ int main(int argc, char *argv[])
     printf("\n");
     for (int i = 0; i < sa->length; ++i)
         printf("lcp[%d] == %d\t%s\n", i, sa->lcp[i], string + sa->array[i]);
+    printf("lcp[%zu] == %d\n", sa->length, sa->lcp[sa->length]);
+    printf("\n");
+    for (int i = 0; i < sa->length + 1; ++i)
+        printf("L[%d] == %d\n", i, sct_left(sa, i));
+    printf("\n");
+    for (int i = 0; i < sa->length + 1; ++i)
+        printf("R[%d] == %d\n", i, sct_right(sa, i));
     printf("\n");
 #endif
 
@@ -85,6 +105,7 @@ int main(int argc, char *argv[])
     test_search(sa);
     test_inverse(sa);
     test_lcp(sa);
+    test_sct(sa);
 
     delete_suffix_array(sa);
     

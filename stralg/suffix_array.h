@@ -4,6 +4,7 @@
 
 #include <match.h>
 #include <stddef.h>
+#include <assert.h>
 
 struct suffix_array {
     // the suffix array owns this, so copy it if you want to keep it.
@@ -29,16 +30,10 @@ void compute_lcp(struct suffix_array *sa);
 void compute_super_cartesian_tree(struct suffix_array *sa);
 void delete_suffix_array(struct suffix_array *sa);
 
-
-inline int sct_left(struct suffix_array *sa, size_t i)
-{
-    if (i == 0) return -1; // first suffix doesn't have a left child
-    return (sa->lcp[i-1] > sa->lcp[i]) ? sa->sct_children[i-1] : -1;
-}
-inline int sct_right(struct suffix_array *sa, size_t i)
-{
-    return (sa->lcp[i+1] >= sa->lcp[i]) ? sa->sct_children[i] : -1;
-}
+int sct_left(struct suffix_array *sa, size_t i);
+void set_sct_left(struct suffix_array *sa, size_t i, int val);
+int sct_right(struct suffix_array *sa, size_t i);
+void set_sct_right(struct suffix_array *sa, size_t i, int val);
 
 size_t lower_bound_search(struct suffix_array *sa, const char *key);
 

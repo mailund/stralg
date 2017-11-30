@@ -1,6 +1,7 @@
 
 #include "suffix_array.h"
 #include "strings.h"
+#include "pair_stack.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -73,9 +74,62 @@ void compute_lcp(struct suffix_array *sa)
     }
 }
 
+int sct_left(struct suffix_array *sa, size_t i)
+{
+    if (i == 0) return -1; // first suffix doesn't have a left child
+    return (sa->lcp[i-1] > sa->lcp[i]) ? sa->sct_children[i-1] : -1;
+}
+
+void set_sct_left(struct suffix_array *sa, size_t i, int val)
+{
+    assert(i > 0 && sa->lcp[i-1] > sa->lcp[i]);
+    sa->sct_children[i-1] = val;
+}
+
+int sct_right(struct suffix_array *sa, size_t i)
+{
+    return (sa->lcp[i+1] >= sa->lcp[i]) ? sa->sct_children[i] : -1;
+}
+
+void set_sct_right(struct suffix_array *sa, size_t i, int val)
+{
+    assert(sa->lcp[i+1] >= sa->lcp[i]);
+    sa->sct_children[i] = val;
+}
+
 void compute_super_cartesian_tree(struct suffix_array *sa)
 {
+    compute_lcp(sa);
     
+    sa->sct_children = (int*)malloc((sa->length + 1) * sizeof(int));
+    for (size_t i = 0; i < sa->length + 1; ++i)
+        sa->sct_children[i] = -1;
+    
+    struct stack *stack = empty_stack(sa->length + 1);
+    
+    set_sct_right(sa, 0, sa->length);
+    push(stack, 0, -1);
+    for (size_t k = 1; k < sa->length + 1; ++k) {
+        while (sa->lcp[k] < top(stack)->second) {
+            int idx = top(stack)->first;
+            int lcp = top(stack)->second;
+            pop(stack);
+            while (top(stack)->second == lcp) {
+                set_sct_right(sa, top(stack)->first, idx);
+                idx = top(stack)->first;
+                lcp = top(stack)->second;
+                pop(stack);
+            }
+            if (sa->lcp[k] < top(stack)->second) {
+                set_sct_right(sa, top(stack)->first, idx);
+            } else {
+                set_sct_left(sa, k, idx);
+            }
+        }
+        push(stack, k, sa->lcp[k]);
+    }
+    
+    delete_stack(stack);
 }
 
 void delete_suffix_array(struct suffix_array *sa)
