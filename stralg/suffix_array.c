@@ -199,29 +199,11 @@ void suffix_array_bsearch_match(const char *text, size_t n,
                                 void *callback_data)
 {
     struct suffix_array *sa = qsort_sa_construction(string_copy(text));
-    
-#if 0
-    for (size_t i = 0; i < sa->length; ++i)
-        printf("sa[%zu] == %zu %s\n", i, sa->array[i],
-               sa->string + sa->array[i]);
-#endif
-    
     size_t lb = lower_bound_search(sa, pattern);
-    
-#if 0
-    printf("lb == %zu, sa[lb] == %zu, %s\n",
-           lb, sa->array[lb], sa->string + sa->array[lb]);
-#endif
-    
     for (size_t i = lb; i < sa->length; ++i) {
-#if 0
-        printf("i == %zu, sa[i] == %zu, %s\n",
-               i, sa->array[i], sa->string + sa->array[i]);
-#endif
         if (strncmp(pattern, sa->string + sa->array[i], m) != 0)
              break;
         callback(sa->array[i], callback_data);
     }
-    
     delete_suffix_array(sa);
 }
