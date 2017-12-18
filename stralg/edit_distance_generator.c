@@ -30,7 +30,8 @@ static void recursive_generator(const char *pattern, char *buffer, char *cigar,
         size_t rest = strlen(pattern);
         for (size_t i = 0; i < rest; ++i) {
             buffer[i] = pattern[i];
-            cigar[i] = '=';
+            //cigar[i] = '=';
+            cigar[i] = 'M';
         }
         buffer[rest] = cigar[rest] = '\0';
         simplify_cigar(data->cigar_front, data->simplify_cigar_buffer);
@@ -55,13 +56,15 @@ static void recursive_generator(const char *pattern, char *buffer, char *cigar,
         for (const char *a = data->alphabet; *a; a++) {
             if (*a == *pattern) {
                 *buffer = *a;
-                *cigar = '=';
+                //*cigar = '=';
+                *cigar = 'M';
                 recursive_generator(pattern + 1, buffer + 1, cigar + 1,
                                     max_edit_distance, data,
                                     callback, callback_data);
             } else {
                 *buffer = *a;
-                *cigar = 'X';
+                //*cigar = 'X';
+                *cigar = 'M';
                 recursive_generator(pattern + 1, buffer + 1, cigar + 1,
                                     max_edit_distance - 1, data,
                                     callback, callback_data);
