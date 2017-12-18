@@ -14,7 +14,7 @@ void naive_exact_match(const char *text, size_t n,
         return;
     }
     
-    for (size_t j = 0; j < n - m + 1; j++) {
+    for (size_t j = 0; j <= n - m; j++) {
         size_t i = 0;
         while (i < m && text[j+i] == pattern[i]) {
             i++;
