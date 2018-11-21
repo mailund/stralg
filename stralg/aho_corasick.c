@@ -18,15 +18,14 @@ void aho_corasick_match(const char *text, size_t n, struct trie *patterns,
             }
             
             v = w;
-            j += 1;
+            j++;
             w = out_link(v, text[j]);
         }
         
         if (is_trie_root(v)) {
-            j += 1;
+            j++;
         } else {
             v = v->failure_link;
         }
-        
     }
 }

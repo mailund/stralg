@@ -49,6 +49,6 @@ int main(int argc, char * argv[])
     aho_corasick_match(text, n, patterns_trie, test_callback, &info);
     
     delete_trie(patterns_trie);
-    
+ 
     return EXIT_SUCCESS;
 }
