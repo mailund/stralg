@@ -10,14 +10,17 @@ set(CMAKE_MODULE_PATH
 include(CTest)
 include(CodeCoverage)
 
-APPEND_COVERAGE_COMPILER_FLAGS()
+if(CMAKE_BUILD_TYPE MATCHES Debug)
+    APPEND_COVERAGE_COMPILER_FLAGS()
+    SETUP_TARGET_FOR_COVERAGE_LCOV(
+        NAME coverage
+        EXECUTABLE ctest
+        coverage
+    )
+endif(CMAKE_BUILD_TYPE MATCHES Debug)
+
 
 add_subdirectory(stralg)
 add_subdirectory(tests)
 add_subdirectory(tools)
 
-SETUP_TARGET_FOR_COVERAGE_LCOV(
-    NAME coverage
-    EXECUTABLE ctest
-    coverage
-)
