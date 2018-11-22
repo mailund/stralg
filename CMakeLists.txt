@@ -15,10 +15,9 @@ if(CMAKE_BUILD_TYPE MATCHES Debug)
     SETUP_TARGET_FOR_COVERAGE_LCOV(
         NAME coverage
         EXECUTABLE ctest
-        coverage
+        #DEPENDENCIES all
     )
 endif(CMAKE_BUILD_TYPE MATCHES Debug)
-
 
 add_subdirectory(stralg)
 add_subdirectory(tests)
