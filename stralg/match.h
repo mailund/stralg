@@ -23,4 +23,26 @@ void knuth_morris_pratt_r(const char *text, size_t n,
                           const char *pattern, size_t m,
                           match_callback_func callback, void *callback_data);
 
+struct match_iter {
+    const char *text;    size_t n;
+    const char *pattern; size_t m;
+    size_t current_index;
+};
+struct match {
+    size_t pos;
+};
+
+void match_init_iter(
+    struct match_iter *iter,
+    const char *text, size_t n,
+    const char *pattern, size_t m
+);
+bool naive_next_match(
+    struct match_iter *iter,
+    struct match *match
+);
+void match_dealloc_iter(
+    struct match_iter *iter
+);
+
 #endif

@@ -13,7 +13,7 @@ void naive_exact_match(const char *text, size_t n,
         // "j < n - m + 1" loop test can suffer from an overflow.
         return;
     }
-    
+
     for (size_t j = 0; j <= n - m; j++) {
         size_t i = 0;
         while (i < m && text[j+i] == pattern[i]) {
@@ -35,7 +35,7 @@ void boyer_moore_horspool(const char *text, size_t n,
         // "j < n - m + 1" loop test can suffer from an overflow.
         return;
     }
-    
+
     size_t jump_table[256]; // Implicitly assuming that the alphabet is eight bits!
     for (size_t i = 0; i < 256; i++) {
         jump_table[i] = m;
@@ -43,7 +43,7 @@ void boyer_moore_horspool(const char *text, size_t n,
     for (size_t i = 0; i < m - 1; i++) {
         jump_table[(size_t)pattern[i]] = m - i - 1;
     }
-    
+
     for (size_t j = 0; j < n - m + 1; j += jump_table[(size_t)text[j+m-1]]) {
         size_t i = m - 1;
         while (i > 0 && pattern[i] == text[j + i]) {
@@ -65,7 +65,7 @@ void knuth_morris_pratt(const char *text, size_t n,
         // "j < n - m + 1" loop test can suffer from an overflow.
         return;
     }
-    
+
     // preprocessing
     size_t prefixtab[m];
     prefixtab[0] = 0;
@@ -103,7 +103,7 @@ void knuth_morris_pratt_r(const char *text, size_t n,
         // "j < n - m + 1" loop test can suffer from an overflow.
         return;
     }
-    
+
     // preprocessing
     size_t prefixtab[m];
     prefixtab[0] = 0;
@@ -117,7 +117,7 @@ void knuth_morris_pratt_r(const char *text, size_t n,
         prefixtab[i] = (pattern[prefixtab[i]] != pattern[i + 1] || prefixtab[i] == 0) ?
             prefixtab[i] : prefixtab[prefixtab[i] - 1];
     }
-    
+
     // matching
     size_t j = 0, q = 0;
     size_t max_match_index = n - m + 1; // same as for the naive algorithm
@@ -134,6 +134,53 @@ void knuth_morris_pratt_r(const char *text, size_t n,
             q = prefixtab[q-1];
         }
     }
+}
+
+
+void match_init_iter(
+    struct match_iter *iter,
+    const char *text, size_t n,
+    const char *pattern, size_t m
+) {
+    iter->text = text;       iter->n = n;
+    iter->pattern = pattern; iter->m = m;
+    iter->current_index = 0;
+}
+
+void match_dealloc_iter(
+    struct match_iter *iter
+) {
+    // nothing to do here...
+}
+
+bool naive_next_match(
+    struct match_iter *iter,
+    struct match *match
+) {
+    size_t n = iter->n, m = iter->m;
+    const char *text = iter->text;
+    const char *pattern = iter->pattern;
+
+    if (m > n) {
+        // This is necessary because n and m are unsigned so the
+        // "j < n - m + 1" loop test can suffer from an overflow.
+        return false;
+    }
+
+    for (size_t j = iter->current_index; j <= n - m; j++) {
+        size_t i = 0;
+        while (i < m && text[j+i] == pattern[i]) {
+            i++;
+        }
+        if (i == m) {
+            //callback(j, callback_data);
+            iter->current_index = j + 1;
+            match->pos = j;
+            return true;
+        }
+    }
+
+    return false;
 }
 
 
