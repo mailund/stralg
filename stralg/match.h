@@ -23,26 +23,46 @@ void knuth_morris_pratt_r(const char *text, size_t n,
                           const char *pattern, size_t m,
                           match_callback_func callback, void *callback_data);
 
-struct match_iter {
-    const char *text;    size_t n;
-    const char *pattern; size_t m;
-    size_t current_index;
-};
 struct match {
     size_t pos;
 };
 
-void match_init_iter(
-    struct match_iter *iter,
+struct match_naive_iter {
+    const char *text;    size_t n;
+    const char *pattern; size_t m;
+    size_t current_index;
+};
+void match_init_naive_iter(
+    struct match_naive_iter *iter,
     const char *text, size_t n,
     const char *pattern, size_t m
 );
-bool naive_next_match(
-    struct match_iter *iter,
+bool next_naive_match(
+    struct match_naive_iter *iter,
     struct match *match
 );
-void match_dealloc_iter(
-    struct match_iter *iter
+void match_dealloc_naive_iter(
+    struct match_naive_iter *iter
+);
+
+struct match_kmp_iter {
+    const char *text;    size_t n;
+    const char *pattern; size_t m;
+    size_t *prefixtab;
+    size_t max_match_len;
+    size_t j, q;
+};
+void match_init_kmp_iter(
+    struct match_kmp_iter *iter,
+    const char *text, size_t n,
+    const char *pattern, size_t m
+);
+bool next_kmp_match(
+    struct match_kmp_iter *iter,
+    struct match *match
+);
+void match_dealloc_kmp_iter(
+    struct match_kmp_iter *iter
 );
 
 #endif

@@ -8,8 +8,16 @@
 
 
 typedef bool (*iteration_func)(
-    struct match_iter *iter,
-    struct match *match
+    void *iter,
+    void *match
+);
+typedef void (*iter_init_func)(
+    void *iter,
+    const char *text, size_t n,
+    const char *pattern, size_t m
+);
+typedef void (*iter_dealloc_func)(
+    void *iter
 );
 
 // exact pattern matching
@@ -191,20 +199,23 @@ static bool match_tests(exact_match_func match_func)
 
 //void add_to_buffer(struct buffer *buffer, size_t value);
 static bool iter_test(
-    iteration_func iter_func
+    void *iter,
+    iter_init_func    iter_init,
+    iteration_func    iter_func,
+    iter_dealloc_func iter_dealloc
 ) {
     char *s1 = "aaaaa"; size_t n = strlen(s1);
     char *s2 = "aa"; size_t m = strlen(s2);
     struct buffer *buffer = allocate_buffer(n);
     struct buffer *test_buffer = allocate_buffer(n);
 
-    struct match_iter iter;
     struct match match;
-    match_init_iter(&iter, s1, n, s2, m);
-    while (iter_func(&iter, &match)) {
+    //match_init_iter(&iter, s1, n, s2, m);
+    iter_init(iter, s1, n, s2, m);
+    while (iter_func(iter, &match)) {
         add_to_buffer(buffer, match.pos);
     }
-    match_dealloc_iter(&iter);
+    iter_dealloc(iter);
 
     size_t correct[] = { 0, 1, 2, 3 };
     copy_array_to_buffer(correct, sizeof(correct)/sizeof(size_t), test_buffer);
@@ -239,7 +250,22 @@ int main(int argc, char * argv[])
     }
 
     printf("experimental iter test:\n");
-    assert(iter_test(naive_next_match));
+    struct match_naive_iter naive_iter;
+    assert(iter_test(
+        (void*)&naive_iter,
+        (iter_init_func)match_init_naive_iter,
+        (iteration_func)next_naive_match,
+        (iter_dealloc_func)match_dealloc_naive_iter
+    ));
+
+    struct match_kmp_iter kmp_iter;
+    assert(iter_test(
+        (void*)&kmp_iter,
+        (iter_init_func)match_init_kmp_iter,
+        (iteration_func)next_kmp_match,
+        (iter_dealloc_func)match_dealloc_kmp_iter
+    ));
 
     return EXIT_SUCCESS;
 }
+
