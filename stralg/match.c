@@ -6,10 +6,12 @@
 #include <match.h>
 
 
-void naive_exact_match(const char *text, size_t n,
-                       const char *pattern, size_t m,
-                       match_callback_func callback, void *callback_data)
-{
+void naive_exact_match(
+    const char *text, size_t n,
+    const char *pattern, size_t m,
+    match_callback_func callback,
+    void *callback_data
+) {
     if (m > n) {
         // This is necessary because n and m are unsigned so the
         // "j < n - m + 1" loop test can suffer from an overflow.
@@ -61,10 +63,12 @@ void boyer_moore_horspool(
 }
 
 
-void knuth_morris_pratt(const char *text, size_t n,
-                        const char *pattern, size_t m,
-                        match_callback_func callback, void *callback_data)
-{
+void knuth_morris_pratt(
+    const char *text, size_t n,
+    const char *pattern, size_t m,
+    match_callback_func callback,
+    void *callback_data
+) {
     if (m > n) {
         // This is necessary because n and m are unsigned so the
         // "j < n - m + 1" loop test can suffer from an overflow.

@@ -14,12 +14,13 @@ struct recursive_constant_data {
     char *simplify_cigar_buffer;
 };
 
-static void recursive_generator(const char *pattern, char *buffer, char *cigar,
-                                int max_edit_distance,
-                                struct recursive_constant_data *data,
-                                edits_callback_func callback,
-                                void *callback_data)
-{
+static void recursive_generator(
+    const char *pattern, char *buffer, char *cigar,
+    int max_edit_distance,
+    struct recursive_constant_data *data,
+    edits_callback_func callback,
+    void *callback_data
+) {
     if (*pattern == '\0') {
         // no more pattern to match ... terminate the buffer and call back
         *buffer = '\0';
@@ -75,18 +76,28 @@ static void recursive_generator(const char *pattern, char *buffer, char *cigar,
     }
 }
 
-void generate_all_neighbours(const char *pattern,
-                             const char *alphabet,
-                             int max_edit_distance,
-                             edits_callback_func callback,
-                             void *callback_data)
-{
+void generate_all_neighbours(
+    const char *pattern,
+    const char *alphabet,
+    int max_edit_distance,
+    edits_callback_func callback,
+    void *callback_data
+) {
     size_t n = strlen(pattern) + max_edit_distance + 1;
     char buffer[n];
     char cigar[n], cigar_buffer[n];
-    struct recursive_constant_data data = { buffer, cigar, alphabet, cigar_buffer };
-    recursive_generator(pattern, buffer, cigar, max_edit_distance, &data,
-                        callback, callback_data);
+    struct recursive_constant_data data = {
+        buffer, cigar, alphabet, cigar_buffer
+    };
+    recursive_generator(
+        pattern,
+        buffer,
+        cigar,
+        max_edit_distance,
+        &data,
+        callback,
+        callback_data
+    );
 }
 
 enum edit_op {
