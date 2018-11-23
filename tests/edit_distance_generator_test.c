@@ -16,18 +16,13 @@ int main(int argc, char * argv[])
     const char *pattern = "acca";
     const char *alphabet = "acgt";
 
-    generate_all_neighbours(pattern, alphabet, 1, callback, 0);
-
-    printf("------------------\nREPLACEMENT\n------------------\n");
     struct edit_iter iter;
-    struct edit_iter_result result;
-
-    edit_init_iter(pattern, alphabet, 1, &iter);
+    struct edit_pattern result;
+    edit_init_iter(&iter, pattern, alphabet, 1);
     while (edit_next_pattern(&iter, &result)) {
-        printf("pattern %s\ncigar %s\n",
+        printf("%s %s\n",
         result.pattern, result.cigar);
     }
-
     edit_dealloc_iter(&iter);
 
     return EXIT_SUCCESS;

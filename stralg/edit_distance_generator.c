@@ -89,7 +89,30 @@ void generate_all_neighbours(const char *pattern,
                         callback, callback_data);
 }
 
+enum edit_op {
+    EXECUTE,
+    DELETION,
+    INSERTION,
+    MATCH
+};
+struct deletion_info {
+    // No extra info
+};
+struct insertion_info {
+    char a;
+};
+struct match_info {
+    char a;
+};
+
 struct edit_iter_frame {
+    enum edit_op op;
+    union {
+        struct deletion_info  d;
+        struct insertion_info i;
+        struct match_info     m;
+    } op_data;
+
     const char *pattern_front;
     char *buffer_front;
     char *cigar_front;
@@ -97,11 +120,13 @@ struct edit_iter_frame {
     struct edit_iter_frame *next;
 };
 
+
 // I am heap allocating the links in the
 // stack here. It might be faster to have an
 // allocation pool.
 static struct edit_iter_frame *
 push_edit_iter_frame(
+    enum edit_op op,
     const char *pattern_front,
     char *buffer_front,
     char *cigar_front,
@@ -110,6 +135,7 @@ push_edit_iter_frame(
 ) {
     struct edit_iter_frame *frame =
         malloc(sizeof(struct edit_iter_frame));
+    frame->op = op;
     frame->pattern_front = pattern_front;
     frame->buffer_front = buffer_front;
     frame->cigar_front = cigar_front,
@@ -119,10 +145,10 @@ push_edit_iter_frame(
 }
 
 void edit_init_iter(
+    struct edit_iter *iter,
     const char *pattern,
     const char *alphabet,
-    int max_edit_distance,
-    struct edit_iter *iter
+    int max_edit_distance
 ) {
     size_t n = strlen(pattern) + max_edit_distance + 1;
 
@@ -134,6 +160,7 @@ void edit_init_iter(
     iter->simplify_cigar_buffer = malloc(n);
 
     iter->frames = push_edit_iter_frame(
+        EXECUTE,
         iter->pattern,
         iter->buffer,
         iter->cigar,
@@ -144,7 +171,7 @@ void edit_init_iter(
 
 bool edit_next_pattern(
     struct edit_iter *iter,
-    struct edit_iter_result *result
+    struct edit_pattern *result
 ) {
     assert(iter);
     assert(result);
@@ -159,15 +186,6 @@ bool edit_next_pattern(
     char *buffer = frame->buffer_front;
     char *cigar = frame->cigar_front;
 
-    printf("fronts:\n");
-    printf("pattern: %p\n", pattern);
-    printf("pattern: %s\n", pattern);
-    printf("buffer: %s\n", buffer);
-    printf("cigar: %s\n", cigar);
-    printf("and max dist %d\n", frame->max_dist);
-    printf("--------------------\n");
-
-
     if (*pattern == '\0') {
         // no more pattern to match ... terminate the buffer and call back
         *buffer = '\0';
@@ -175,84 +193,113 @@ bool edit_next_pattern(
         simplify_cigar(iter->cigar, iter->simplify_cigar_buffer);
         result->pattern = iter->buffer;
         result->cigar = iter->simplify_cigar_buffer;
+        free(frame);
+        return true;
 
     } else if (frame->max_dist == 0) {
         // we can't edit any more, so just move pattern to buffer and call back
         size_t rest = strlen(pattern);
         for (size_t i = 0; i < rest; ++i) {
-            buffer[i] = pattern[i];
-            //cigar[i] = '=';
-            cigar[i] = 'M';
+              buffer[i] = pattern[i];
+              cigar[i] = 'M';
         }
         buffer[rest] = cigar[rest] = '\0';
         simplify_cigar(iter->cigar, iter->simplify_cigar_buffer);
         result->pattern = iter->buffer;
         result->cigar = iter->simplify_cigar_buffer;
-
-    } else {
-        // --- time to recurse --------------------------------------
-        // deletion
-        *cigar = 'I';
-
-        // FIXME
-#if 0
-        recursive_generator(pattern + 1, buffer, cigar + 1,
-                            max_edit_distance - 1, data,
-                            callback, callback_data);
-#endif
-
-        iter->frames = push_edit_iter_frame(
-            frame->pattern_front + 1,
-            frame->buffer_front,
-            frame->cigar_front + 1,
-            frame->max_dist - 1,
-            0
-        );
-        printf("recurse!\n");
-        edit_next_pattern(iter, result); // recurse...
-
-        // FIXME: how do I schedule the other recursions???
+        free(frame);
+        return true;
     }
 
-#if 0
-    } else {
-        // --- time to recurse --------------------------------------
-        // deletion
-        *cigar = 'I';
-        recursive_generator(pattern + 1, buffer, cigar + 1,
-                            max_edit_distance - 1, data,
-                            callback, callback_data);
-        // insertion
-        for (const char *a = data->alphabet; *a; a++) {
-            *buffer = *a;
-            *cigar = 'D';
-            recursive_generator(pattern, buffer + 1, cigar + 1,
-                                max_edit_distance - 1, data,
-                                callback, callback_data);
-        }
-        // match / substitution
-        for (const char *a = data->alphabet; *a; a++) {
-            if (*a == *pattern) {
-                *buffer = *a;
-                //*cigar = '=';
-                *cigar = 'M';
-                recursive_generator(pattern + 1, buffer + 1, cigar + 1,
-                                    max_edit_distance, data,
-                                    callback, callback_data);
-            } else {
-                *buffer = *a;
-                //*cigar = 'X';
-                *cigar = 'M';
-                recursive_generator(pattern + 1, buffer + 1, cigar + 1,
-                                    max_edit_distance - 1, data,
-                                    callback, callback_data);
+    switch (frame->op) {
+        case EXECUTE:
+            for (const char *a = iter->alphabet; *a; a++) {
+                iter->frames = push_edit_iter_frame(
+                    INSERTION,
+                    frame->pattern_front,
+                    frame->buffer_front,
+                    frame->cigar_front,
+                    frame->max_dist,
+                    iter->frames
+                );
+                iter->frames->op_data.i.a = *a;
+                iter->frames = push_edit_iter_frame(
+                    MATCH,
+                    frame->pattern_front,
+                    frame->buffer_front,
+                    frame->cigar_front,
+                    frame->max_dist,
+                    iter->frames
+                );
+                iter->frames->op_data.m.a = *a;
             }
-        }
+            iter->frames = push_edit_iter_frame(
+                DELETION,
+                frame->pattern_front,
+                frame->buffer_front,
+                frame->cigar_front,
+                frame->max_dist,
+                iter->frames
+            );
+            break;
+
+        case DELETION:
+            *cigar = 'I';
+            iter->frames = push_edit_iter_frame(
+                EXECUTE,
+                frame->pattern_front + 1,
+                frame->buffer_front,
+                frame->cigar_front + 1,
+                frame->max_dist - 1,
+                iter->frames
+            );
+            break;
+
+        case INSERTION:
+            *buffer = frame->op_data.i.a;
+            *cigar = 'D';
+            iter->frames = push_edit_iter_frame(
+                EXECUTE,
+                frame->pattern_front,
+                frame->buffer_front + 1,
+                frame->cigar_front + 1,
+                frame->max_dist - 1,
+                iter->frames
+            );
+
+            break;
+        case MATCH:
+            if (frame->op_data.m.a == *pattern) {
+                *buffer = frame->op_data.m.a;
+                *cigar = 'M';
+                iter->frames = push_edit_iter_frame(
+                    EXECUTE,
+                    frame->pattern_front + 1,
+                    frame->buffer_front + 1,
+                    frame->cigar_front + 1,
+                    frame->max_dist,
+                    iter->frames
+                );
+            } else {
+                *buffer = frame->op_data.m.a;
+                *cigar = 'M';
+                iter->frames = push_edit_iter_frame(
+                    EXECUTE,
+                    frame->pattern_front + 1,
+                    frame->buffer_front + 1,
+                    frame->cigar_front + 1,
+                    frame->max_dist - 1,
+                    iter->frames
+                );
+            }
+            break;
+
+        default:
+            assert(false);
     }
-#endif
 
     free(frame);
-    return true;
+    return edit_next_pattern(iter, result); // recurse...
 }
 
 void edit_dealloc_iter(struct edit_iter *iter)

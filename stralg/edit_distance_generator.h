@@ -30,7 +30,7 @@ struct edit_iter {
 
     struct edit_iter_frame *frames;
 };
-struct edit_iter_result {
+struct edit_pattern {
     const char *pattern;
     const char *cigar;
 };
@@ -40,16 +40,15 @@ struct edit_iter_result {
 // The iterator code will get angry if you do,
 // and it will take it out on your program.
 void edit_init_iter(
+    struct edit_iter *iter,
     const char *pattern,
     const char *alphabet,
-    int max_edit_distance,
-    struct edit_iter *iter
+    int max_edit_distance
 );
 
-// FIXME: add match struct.
 bool edit_next_pattern(
     struct edit_iter *iter,
-    struct edit_iter_result *result
+    struct edit_pattern *result
 );
 
 // This function frees the resources stored in the
