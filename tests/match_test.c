@@ -248,6 +248,12 @@ int main(int argc, char * argv[])
         assert(match_test_random(sa_wrapper));
     }
 
+    struct match_naive_iter naive_iter;
+    match_init_naive_iter(naive_iter);
+
+    //struct match_kmp_iter kmp_iter;
+    //match_init_kmp_iter(kmp_iter);
+
 #if 0
     printf("experimental iter test:\n");
     struct match_naive_iter naive_iter;
