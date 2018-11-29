@@ -2,7 +2,6 @@
 set(CMAKE_MACOSX_RPATH 1)
 add_library(stralg SHARED
 	stralg.h
-	buffer.h buffer.c
 	match.h match.c
 	trie.h trie.c
 	queue.h queue.c
