@@ -208,14 +208,25 @@ void match_init_kmp_iter(
     iter->j = 0;             iter->q = 0;
     iter->max_match_len = n - m + 1;
 
-    iter->prefixtab = malloc(m);
-    iter->prefixtab[0] = 0;
+    // Build prefix border array
+    size_t *prefixtab = malloc(m * sizeof(size_t));
+    prefixtab[0] = 0;
     for (size_t i = 1; i < m; ++i) {
-        size_t k = iter->prefixtab[i-1];
+        size_t k = prefixtab[i-1];
         while (k > 0 && pattern[i] != pattern[k])
             k = iter->prefixtab[k-1];
-        iter->prefixtab[i] = (pattern[i] == pattern[k]) ? k + 1 : 0;
+        prefixtab[i] = (pattern[i] == pattern[k]) ? k + 1 : 0;
     }
+
+    // Modify it so the we avoid borders where the following
+    // letters match
+    for (size_t i = 0; i < m - 1; i++) {
+        prefixtab[i] =
+            (pattern[prefixtab[i]] != pattern[i + 1] || prefixtab[i] == 0) ?
+            prefixtab[i] : prefixtab[prefixtab[i] - 1];
+    }
+
+    iter->prefixtab = prefixtab;
 }
 
 bool next_kmp_match(
