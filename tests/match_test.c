@@ -248,6 +248,7 @@ int main(int argc, char * argv[])
         assert(match_test_random(sa_wrapper));
     }
 
+#if 0
     printf("experimental iter test:\n");
     struct match_naive_iter naive_iter;
     fprintf(stderr, "Running naive test.\n");
@@ -259,7 +260,7 @@ int main(int argc, char * argv[])
     ));
     fprintf(stderr, "Success!");
 
-#if 0
+
     struct match_kmp_iter kmp_iter;
     fprintf(stderr, "Running KMP test.\n");
     assert(iter_test(
