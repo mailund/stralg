@@ -14,7 +14,7 @@ struct suffix_array {
     size_t length;
     // the actual suffix array
     size_t *array;
-    
+
     // these arrays are optional but used in extended suffix arrays.
     // they aren't all used at the same time, and we could get rid of some
     // after we have used them, but I just keep them here for didactic
@@ -36,10 +36,5 @@ int sct_right(struct suffix_array *sa, size_t i);
 void set_sct_right(struct suffix_array *sa, size_t i, int val);
 
 size_t lower_bound_search(struct suffix_array *sa, const char *key);
-
-void suffix_array_bsearch_match(const char *text, size_t n,
-                                const char *pattern, size_t m,
-                                match_callback_func callback,
-                                void *callback_data);
 
 #endif

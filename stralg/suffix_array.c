@@ -15,11 +15,11 @@ static struct suffix_array *allocate_sa(char *string)
     sa->string = string;
     sa->length = strlen(string);
     sa->array = (size_t*)malloc(sa->length * sizeof(size_t));
-    
+
     sa->inverse = 0;
     sa->lcp = 0;
     sa->sct_children = 0;
-    
+
     return sa;
 }
 
@@ -32,16 +32,16 @@ int construction_cmpfunc(const void *a, const void *b)
 struct suffix_array *qsort_sa_construction(char *string)
 {
     struct suffix_array *sa = allocate_sa(string);
-    
+
     char **suffixes = malloc(sa->length * sizeof(char *));
     for (int i = 0; i < sa->length; ++i)
         suffixes[i] = (char *)string + i;
-    
+
     qsort(suffixes, sa->length, sizeof(char *), construction_cmpfunc);
-    
+
     for (int i = 0; i < sa->length; i++)
         sa->array[i] = suffixes[i] - string;
-    
+
     return sa;
 }
 
@@ -56,12 +56,12 @@ void compute_inverse(struct suffix_array *sa)
 void compute_lcp(struct suffix_array *sa)
 {
     if (sa->lcp) return; // only compute if we have to
-    
+
     compute_inverse(sa);
-    
+
     sa->lcp = (int*)malloc((1 + sa->length) * sizeof(int));
     sa->lcp[0] = sa->lcp[sa->length] = -1;
-    
+
     int l = 0;
     for (int i = 0; i < sa->length; ++i) {
         int j = sa->inverse[i];
@@ -100,13 +100,13 @@ void set_sct_right(struct suffix_array *sa, size_t i, int val)
 void compute_super_cartesian_tree(struct suffix_array *sa)
 {
     compute_lcp(sa);
-    
+
     sa->sct_children = (int*)malloc((sa->length + 1) * sizeof(int));
     for (size_t i = 0; i < sa->length + 1; ++i)
         sa->sct_children[i] = -1;
-    
+
     struct stack *stack = empty_stack(sa->length + 1);
-    
+
     set_sct_right(sa, 0, sa->length);
     push(stack, 0, -1);
     for (size_t k = 1; k < sa->length + 1; ++k) {
@@ -128,7 +128,7 @@ void compute_super_cartesian_tree(struct suffix_array *sa)
         }
         push(stack, k, sa->lcp[k]);
     }
-    
+
     delete_stack(stack);
 }
 
@@ -151,7 +151,7 @@ size_t lower_bound_search(struct suffix_array *sa, const char *key)
     int mid;
     int cmp;
     size_t key_len = strlen(key);
-    
+
     while (low < high) {
         mid = low + (high-low) / 2;
         cmp = strncmp(key, sa->string + sa->array[mid], key_len);
@@ -169,14 +169,14 @@ size_t lower_bound_search(struct suffix_array *sa, const char *key)
                       // have to return 0
         }
     }
-    
+
     // we didn't find the key -- we are either at the smallest upper bound
     // or highest lower bound. The relative order of mid and high tells us which
     assert(cmp != 0);
     //printf("fell through ... %d %d %d\n", low, mid, high);
     if (high < 0) return 0;
     if (low >= sa->length) return sa->length - 1;
-    
+
     if (high < mid) {
         // we moved down so mid points to a larger string. This means
         // that the largest that is smaller must be one below mid (which is high)
@@ -191,19 +191,4 @@ size_t lower_bound_search(struct suffix_array *sa, const char *key)
             return mid;
     }
     assert(false); // we should never get here.
-}
-
-void suffix_array_bsearch_match(const char *text, size_t n,
-                                const char *pattern, size_t m,
-                                match_callback_func callback,
-                                void *callback_data)
-{
-    struct suffix_array *sa = qsort_sa_construction(string_copy(text));
-    size_t lb = lower_bound_search(sa, pattern);
-    for (size_t i = lb; i < sa->length; ++i) {
-        if (strncmp(pattern, sa->string + sa->array[i], m) != 0)
-             break;
-        callback(sa->array[i], callback_data);
-    }
-    delete_suffix_array(sa);
 }
