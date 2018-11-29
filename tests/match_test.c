@@ -248,16 +248,6 @@ int main(int argc, char * argv[])
         assert(match_test_random(sa_wrapper));
     }
 
-    char *s1 = "aaaaa"; size_t n = strlen(s1);
-    char *s2 = "aa"; size_t m = strlen(s2);
-
-    struct match_naive_iter naive_iter;
-    match_init_naive_iter(&naive_iter, s1, n, s2, m);
-
-    //struct match_kmp_iter kmp_iter;
-    //match_init_kmp_iter(kmp_iter);
-
-#if 0
     printf("experimental iter test:\n");
     struct match_naive_iter naive_iter;
     fprintf(stderr, "Running naive test.\n");
@@ -279,7 +269,6 @@ int main(int argc, char * argv[])
         (iter_dealloc_func)match_dealloc_kmp_iter
     ));
     fprintf(stderr, "Success!");
-#endif
 
     return EXIT_SUCCESS;
 }
