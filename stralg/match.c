@@ -51,6 +51,83 @@ void match_dealloc_naive_iter(
     // nothing to do here...
 }
 
+void match_init_border_iter(
+    struct match_border_iter *iter,
+    const char *text, size_t n,
+    const char *pattern, size_t m
+) {
+    iter->text = text; iter->n = n;
+    iter->pattern = pattern; iter->m = m;
+    size_t b = iter->i = iter->b = 0;
+
+    size_t *ba = malloc(m * sizeof(size_t));
+    ba[0] = 0;
+    for (int i = 1; i < m; ++i) {
+        int b = ba[i-1];
+        while (b > 0 && pattern[i] != pattern[b])
+            b = ba[b-1];
+        ba[i] = (pattern[i] == pattern[b]) ? b + 1 : 0;
+    }
+    iter->border_array = ba;
+}
+
+bool next_border_match(
+    struct match_border_iter *iter,
+    struct match *match
+) {
+    const char *text = iter->text;
+    const char *pattern = iter->pattern;
+    size_t *ba = iter->border_array;
+    size_t b = iter->b;
+    size_t m = iter->m;
+
+    for (size_t i = iter->i; i < iter->n; ++i) {
+        while (b > 0 && text[i] != pattern[b])
+            b = ba[b - 1];
+        b = (text[i] == pattern[b]) ? b + 1 : 0;
+        if (b == m) {
+            iter->i = i;
+            iter->b = b;
+            match->pos = i - m + 1;
+            return true;
+        }
+    }
+
+    return false;
+}
+
+void match_dealloc_border_iter(
+    struct match_border_iter *iter
+) {
+    free(iter->border_array);
+}
+
+#if 0
+static void ba_search(char * key, char * buffer)
+{
+    unsigned long n = strlen(buffer);
+    unsigned long m = strlen(key);
+    unsigned long ba[m];
+
+    ba[0] = 0;
+    for (int i = 1; i < m; ++i) {
+        int b = ba[i-1];
+        while (b > 0 && key[i] != key[b])
+            b = ba[b-1];
+        ba[i] = (key[i] == key[b]) ? b + 1 : 0;
+    }
+
+    unsigned long b = 0;
+    for (unsigned long i = 0; i < n; ++i) {
+        while (b > 0 && buffer[i] != key[b])
+            b = ba[b-1];
+        b = (buffer[i] == key[b]) ? b + 1 : 0;
+        if (b == m)
+            report(i - m + 1);
+    }
+}
+#endif
+
 
 void match_init_kmp_iter(
     struct match_kmp_iter *iter,

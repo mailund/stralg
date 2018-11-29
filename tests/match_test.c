@@ -64,6 +64,15 @@ int main(int argc, char * argv[])
             (iteration_func)next_naive_match,
             (iter_dealloc_func)match_dealloc_naive_iter
         );
+    } else if (strcmp(alg, "border") == 0) {
+        struct match_border_iter border_iter;
+        iter_test(
+            string, pattern,
+            &border_iter,
+            (iter_init_func)match_init_border_iter,
+            (iteration_func)next_border_match,
+            (iter_dealloc_func)match_dealloc_border_iter
+        );
     } else if (strcmp(alg, "kmp") == 0) {
         struct match_kmp_iter kmp_iter;
         iter_test(

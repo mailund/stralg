@@ -26,6 +26,25 @@ void match_dealloc_naive_iter(
     struct match_naive_iter *iter
 );
 
+struct match_border_iter {
+    const char *text;    size_t n;
+    const char *pattern; size_t m;
+    size_t *border_array;
+    size_t i; size_t b;
+};
+void match_init_border_iter(
+    struct match_border_iter *iter,
+    const char *text, size_t n,
+    const char *pattern, size_t m
+);
+bool next_border_match(
+    struct match_border_iter *iter,
+    struct match *match
+);
+void match_dealloc_border_iter(
+    struct match_border_iter *iter
+);
+
 struct match_kmp_iter {
     const char *text;    size_t n;
     const char *pattern; size_t m;
