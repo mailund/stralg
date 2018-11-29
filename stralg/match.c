@@ -156,7 +156,7 @@ void match_init_naive_iter(
 ) {
     // This is necessary because n and m are unsigned so the
     // "j < n - m + 1" loop test can suffer from an overflow.
-    assert(iter->m <= iter->n);
+    //assert(iter->m <= iter->n);
 
     iter->text = text;       iter->n = n;
     iter->pattern = pattern; iter->m = m;
