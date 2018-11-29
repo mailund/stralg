@@ -11,6 +11,7 @@ script:
   - cmake . -DCMAKE_BUILD_TYPE=Debug
   - make
   - make test
+  - cat tests/Testing/Temporary/LastTest.log
 after_success:
   - make coverage
   - bash <(curl -s https://codecov.io/bash)

@@ -251,20 +251,24 @@ int main(int argc, char * argv[])
 
     printf("experimental iter test:\n");
     struct match_naive_iter naive_iter;
+    fprintf(stderr, "Running naive test.\n");
     assert(iter_test(
         (void*)&naive_iter,
         (iter_init_func)match_init_naive_iter,
         (iteration_func)next_naive_match,
         (iter_dealloc_func)match_dealloc_naive_iter
     ));
+    fprintf(stderr, "Success!");
 
     struct match_kmp_iter kmp_iter;
+    fprintf(stderr, "Running KMP test.\n");
     assert(iter_test(
         (void*)&kmp_iter,
         (iter_init_func)match_init_kmp_iter,
         (iteration_func)next_kmp_match,
         (iter_dealloc_func)match_dealloc_kmp_iter
     ));
+    fprintf(stderr, "Success!");
 
     return EXIT_SUCCESS;
 }

@@ -251,7 +251,7 @@ bool next_kmp_match(
         if (q == m) {
             // yield
             if (q == 0) j++;
-            else q = iter->prefixtab[q-1];
+            else q = iter->prefixtab[q - 1];
             iter->j = j; iter->q = q;
             match->pos = j - m;
             return true;
@@ -259,7 +259,7 @@ bool next_kmp_match(
         if (q == 0) {
             j++;
         } else {
-            q = iter->prefixtab[q-1];
+            q = iter->prefixtab[q - 1];
         }
     }
     return false;
