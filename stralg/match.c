@@ -270,3 +270,56 @@ void match_dealloc_kmp_iter(
 ) {
     free(iter->prefixtab);
 }
+
+
+void match_init_bmh_iter(
+    struct match_bmh_iter *iter,
+    const char *text, size_t n,
+    const char *pattern, size_t m
+) {
+    assert(m <= n);
+    iter->j = 0;
+    iter->text = text; iter->n = n;
+    iter->pattern = pattern; iter->m = m;
+    for (size_t i = 0; i < 256; i++) {
+        iter->jump_table[i] = m;
+    }
+    for (size_t i = 0; i < m - 1; i++) {
+        iter->jump_table[(unsigned char)pattern[i]] = m - i - 1;
+    }
+
+}
+
+bool next_bmh_match(
+    struct match_bmh_iter *iter,
+    struct match *match
+) {
+    // aliasing to make the code easier to read...
+    const char *text = iter->text;
+    const char *pattern = iter->pattern;
+    size_t n = iter->n;
+    size_t m = iter->m;
+    size_t *jump_table = iter->jump_table;
+
+    for (size_t j = iter->j;
+         j < n - m + 1;
+         j += jump_table[(unsigned char)text[j + m - 1]]) {
+
+        size_t i = m - 1;
+        while (i > 0 && pattern[i] == text[j + i]) {
+            i--;
+        }
+        if (i == 0 && pattern[0] == text[j]) {
+            match->pos = j;
+            iter->j = j + jump_table[(unsigned char)text[j + m - 1]];
+            return true;
+        }
+    }
+    return false;
+}
+
+void match_dealloc_bmh_iter(
+    struct match_bmh_iter *iter
+) {
+    // nop
+}

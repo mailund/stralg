@@ -12,5 +12,6 @@
 #include <fastq.h>
 #include <sam.h>
 #include <suffix_array.h>
+#include <io.h>
 
 #endif

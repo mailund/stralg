@@ -80,4 +80,24 @@ void match_dealloc_kmp_iter(
     struct match_kmp_iter *iter
 );
 
+struct match_bmh_iter {
+    const char *text;    size_t n;
+    const char *pattern; size_t m;
+    // Implicitly assuming that the alphabet is eight bits!
+    size_t jump_table[256];
+    size_t j;
+};
+void match_init_bmh_iter(
+    struct match_bmh_iter *iter,
+    const char *text, size_t n,
+    const char *pattern, size_t m
+);
+bool next_bmh_match(
+    struct match_bmh_iter *iter,
+    struct match *match
+);
+void match_dealloc_bmh_iter(
+    struct match_bmh_iter *iter
+);
+
 #endif

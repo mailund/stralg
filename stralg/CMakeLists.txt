@@ -1,8 +1,8 @@
 
 set(CMAKE_MACOSX_RPATH 1)
-add_library(stralg SHARED 
+add_library(stralg SHARED
 	stralg.h
-	buffer.h buffer.c 
+	buffer.h buffer.c
 	match.h match.c
 	trie.h trie.c
 	queue.h queue.c
@@ -17,14 +17,15 @@ add_library(stralg SHARED
 	sam.h sam.c
 	pair_stack.h pair_stack.c
 	suffix_array.h suffix_array.c
-	border-arrays.c 
+	border-arrays.c
+	io.h io.c
 	)
 target_include_directories(stralg
   PUBLIC
     # Headers used from source/build location:
     "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/stralg>"
     # Headers used from installed location:
-    "$<INSTALL_INTERFACE:include>"     
+    "$<INSTALL_INTERFACE:include>"
 )
 
 install(TARGETS stralg DESTINATION lib)
