@@ -9,7 +9,6 @@ void aho_corasick_match(const char *text, size_t n, struct trie *patterns,
   struct trie *v = patterns;
 
   while (j < n) {
-
     struct trie *w = out_link(v, text[j]);
     while (w) {
       for (struct output_list *hits = w->output; hits != 0; hits = hits->next) {
@@ -30,21 +29,70 @@ void aho_corasick_match(const char *text, size_t n, struct trie *patterns,
 }
 
 
-#warning I have not implemented the iterator interface yet
-struct ac_iterator_state {
-
-};
-
-void ac_init_iterator(struct ac_iterator_state *iter)
-{
+void ac_init_iter(
+    struct ac_iter *iter,
+    const char *text,
+    size_t n,
+    const size_t *pattern_lengths,
+    struct trie *patterns_trie
+) {
   assert(iter);
+  iter->text = text; iter->n = n;
 
+  iter->pattern_lengths = pattern_lengths;
+  iter->patterns_trie = patterns_trie;
+
+  iter->nested = true;
+  iter->j = 0;
+  iter->v = patterns_trie;
+  iter->w = 0;
+  iter->hits = 0;
 }
-void ac_matches(const char *text, size_t n, struct trie *patterns,
-                struct ac_iterator_state *iter_state, struct ac_match *match)
-{
-  assert(iter_state); 
+
+bool ac_next_match(
+  struct ac_iter *iter,
+  struct ac_match *match
+) {
+  assert(iter);
   assert(match);
 
+  if (iter->hits) {
+    match->string_label = iter->hits->string_label;
+    // For the index here, we shouldn't add one as in the direct loop.
+    // We have already increased j by one before we get here.
+    match->index = iter->j - iter->pattern_lengths[match->string_label];
+    iter->hits = iter->hits->next;
+    return true;
+  }
 
+  if (iter->nested) {
+    iter->w = out_link(iter->v, iter->text[iter->j]);
+    if (iter->w) {
+      iter->hits = iter->w->output;
+      iter->v = iter->w;
+      iter->j++;
+      iter->w = out_link(iter->v, iter->text[iter->j]);
+      return ac_next_match(iter, match);
+    } else {
+      iter->nested = false;
+    }
+  }
+
+  if (iter->j < iter->n) {
+    if (is_trie_root(iter->v)) {
+      iter->j++;
+    } else {
+      iter->v = iter->v->failure_link;
+    }
+    iter->nested = true;
+    return ac_next_match(iter, match);
+  }
+
+  return false;
+}
+
+void ac_dealloc_iter(
+    struct ac_iter *iter
+) {
+  // nop
 }

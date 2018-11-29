@@ -8,15 +8,37 @@
 // hits for this function...
 // matching callbacks
 
-struct ac_iterator_state;
+struct ac_iter {
+    const char *text;
+    size_t n;
+
+    const size_t *pattern_lengths;
+    struct trie *patterns_trie;
+
+    bool nested;
+    size_t j;
+    struct trie *v, *w;
+    struct output_list *hits;
+};
+
 struct ac_match {
     int string_label;
     size_t index;
-    bool done;
 };
-void ac_init_iterator(struct ac_iterator_state *iter);
-void ac_matches(const char *text, size_t n, struct trie *patterns,
-                struct ac_iterator_state *iter_state, struct ac_match *match);
+void ac_init_iter(
+    struct ac_iter *iter,
+    const char *text,
+    size_t n,
+    const size_t *pattern_lengths,
+    struct trie *patterns_trie
+);
+bool ac_next_match(
+    struct ac_iter *iter,
+    struct ac_match *ac_match
+);
+void ac_dealloc_iter(
+    struct ac_iter *iter
+);
 
 
 typedef void (*ac_callback_func)(int string_label, size_t index, void *data);
