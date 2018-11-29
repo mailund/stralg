@@ -19,14 +19,16 @@ void scan_fastq(
     void * callback_data
 );
 
+#define MAX_STRING_LEN 1024
+
 struct fastq_iter {
     FILE *file;
     char *buffer;
 };
 struct fastq_record {
-    const char *name;
-    const char *sequence;
-    const char *quality;
+    char name[MAX_STRING_LEN];
+    char sequence[MAX_STRING_LEN];
+    char quality[MAX_STRING_LEN];
 };
 
 void fastq_init_iter(

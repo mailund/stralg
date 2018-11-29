@@ -4,7 +4,7 @@
 #include <string.h>
 #include <stdio.h>
 
-const char *scan(const char *cigar)
+static const char *scan(const char *cigar)
 {
     const char *p = cigar;
     while (*p == *cigar)

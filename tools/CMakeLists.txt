@@ -1,8 +1,3 @@
 
-add_executable(match_readmap match_readmap.c)
-target_link_libraries(match_readmap stralg)
-
-add_executable(ac_readmap ac_readmap.c)
-target_link_libraries(ac_readmap stralg)
-
-add_test(Read-mapping read_map_comparison_test.sh)
+# I have made this empty for now. I will add
+# tools from my read mapper repository instead.
