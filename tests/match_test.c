@@ -209,7 +209,6 @@ static bool iter_test(
     struct buffer *test_buffer = allocate_buffer(n);
 
     struct match match;
-    //match_init_iter(&iter, s1, n, s2, m);
     iter_init(iter, s1, n, s2, m);
     while (iter_func(iter, &match)) {
         add_to_buffer(buffer, match.pos);
@@ -218,13 +217,13 @@ static bool iter_test(
 
     size_t correct[] = { 0, 1, 2, 3 };
     copy_array_to_buffer(correct, sizeof(correct)/sizeof(size_t), test_buffer);
-    if (true) { //!buffers_equal(buffer, test_buffer)) {
+    if (!buffers_equal(buffer, test_buffer)) {
         printf("Exact pattern matching for %s in %s:\n", s2, s1);
         printf("Expected: ");
         print_buffer(test_buffer);
         printf("Got: ");
         print_buffer(buffer);
-        //return false;
+        return false;
     }
 
     delete_buffer(buffer);
