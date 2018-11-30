@@ -40,6 +40,7 @@ static void test_inverse(struct suffix_array *sa)
     }
 }
 
+/*
 static int lcp(const char *a, const char *b)
 {
     int l = 0;
@@ -73,6 +74,7 @@ static void test_sct(struct suffix_array *sa)
         assert(R[i] == sct_right(sa, i));
     }
 }
+ */
 
 int main(int argc, char *argv[])
 {
@@ -104,8 +106,8 @@ int main(int argc, char *argv[])
     test_order(sa);
     test_search(sa);
     test_inverse(sa);
-    test_lcp(sa);
-    test_sct(sa);
+    /*test_lcp(sa);
+    test_sct(sa);*/
 
     delete_suffix_array(sa);
     
