@@ -9,8 +9,6 @@ add_library(stralg SHARED
 	edit_distance_generator.h edit_distance_generator.c
 	cigar.h cigar.c
 	strings.h strings.c
-	string_vector.h string_vector.c
-	size_vector.h size_vector.c
 	fasta.h fasta.c
 	fastq.h fastq.c
 	sam.h sam.c
