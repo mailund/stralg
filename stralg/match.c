@@ -58,7 +58,7 @@ void match_init_border_iter(
 ) {
     iter->text = text; iter->n = n;
     iter->pattern = pattern; iter->m = m;
-    size_t b = iter->i = iter->b = 0;
+    iter->i = iter->b = 0;
 
     size_t *ba = malloc(m * sizeof(size_t));
     ba[0] = 0;
@@ -143,8 +143,10 @@ void match_init_kmp_iter(
     iter->j = 0;             iter->q = 0;
     iter->max_match_len = n - m + 1;
 
-    // Build prefix border array
-    size_t *prefixtab = malloc(m * sizeof(size_t));
+    // Build prefix border array -- I allocate with calloc
+    // because the static analyser otherwise think it can contain
+    // garbage values after the initialisation.
+    size_t *prefixtab = calloc(m, sizeof(size_t));
     prefixtab[0] = 0;
     for (size_t i = 1; i < m; ++i) {
         size_t k = prefixtab[i-1];

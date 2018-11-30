@@ -3,6 +3,7 @@
 #include <assert.h>
 #include <stdio.h>
 
+/*
 void aho_corasick_match(const char *text, size_t n, struct trie *patterns,
                         ac_callback_func callback, void *callback_data) {
   size_t j = 0;
@@ -27,6 +28,7 @@ void aho_corasick_match(const char *text, size_t n, struct trie *patterns,
     }
   }
 }
+*/
 
 
 void ac_init_iter(

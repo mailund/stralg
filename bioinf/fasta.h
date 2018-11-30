@@ -6,25 +6,31 @@
 #include <stdbool.h>
 
 // opaque structures.
-struct fasta_file;
+struct fasta_records;
 struct fasta_record_impl;
 
-struct fasta_file *load_fasta_file(
-    const char *fname
+enum fasta_errors {
+    NO_FASTA_ERRORS,
+    CANNOT_OPEN_FASTA_FILE,
+    MALFORMED_FASTA_RECORD_ERROR
+};
+
+struct fasta_records *load_fasta_records(
+    const char *fname,
+    enum fasta_errors *err
 );
-void free_fasta_file(
-    struct fasta_file *file
+void free_fasta_records(
+    struct fasta_records *file
 );
 
-// record iterators.
 struct fasta_record {
     const char *name;
     const char *seq;
     size_t seq_len;
 };
 
-bool fasta_lookup_name(
-    struct fasta_file *file,
+bool lookup_fasta_record_by_name(
+    struct fasta_records *file,
     const char *name,
     struct fasta_record *record
 );
@@ -32,16 +38,15 @@ bool fasta_lookup_name(
 struct fasta_iter {
     struct fasta_record_impl *rec;
 };
-
-void fasta_init_iter(
+void init_fasta_iter(
     struct fasta_iter *iter,
-    struct fasta_file *file
+    struct fasta_records *file
 );
 bool next_fasta_record(
     struct fasta_iter *iter,
     struct fasta_record *rec
 );
-void fasta_dealloc_iter(
+void dealloc_fasta_iter(
     struct fasta_iter *iter
 );
 

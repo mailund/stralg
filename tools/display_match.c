@@ -115,10 +115,10 @@ static void display_match(
     const char *pattern, const char *cigar,
     const char *ref_seq_name, int match_index,
     int flanking_seq_length,
-    struct fasta_file *ref_genome
+    struct fasta_records *ref_genome
 ) {
     struct fasta_record rec;
-    if (!fasta_lookup_name(ref_genome, ref_seq_name, &rec)) {
+    if (!lookup_fasta_record_by_name(ref_genome, ref_seq_name, &rec)) {
         fprintf(stderr, "Didn't find the reference sequence %s.\n",
                 ref_seq_name);
         exit(EXIT_FAILURE);
@@ -172,7 +172,7 @@ int main(int argc, const char *argv[]) {
     const char *sam_filename = argv[2];
     int flanking_seq_length = 5;
 
-    struct fasta_file *fasta_file = load_fasta_file(ref_filename);
+    struct fasta_records *fasta_file = load_fasta_records(ref_filename, 0);
     if (!fasta_file) {
         fprintf(stderr, "Could not open %s.\n", ref_filename);
         return EXIT_FAILURE;
@@ -202,7 +202,7 @@ int main(int argc, const char *argv[]) {
         putchar('\n');
     }
 
-    free_fasta_file(fasta_file);
+    free_fasta_records(fasta_file);
     fclose(sam_file);
 
     return EXIT_SUCCESS;

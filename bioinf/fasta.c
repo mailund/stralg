@@ -13,7 +13,7 @@ struct fasta_record_impl {
     size_t seq_len;
     struct fasta_record_impl *next;
 };
-struct fasta_file {
+struct fasta_records {
     char *buffer;
     struct fasta_record_impl *recs;
 };
@@ -50,6 +50,7 @@ static void pack_name(struct packing *pack)
 
 static void pack_seq(struct packing *pack)
 {
+    assert(pack->front);
     while (true) {
         // skip space
         while (*pack->front && isspace(*pack->front))
@@ -84,14 +85,24 @@ static struct fasta_record_impl *alloc_rec(
     return rec;
 }
 
-struct fasta_file *load_fasta_file(
-    const char *fname
+struct fasta_records *load_fasta_records(
+    const char *fname,
+    enum fasta_errors *err
 ) {
+    if (err) *err = NO_FASTA_ERRORS;
+    // stuff to deallocated in case of errors
+    struct fasta_records *rec = 0;
+    
     char *string = load_file(fname);
-    if (!string) return 0;
+    if (!string) {
+        // This is the first place we allocate a resource
+        // and it wasn't allocated, so we just return rather
+        // than jump to fail.
+        if (err) *err = CANNOT_OPEN_FASTA_FILE;
+        return 0;
+    }
 
-    struct fasta_file *rec =
-        malloc(sizeof(struct fasta_file));
+    rec = malloc(sizeof(struct fasta_records));
     rec->buffer = string;
     rec->recs = 0;
 
@@ -104,8 +115,10 @@ struct fasta_file *load_fasta_file(
         name = pack.pack;
         pack_name(&pack);
 
-        // FIXME: proper error handling
-        assert(pack.front != 0);
+        if (pack.front != 0) {
+            if (err) *err = MALFORMED_FASTA_RECORD_ERROR;
+            goto fail;
+        }
 
         seq = pack.pack;
         pack_seq(&pack);
@@ -118,10 +131,28 @@ struct fasta_file *load_fasta_file(
     }
 
     return rec;
+    
+fail:
+    // The string is always allocated if we get here.
+    // This also means that rec->buffer is, but
+    // we should not free that because then
+    // it would be freed twice.
+    free(string);
+    if (rec) {
+        struct fasta_record_impl *next, *rec_list;
+        rec_list = rec->recs;
+        while (rec_list) {
+            next = rec_list->next;
+            free(rec_list);
+            rec_list = next;
+        }
+        free(rec);
+    }
+    return 0;
 }
 
-void free_fasta_file(
-    struct fasta_file *file
+void free_fasta_records(
+    struct fasta_records *file
 ) {
     free(file->buffer);
     struct fasta_record_impl *rec = file->recs, *next;
@@ -133,8 +164,8 @@ void free_fasta_file(
     free(file);
 }
 
-bool fasta_lookup_name(
-    struct fasta_file *file,
+bool lookup_fasta_record_by_name(
+    struct fasta_records *file,
     const char *name,
     struct fasta_record *record
 ) {
@@ -152,9 +183,9 @@ bool fasta_lookup_name(
 }
 
 
-void fasta_init_iter(
+void init_fasta_iter(
     struct fasta_iter *iter,
-    struct fasta_file *file
+    struct fasta_records *file
 ) {
     iter->rec = file->recs;
 }
@@ -174,7 +205,7 @@ bool next_fasta_record(
     }
 }
 
-void fasta_dealloc_iter(
+void dealloc_fasta_iter(
     struct fasta_iter *iter
 ) {
     // nop

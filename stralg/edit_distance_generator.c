@@ -88,6 +88,90 @@ void edit_init_iter(
     );
 }
 
+/*
+static void recursive_generator(const char *pattern, char *buffer, char *cigar,
+                                int max_edit_distance,
+                                struct recursive_constant_data *data,
+                                edits_callback_func callback,
+                                void *callback_data,
+                                struct options *options)
+{
+    if (*pattern == '\0') {
+        // no more pattern to match ...
+        
+        // with no more edits: terminate the buffer and call back
+        *buffer = '\0';
+        *cigar = '\0';
+        simplify_cigar(data->cigar_front, data->simplify_cigar_buffer);
+        callback(data->buffer_front, data->simplify_cigar_buffer, callback_data);
+        
+        // if we have more edits left, we add some deletions
+        if (max_edit_distance > 0) {
+            for (const char *a = data->alphabet; *a; a++) {
+                *buffer = *a;
+                *cigar = 'D';
+                recursive_generator(pattern, buffer + 1, cigar + 1,
+                                    max_edit_distance - 1, data,
+                                    callback, callback_data, options);
+            }
+        }
+        
+        
+    } else if (max_edit_distance == 0) {
+        // we can't edit any more, so just move pattern to buffer and call back
+        size_t rest = strlen(pattern);
+        for (size_t i = 0; i < rest; ++i) {
+            buffer[i] = pattern[i];
+            if (options->extended_cigars)
+                cigar[i] = '=';
+            else
+                cigar[i] = 'M';
+        }
+        buffer[rest] = cigar[rest] = '\0';
+        simplify_cigar(data->cigar_front, data->simplify_cigar_buffer);
+        callback(data->buffer_front, data->simplify_cigar_buffer, callback_data);
+        
+    } else {
+        // --- time to recurse --------------------------------------
+        // deletion
+        *cigar = 'I';
+        recursive_generator(pattern + 1, buffer, cigar + 1,
+                            max_edit_distance - 1, data,
+                            callback, callback_data, options);
+        // insertion
+        for (const char *a = data->alphabet; *a; a++) {
+            *buffer = *a;
+            *cigar = 'D';
+            recursive_generator(pattern, buffer + 1, cigar + 1,
+                                max_edit_distance - 1, data,
+                                callback, callback_data, options);
+        }
+        // match / substitution
+        for (const char *a = data->alphabet; *a; a++) {
+            if (*a == *pattern) {
+                *buffer = *a;
+                if (options->extended_cigars)
+                    *cigar = '=';
+                else
+                    *cigar = 'M';
+                recursive_generator(pattern + 1, buffer + 1, cigar + 1,
+                                    max_edit_distance, data,
+                                    callback, callback_data, options);
+            } else {
+                *buffer = *a;
+                if (options->extended_cigars)
+                    *cigar = 'X';
+                else
+                    *cigar = 'M';
+                recursive_generator(pattern + 1, buffer + 1, cigar + 1,
+                                    max_edit_distance - 1, data,
+                                    callback, callback_data, options);
+            }
+        }
+    }
+}
+*/
+
 bool edit_next_pattern(
     struct edit_iter *iter,
     struct edit_pattern *result
