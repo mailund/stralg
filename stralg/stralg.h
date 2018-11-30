@@ -6,9 +6,6 @@
 #include <aho_corasick.h>
 #include <edit_distance_generator.h>
 #include <cigar.h>
-#include <fasta.h>
-#include <fastq.h>
-#include <sam.h>
 #include <suffix_array.h>
 #include <io.h>
 

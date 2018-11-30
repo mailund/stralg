@@ -22,6 +22,13 @@ struct fasta_record {
     const char *seq;
     size_t seq_len;
 };
+
+bool fasta_lookup_name(
+    struct fasta_file *file,
+    const char *name,
+    struct fasta_record *record
+);
+
 struct fasta_iter {
     struct fasta_record_impl *rec;
 };

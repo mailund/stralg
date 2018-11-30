@@ -1,14 +1,4 @@
 
-add_executable(fastq_iterator_test fastq_iterator_test.c)
-target_link_libraries(fastq_iterator_test stralg)
-add_test(FASTQ-iterator
-    ./run-compare.sh fastq_iterator_test test-data/test.fq
-)
-
-add_executable(fasta_test fasta_test.c)
-target_link_libraries(fasta_test stralg)
-add_test(FASTA ./run-fasta-test.sh)
-
 add_executable(match_test match_test.c)
 target_link_libraries(match_test stralg)
 add_test(Match ./run-match-tests.sh match_test)
@@ -44,3 +34,13 @@ add_executable(pair_stack_test pair_stack_test.c)
 target_link_libraries(pair_stack_test stralg)
 add_test(Pair-stack pair_stack_test)
 
+# BIOINF ----------------------------------------------
+add_executable(fastq_iterator_test fastq_iterator_test.c)
+target_link_libraries(fastq_iterator_test stralg stralg_bioinf)
+add_test(FASTQ-iterator
+    ./run-compare.sh fastq_iterator_test test-data/test.fq
+)
+
+add_executable(fasta_test fasta_test.c)
+target_link_libraries(fasta_test stralg stralg_bioinf)
+add_test(FASTA ./run-fasta-test.sh)

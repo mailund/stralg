@@ -7,6 +7,6 @@ then
     echo "ok"
 
 else
-    echo "error"
+    echo "errors"
     exit 1
 fi

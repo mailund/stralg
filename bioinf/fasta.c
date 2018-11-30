@@ -1,6 +1,6 @@
 
 #include "fasta.h"
-#include "io.h"
+#include <io.h>
 
 #include <stdlib.h>
 #include <string.h>
@@ -132,6 +132,25 @@ void free_fasta_file(
     }
     free(file);
 }
+
+bool fasta_lookup_name(
+    struct fasta_file *file,
+    const char *name,
+    struct fasta_record *record
+) {
+    struct fasta_record_impl *rec = file->recs;
+    while (rec) {
+        if (strcmp(rec->name, name)) {
+            record->name = rec->name;
+            record->seq = rec->seq;
+            record->seq_len = rec->seq_len;
+            return true;
+        }
+        rec = rec->next;
+    }
+    return false;
+}
+
 
 void fasta_init_iter(
     struct fasta_iter *iter,

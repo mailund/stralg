@@ -9,14 +9,12 @@ add_library(stralg SHARED
 	edit_distance_generator.h edit_distance_generator.c
 	cigar.h cigar.c
 	strings.h strings.c
-	fasta.h fasta.c
-	fastq.h fastq.c
-	sam.h sam.c
 	pair_stack.h pair_stack.c
 	suffix_array.h suffix_array.c
 	border-arrays.c
 	io.h io.c
-	)
+)
+
 target_include_directories(stralg
   PUBLIC
     # Headers used from source/build location:
@@ -26,4 +24,8 @@ target_include_directories(stralg
 )
 
 install(TARGETS stralg DESTINATION lib)
-install(FILES stralg.h buffer.h match.h trie.h queue.h DESTINATION include)
+install(
+	DIRECTORY .
+	DESTINATION include/stralg/
+	FILES_MATCHING PATTERN "*.h"
+)

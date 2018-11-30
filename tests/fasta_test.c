@@ -1,60 +1,9 @@
 
-#include <stralg.h>
+#include "fasta.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
 #include <ctype.h>
-
-struct packing {
-    char *front;
-    char *pack;
-};
-
-void pack_name(struct packing *pack)
-{
-    while (true) {
-        // skip record start and space
-        while (
-            *pack->front == '>' ||
-            *pack->front == ' ' ||
-            *pack->front == '\t') {
-                pack->front++;
-            }
-        if (*pack->front == '\0' || *pack->front == '\n')
-            break; // end of name or end of file (broken record if end of file)
-        (*pack->pack++) = (*pack->front++);
-    }
-
-    (*pack->pack++) = '\0';
-
-    // are we done or is there a new front?
-    if (*pack->front == '\0') {
-        pack->front = 0;
-    } else {
-        pack->front++;
-    }
-}
-
-void pack_seq(struct packing *pack)
-{
-    while (true) {
-        // skip space
-        while (*pack->front && isspace(*pack->front))
-            pack->front++;
-        if (*pack->front == '\0' || *pack->front == '>')
-            break; // next header or end of file
-        (*pack->pack++) = (*pack->front++);
-    }
-
-    (*pack->pack++) = '\0';
-
-    // are we done or is there a new front?
-    if (*pack->front == '\0') {
-        pack->front = 0;
-    } else {
-        pack->front++;
-    }
-}
 
 int main(int argc, char **argv)
 {
