@@ -81,10 +81,10 @@ int main(int argc, char *argv[])
     char *string = string_copy("ababacabac");
     struct suffix_array *sa = qsort_sa_construction(string);
 
+#if 0
     compute_lcp(sa);
     compute_super_cartesian_tree(sa);
     
-#if 0
     for (int i = 0; i < sa->length; ++i)
         printf("sa[%d] == %zu\t%s\n", i, sa->array[i], string + sa->array[i]);
     printf("\n");
