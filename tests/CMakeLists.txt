@@ -26,10 +26,6 @@ add_executable(suffix_array_test suffix_array_test.c)
 target_link_libraries(suffix_array_test stralg)
 add_test(Suffix-array suffix_array_test)
 
-add_executable(sa_bsearch_bug sa_bsearch_bug.c)
-target_link_libraries(sa_bsearch_bug stralg)
-add_test(Suffix-array-bug-regression sa_bsearch_bug)
-
 add_executable(pair_stack_test pair_stack_test.c)
 target_link_libraries(pair_stack_test stralg)
 add_test(Pair-stack pair_stack_test)
