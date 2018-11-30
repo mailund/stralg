@@ -13,9 +13,10 @@ int main(int argc, char **argv)
     }
     const char *fname = argv[1];
 
-    struct fasta_records *fasta_file = load_fasta_records(fname, 0);
+    enum fasta_errors err;
+    struct fasta_records *fasta_file = load_fasta_records(fname, &err);
     if (!fasta_file) {
-        printf("Could not load %s\n", fname);
+        printf("Could not load %s (%d)\n", fname, err);
         return EXIT_FAILURE;
     }
 

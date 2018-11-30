@@ -34,3 +34,4 @@ tools/match_readmap
 tools/Debug/
 tools/Release
 tools/*.sam
+bioinf/Debug

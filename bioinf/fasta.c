@@ -115,7 +115,7 @@ struct fasta_records *load_fasta_records(
         name = pack.pack;
         pack_name(&pack);
 
-        if (pack.front != 0) {
+        if (pack.front == 0) {
             if (err) *err = MALFORMED_FASTA_RECORD_ERROR;
             goto fail;
         }
