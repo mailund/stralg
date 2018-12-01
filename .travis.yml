@@ -12,6 +12,6 @@ script:
   - make
   - make test
 after_success:
+  - make coveralls
   - make coverage
   - bash <(curl -s https://codecov.io/bash)
-  - make coveralls
