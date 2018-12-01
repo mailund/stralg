@@ -35,13 +35,13 @@ int main(int argc, char * argv[])
     char *text = "abababcbab";
 
     struct ac_iter iter; struct ac_match match;
-    ac_init_iter(
+    init_ac_iter(
         &iter,
         text, strlen(text),
         pattern_lengths,
         patterns_trie
     );
-    while (ac_next_match(&iter, &match)) {
+    while (next_ac_match(&iter, &match)) {
         char *pattern = patterns[match.string_label];
         size_t length = pattern_lengths[match.string_label];
         printf(
@@ -50,7 +50,7 @@ int main(int argc, char * argv[])
         );
         assert(strncmp(pattern, text + match.index, length) == 0);
     }
-    ac_dealloc_iter(&iter);
+    dealloc_ac_iter(&iter);
 
     delete_trie(patterns_trie);
 

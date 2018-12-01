@@ -63,7 +63,7 @@ push_edit_iter_frame(
     return frame;
 }
 
-void edit_init_iter(
+void init_edit_iter(
     struct edit_iter *iter,
     const char *pattern,
     const char *alphabet,
@@ -172,7 +172,7 @@ static void recursive_generator(const char *pattern, char *buffer, char *cigar,
 }
 */
 
-bool edit_next_pattern(
+bool next_edit_pattern(
     struct edit_iter *iter,
     struct edit_pattern *result
 ) {
@@ -302,10 +302,10 @@ bool edit_next_pattern(
     }
 
     free(frame);
-    return edit_next_pattern(iter, result); // recurse...
+    return next_edit_pattern(iter, result); // recurse...
 }
 
-void edit_dealloc_iter(struct edit_iter *iter)
+void dealloc_edit_iter(struct edit_iter *iter)
 {
     free(iter->buffer);
     free(iter->cigar);

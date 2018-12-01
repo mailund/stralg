@@ -25,18 +25,18 @@ struct ac_match {
     int string_label;
     size_t index;
 };
-void ac_init_iter(
+void init_ac_iter(
     struct ac_iter *iter,
     const char *text,
     size_t n,
     const size_t *pattern_lengths,
     struct trie *patterns_trie
 );
-bool ac_next_match(
+bool next_ac_match(
     struct ac_iter *iter,
     struct ac_match *ac_match
 );
-void ac_dealloc_iter(
+void dealloc_ac_iter(
     struct ac_iter *iter
 );
 

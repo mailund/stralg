@@ -26,14 +26,14 @@ struct edit_pattern {
 // creating an iterator and you deallocate it again.
 // The iterator code will get angry if you do,
 // and it will take it out on your program.
-void edit_init_iter(
+void init_edit_iter(
     struct edit_iter *iter,
     const char *pattern,
     const char *alphabet,
     int max_edit_distance
 );
 
-bool edit_next_pattern(
+bool next_edit_pattern(
     struct edit_iter *iter,
     struct edit_pattern *result
 );
@@ -42,7 +42,7 @@ bool edit_next_pattern(
 // iterator structor, not the struct itself. If it is
 // heap allocated you are responsible for freeing
 // the structure.
-void edit_dealloc_iter(
+void dealloc_edit_iter(
     struct edit_iter *iter
 );
 
