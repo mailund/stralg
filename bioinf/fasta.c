@@ -171,7 +171,7 @@ bool lookup_fasta_record_by_name(
 ) {
     struct fasta_record_impl *rec = file->recs;
     while (rec) {
-        if (strcmp(rec->name, name)) {
+        if (strcmp(rec->name, name) == 0) {
             record->name = rec->name;
             record->seq = rec->seq;
             record->seq_len = rec->seq_len;

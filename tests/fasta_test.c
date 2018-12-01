@@ -42,12 +42,14 @@ int main(int argc, char **argv)
         "CATACTTTCCACACGCTGTGTGTCACTAGTGTGACTACG"
         "AAATACGTGTGTACTACGGACTACCTACTACCTA";
     const char *ref2 = "ACCTACAGACTACCATGTATCTCCATTTACCTAGTCTAG"
-        "CATACTTTCCACACGCTGTGTGTCACTAGTGTGACTACG"
-        "AAATACGTGTGTACTACGGACTACCTACTACCTA";
+        "AAATACGTGTGTACTACGGACTACCTACTACCTA"
+        "CATACTTTCCACACGCTGTGTGTCACTAGTGTGACTACG";
     
     lookup_fasta_record_by_name(fasta_file, "ref1", &rec);
     assert(strcmp(rec.seq, ref1) == 0);
+    assert(strcmp(rec.seq, ref2) != 0);
     lookup_fasta_record_by_name(fasta_file, "ref2", &rec);
+    assert(strcmp(rec.seq, ref1) != 0);
     assert(strcmp(rec.seq, ref2) == 0);
     assert(!lookup_fasta_record_by_name(fasta_file, "noname", &rec));
     
