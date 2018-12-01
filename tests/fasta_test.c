@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <assert.h>
 #include <ctype.h>
+#include <string.h>
 
 int main(int argc, char **argv)
 {
@@ -35,6 +36,19 @@ int main(int argc, char **argv)
         printf("seq len %lu\n", rec.seq_len);
     }
     dealloc_fasta_iter(&iter);
+    
+    // check that we can look up records.
+    const char *ref1 = "ACCTACAGACTACCATGTATCTCCATTTACCTAGTCTAG"
+        "CATACTTTCCACACGCTGTGTGTCACTAGTGTGACTACG"
+        "AAATACGTGTGTACTACGGACTACCTACTACCTA";
+    const char *ref2 = "ACCTACAGACTACCATGTATCTCCATTTACCTAGTCTAG"
+        "CATACTTTCCACACGCTGTGTGTCACTAGTGTGACTACG"
+        "AAATACGTGTGTACTACGGACTACCTACTACCTA";
+    
+    lookup_fasta_record_by_name(fasta_file, "ref1", &rec);
+    assert(strcmp(rec.seq, ref1) == 0);
+    lookup_fasta_record_by_name(fasta_file, "ref2", &rec);
+    assert(strcmp(rec.seq, ref2) == 0);
     free_fasta_records(fasta_file);
     
     // Check that it also works when we use a null err.
