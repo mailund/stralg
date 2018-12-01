@@ -2,16 +2,20 @@ language: c
 compiler:
   - clang
   - gcc
-addons:
-    apt:
-        packages:
-            - lcov
+install:
+  - sudo apt-get install -y lcov
+  - gem install coveralls-lcov
+#addons:
+#    apt:
+#        packages:
+#            - lcov
 
 script:
   - cmake -DCMAKE_BUILD_TYPE=Debug
   - make
   - make test
 after_success:
-  - make coveralls
   - make coverage
   - bash <(curl -s https://codecov.io/bash)
+  - lcov --compat-libtool --directory . --capture --output-file coverage.info
+  - coveralls-lcov coverage.info

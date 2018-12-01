@@ -16,11 +16,6 @@ if(CMAKE_BUILD_TYPE MATCHES Debug)
         NAME coverage
         EXECUTABLE ctest
     )
-
-    include(Coveralls)
-    coveralls_turn_on_coverage()
-
-    
 endif(CMAKE_BUILD_TYPE MATCHES Debug)
 
 add_subdirectory(stralg)
