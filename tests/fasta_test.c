@@ -49,6 +49,8 @@ int main(int argc, char **argv)
     assert(strcmp(rec.seq, ref1) == 0);
     lookup_fasta_record_by_name(fasta_file, "ref2", &rec);
     assert(strcmp(rec.seq, ref2) == 0);
+    assert(!lookup_fasta_record_by_name(fasta_file, "noname", &rec));
+    
     free_fasta_records(fasta_file);
     
     // Check that it also works when we use a null err.
