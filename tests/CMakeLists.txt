@@ -54,25 +54,25 @@ add_test(
 add_test(
     NAME Run-naive-rep
     COMMAND
-    sh -c "$<TARGET_FILE:match_test> naive ab test-data/repetitive-string.txt > test-data/naive-rep-match.txt"
+    sh -c "$<TARGET_FILE:match_test> naive ababaaba test-data/repetitive-string.txt > test-data/naive-rep-match.txt"
     WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/tests"
 )
 add_test(
     NAME Run-border-rep
     COMMAND
-    sh -c "$<TARGET_FILE:match_test> border ab test-data/repetitive-string.txt > test-data/border-rep-match.txt"
+    sh -c "$<TARGET_FILE:match_test> border ababaaba test-data/repetitive-string.txt > test-data/border-rep-match.txt"
     WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/tests"
 )
 add_test(
     NAME Run-KMP-rep
     COMMAND
-    sh -c "$<TARGET_FILE:match_test> kmp ab test-data/repetitive-string.txt > test-data/kmp-rep-match.txt"
+    sh -c "$<TARGET_FILE:match_test> kmp ababaaba test-data/repetitive-string.txt > test-data/kmp-rep-match.txt"
     WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/tests"
 )
 add_test(
     NAME Run-BMH-rep
     COMMAND
-    sh -c "$<TARGET_FILE:match_test> bmh ab test-data/repetitive-string.txt > test-data/bmh-rep-match.txt"
+    sh -c "$<TARGET_FILE:match_test> bmh ababaaba test-data/repetitive-string.txt > test-data/bmh-rep-match.txt"
     WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/tests"
 )
 add_test(
