@@ -3,17 +3,28 @@
 
 #include <stdlib.h>
 
-struct stack *empty_stack(size_t size)
-{
-    struct stack *stack = (struct stack*)malloc(sizeof(struct stack));
+void init_stack(size_t size, struct stack *stack) {
     stack->top = -1;
     stack->elements = (struct pair*)malloc(size * sizeof(struct pair));
+}
+
+void dealloc_stack(struct stack *stack)
+{
+    free(stack->elements);
+}
+
+struct stack *allocate_stack(size_t size)
+{
+    struct stack *stack = (struct stack*)malloc(sizeof(struct stack));
+    init_stack(size, stack);
     return stack;
 }
 
-void delete_stack(struct stack *stack)
+
+
+void free_stack(struct stack *stack)
 {
-    free(stack->elements);
+    dealloc_stack(stack);
     free(stack);
 }
 

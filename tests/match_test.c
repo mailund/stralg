@@ -56,40 +56,40 @@ int main(int argc, char * argv[])
     const char *pattern = "the";
 
     if (strcmp(alg, "naive") == 0) {
-        struct match_naive_iter naive_iter;
+        struct naive_match_iter naive_iter;
         iter_test(
             string, pattern,
             &naive_iter,
-            (iter_init_func)match_init_naive_iter,
+            (iter_init_func)init_naive_match_iter,
             (iteration_func)next_naive_match,
-            (iter_dealloc_func)match_dealloc_naive_iter
+            (iter_dealloc_func)dealloc_naive_match_iter
         );
     } else if (strcmp(alg, "border") == 0) {
-        struct match_border_iter border_iter;
+        struct border_match_iter border_iter;
         iter_test(
             string, pattern,
             &border_iter,
-            (iter_init_func)match_init_border_iter,
+            (iter_init_func)init_border_match_iter,
             (iteration_func)next_border_match,
-            (iter_dealloc_func)match_dealloc_border_iter
+            (iter_dealloc_func)dealloc_border_match_iter
         );
     } else if (strcmp(alg, "kmp") == 0) {
-        struct match_kmp_iter kmp_iter;
+        struct kmp_match_iter kmp_iter;
         iter_test(
             string, pattern,
             &kmp_iter,
-            (iter_init_func)match_init_kmp_iter,
+            (iter_init_func)init_kmp_match_iter,
             (iteration_func)next_kmp_match,
-            (iter_dealloc_func)match_dealloc_kmp_iter
+            (iter_dealloc_func)dealloc_kmp_match_iter
         );
     } else if (strcmp(alg, "bmh") == 0) {
-        struct match_bmh_iter bmh_iter;
+        struct bmh_match_iter bmh_iter;
         iter_test(
             string, pattern,
             &bmh_iter,
-            (iter_init_func)match_init_bmh_iter,
+            (iter_init_func)init_bmh_match_iter,
             (iteration_func)next_bmh_match,
-            (iter_dealloc_func)match_dealloc_bmh_iter
+            (iter_dealloc_func)dealloc_bmh_match_iter
         );
     } else {
         printf("unknown algorithm %s\n", alg);

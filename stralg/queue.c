@@ -12,18 +12,28 @@ static struct linked_list *linked_list_link(void *data)
     return link;
 }
 
-struct queue *empty_queue()
+void init_queue(struct queue *queue)
 {
-    struct queue *queue = (struct queue *)malloc(sizeof(struct queue));
     queue->front = 0;
     queue->back = 0;
+}
+
+struct queue *alloc_queue()
+{
+    struct queue *queue = (struct queue *)malloc(sizeof(struct queue));
+    init_queue(queue);
     return queue;
 }
 
-void delete_queue(struct queue *queue)
+void dealloc_queue(struct queue *queue)
 {
     while (!queue_is_empty(queue))
         dequeue(queue);
+}
+
+void free_queue(struct queue *queue)
+{
+    dealloc_queue(queue);
     free(queue);
 }
 

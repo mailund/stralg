@@ -31,7 +31,7 @@ void aho_corasick_match(const char *text, size_t n, struct trie *patterns,
 */
 
 
-void ac_init_iter(
+void init_ac_iter(
     struct ac_iter *iter,
     const char *text,
     size_t n,
@@ -51,7 +51,7 @@ void ac_init_iter(
   iter->hits = 0;
 }
 
-bool ac_next_match(
+bool next_ac_match(
   struct ac_iter *iter,
   struct ac_match *match
 ) {
@@ -74,7 +74,7 @@ bool ac_next_match(
       iter->v = iter->w;
       iter->j++;
       iter->w = out_link(iter->v, iter->text[iter->j]);
-      return ac_next_match(iter, match);
+      return next_ac_match(iter, match);
     } else {
       iter->nested = false;
     }
@@ -87,13 +87,13 @@ bool ac_next_match(
       iter->v = iter->v->failure_link;
     }
     iter->nested = true;
-    return ac_next_match(iter, match);
+    return next_ac_match(iter, match);
   }
 
   return false;
 }
 
-void ac_dealloc_iter(
+void dealloc_ac_iter(
     struct ac_iter *iter
 ) {
   // nop

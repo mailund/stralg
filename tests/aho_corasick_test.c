@@ -9,7 +9,7 @@
 
 static struct trie *build_my_trie(char * patterns[], int N)
 {
-    struct trie *trie = empty_trie();
+    struct trie *trie = alloc_trie();
     for (int i = 0; i < N; ++i) {
         add_string_to_trie(trie, patterns[i], i);
     }
@@ -35,13 +35,13 @@ int main(int argc, char * argv[])
     char *text = "abababcbab";
 
     struct ac_iter iter; struct ac_match match;
-    ac_init_iter(
+    init_ac_iter(
         &iter,
         text, strlen(text),
         pattern_lengths,
         patterns_trie
     );
-    while (ac_next_match(&iter, &match)) {
+    while (next_ac_match(&iter, &match)) {
         char *pattern = patterns[match.string_label];
         size_t length = pattern_lengths[match.string_label];
         printf(
@@ -50,9 +50,9 @@ int main(int argc, char * argv[])
         );
         assert(strncmp(pattern, text + match.index, length) == 0);
     }
-    ac_dealloc_iter(&iter);
+    dealloc_ac_iter(&iter);
 
-    delete_trie(patterns_trie);
+    free_trie(patterns_trie);
 
     return EXIT_SUCCESS;
 }

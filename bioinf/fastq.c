@@ -6,7 +6,7 @@
 #include <string.h>
 
 
-void fastq_init_iter(
+void init_fastq_iter(
     struct fastq_iter *iter,
     FILE *file
 ) {
@@ -14,7 +14,7 @@ void fastq_init_iter(
     iter->buffer = malloc(MAX_STRING_LEN);
 }
 
-bool fastq_next_record(
+bool next_fastq_record(
     struct fastq_iter *iter,
     struct fastq_record *record
 ) {
@@ -32,7 +32,7 @@ bool fastq_next_record(
     return false;
 }
 
-void fastq_dealloc_iter(
+void dealloc_fastq_iter(
     struct fastq_iter *iter
 ) {
     free(iter->buffer);

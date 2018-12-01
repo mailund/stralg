@@ -29,7 +29,7 @@ static void extract_label(struct trie *v, char *buffer)
 
 int main(int argc, char * argv[])
 {
-    struct trie *trie = empty_trie();
+    struct trie *trie = alloc_trie();
     add_string_to_trie(trie, "ababc", 0);
     add_string_to_trie(trie, "aba", 1);
     add_string_to_trie(trie, "b", 2);
@@ -116,7 +116,7 @@ int main(int argc, char * argv[])
     assert(bab->output->string_label == 3);
     assert(bab->output->next == b->output);
     
-    delete_trie(trie);
+    free_trie(trie);
     
     return EXIT_SUCCESS;
 }

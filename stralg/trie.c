@@ -4,17 +4,46 @@
 #include <assert.h>
 #include <stdio.h>
 
-struct trie *empty_trie()
+void init_trie(struct trie *trie)
 {
-    struct trie *trie = (struct trie*)malloc(sizeof(struct trie));
     trie->in_edge_label = '\0';
     trie->string_label = -1;
     trie->parent = 0;
     trie->sibling = 0;
     trie->children = 0;
     trie->output = 0;
+}
+
+struct trie *alloc_trie()
+{
+    struct trie *trie = (struct trie*)malloc(sizeof(struct trie));
+    init_trie(trie);
     return trie;
 }
+
+void dealloc_trie(struct trie *trie)
+{
+    // depth first traversal freeing the trie.
+    if (trie->children) free_trie(trie->children);
+    if (trie->sibling) free_trie(trie->sibling);
+    
+    /* the output list is a linked list, but there is at most
+     a link per string label and that is associated with the
+     trie node with that label. We don't need to handle the
+     rest of the output list since those will be handled
+     when their corresponding trie nodes are deleted.
+     */
+    if (trie->output && trie->string_label >= 0) {
+        free(trie->output);
+    }
+}
+
+void free_trie(struct trie *trie)
+{
+    dealloc_trie(trie);
+    free(trie);
+}
+
 
 static struct trie *string_to_trie(const char *str, int string_label)
 {
@@ -24,7 +53,7 @@ static struct trie *string_to_trie(const char *str, int string_label)
     struct trie *trie = 0;
     do {
         s--;
-        struct trie *new_node = empty_trie();
+        struct trie *new_node = alloc_trie();
         new_node->in_edge_label = *s;
         new_node->string_label = string_label;
         new_node->children = trie;
@@ -91,24 +120,6 @@ struct trie *get_trie_node(struct trie *trie, const char *str)
     return trie;
 }
 
-void delete_trie(struct trie *trie)
-{
-    // depth first traversal freeing the trie.
-    if (trie->children) delete_trie(trie->children);
-    if (trie->sibling) delete_trie(trie->sibling);
-    
-    /* the output list is a linked list, but there is at most
-       a link per string label and that is associated with the
-       trie node with that label. We don't need to handle the
-       rest of the output list since those will be handled
-       when their corresponding trie nodes are deleted. 
-     */
-    if (trie->output && trie->string_label >= 0) {
-        free(trie->output);
-    }
-    
-    free(trie);
-}
 
 static void enqueue_siblings(struct queue *queue, struct trie *siblings)
 {
@@ -166,7 +177,7 @@ void compute_failure_links(struct trie *trie)
 {
     trie->failure_link = trie; // make the root its own failure link.
     
-    struct queue *nodes = empty_queue();
+    struct queue *nodes = alloc_queue();
     enqueue_siblings(nodes, trie->children);
     while (!queue_is_empty(nodes)) {
         struct trie *v = (struct trie *)queue_front(nodes);
@@ -174,7 +185,7 @@ void compute_failure_links(struct trie *trie)
         compute_failure_link_for_node(v, trie, nodes);
     }
     
-    delete_queue(nodes);
+    free_queue(nodes);
 }
 
 

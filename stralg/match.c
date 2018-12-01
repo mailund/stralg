@@ -7,8 +7,8 @@
 
 
 
-void match_init_naive_iter(
-    struct match_naive_iter *iter,
+void init_naive_match_iter(
+    struct naive_match_iter *iter,
     const char *text, size_t n,
     const char *pattern, size_t m
 ) {
@@ -22,7 +22,7 @@ void match_init_naive_iter(
 }
 
 bool next_naive_match(
-    struct match_naive_iter *iter,
+    struct naive_match_iter *iter,
     struct match *match
 ) {
     size_t n = iter->n, m = iter->m;
@@ -45,14 +45,14 @@ bool next_naive_match(
     return false;
 }
 
-void match_dealloc_naive_iter(
-    struct match_naive_iter *iter
+void dealloc_naive_match_iter(
+    struct naive_match_iter *iter
 ) {
     // nothing to do here...
 }
 
-void match_init_border_iter(
-    struct match_border_iter *iter,
+void init_border_match_iter(
+    struct border_match_iter *iter,
     const char *text, size_t n,
     const char *pattern, size_t m
 ) {
@@ -72,7 +72,7 @@ void match_init_border_iter(
 }
 
 bool next_border_match(
-    struct match_border_iter *iter,
+    struct border_match_iter *iter,
     struct match *match
 ) {
     const char *text = iter->text;
@@ -96,8 +96,8 @@ bool next_border_match(
     return false;
 }
 
-void match_dealloc_border_iter(
-    struct match_border_iter *iter
+void dealloc_border_match_iter(
+    struct border_match_iter *iter
 ) {
     free(iter->border_array);
 }
@@ -129,8 +129,8 @@ static void ba_search(char * key, char * buffer)
 #endif
 
 
-void match_init_kmp_iter(
-    struct match_kmp_iter *iter,
+void init_kmp_match_iter(
+    struct kmp_match_iter *iter,
     const char *text, size_t n,
     const char *pattern, size_t m
 ) {
@@ -167,7 +167,7 @@ void match_init_kmp_iter(
 }
 
 bool next_kmp_match(
-    struct match_kmp_iter *iter,
+    struct kmp_match_iter *iter,
     struct match *match
 ) {
     // aliases to make the code easier to read... but
@@ -202,15 +202,15 @@ bool next_kmp_match(
     return false;
 }
 
-void match_dealloc_kmp_iter(
-    struct match_kmp_iter *iter
+void dealloc_kmp_match_iter(
+    struct kmp_match_iter *iter
 ) {
     free(iter->prefixtab);
 }
 
 
-void match_init_bmh_iter(
-    struct match_bmh_iter *iter,
+void init_bmh_match_iter(
+    struct bmh_match_iter *iter,
     const char *text, size_t n,
     const char *pattern, size_t m
 ) {
@@ -228,7 +228,7 @@ void match_init_bmh_iter(
 }
 
 bool next_bmh_match(
-    struct match_bmh_iter *iter,
+    struct bmh_match_iter *iter,
     struct match *match
 ) {
     // aliasing to make the code easier to read...
@@ -255,8 +255,8 @@ bool next_bmh_match(
     return false;
 }
 
-void match_dealloc_bmh_iter(
-    struct match_bmh_iter *iter
+void dealloc_bmh_match_iter(
+    struct bmh_match_iter *iter
 ) {
     // nop
 }

@@ -17,15 +17,15 @@ struct fastq_record {
     char quality[MAX_STRING_LEN];
 };
 
-void fastq_init_iter(
+void init_fastq_iter(
     struct fastq_iter *iter,
     FILE *file
 );
-bool fastq_next_record(
+bool next_fastq_record(
     struct fastq_iter *iter,
     struct fastq_record *record
 );
-void fastq_dealloc_iter(
+void dealloc_fastq_iter(
     struct fastq_iter *iter
 );
 

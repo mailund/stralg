@@ -18,12 +18,12 @@ int main(int argc, char * argv[])
 
     struct edit_iter iter;
     struct edit_pattern result;
-    edit_init_iter(&iter, pattern, alphabet, 1);
-    while (edit_next_pattern(&iter, &result)) {
+    init_edit_iter(&iter, pattern, alphabet, 1);
+    while (next_edit_pattern(&iter, &result)) {
         printf("%s %s\n",
         result.pattern, result.cigar);
     }
-    edit_dealloc_iter(&iter);
+    dealloc_edit_iter(&iter);
 
     return EXIT_SUCCESS;
 }

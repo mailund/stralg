@@ -6,7 +6,7 @@
 
 int main(int argc, char * argv[])
 {
-    struct stack *stack = empty_stack(3);
+    struct stack *stack = allocate_stack(3);
     
     assert(stack->top == -1);
     push(stack, 1, 2);
@@ -37,7 +37,7 @@ int main(int argc, char * argv[])
     pop(stack);
     assert(stack->top == -1);
     
-    delete_stack(stack);
+    free_stack(stack);
     
     return EXIT_SUCCESS;
 }

@@ -13,14 +13,14 @@ int main(int argc, char *argv[])
     FILE *input = fopen(argv[1], "r");
     struct fastq_iter iter;
     struct fastq_record record;
-    fastq_init_iter(&iter, input);
-    while (fastq_next_record(&iter, &record)) {
+    init_fastq_iter(&iter, input);
+    while (next_fastq_record(&iter, &record)) {
         printf("@%s\n", record.name);
         printf("%s\n", record.sequence);
         printf("+\n");
         printf("%s\n", record.quality);
     }
-    fastq_dealloc_iter(&iter);
+    dealloc_fastq_iter(&iter);
     fclose(input);
 
     return EXIT_SUCCESS;
