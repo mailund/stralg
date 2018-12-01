@@ -214,7 +214,7 @@ target_link_libraries(
 add_test(
     NAME FASTA-run
     COMMAND 
-    sh -c "$<TARGET_FILE:fasta_test> test-data/ref.fa > test-data/fasta-test-observed.txt"
+    sh -c "$<TARGET_FILE:fasta_test> test-data/ref.fa test-data/malformed.fa > test-data/fasta-test-observed.txt"
     WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/tests"
 )
 add_test(
