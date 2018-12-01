@@ -6,8 +6,10 @@
 int main(int argc, char *argv[])
 {
     if (argc != 2) {
+        // LCOV_EXCL_START
         printf("needs one argument\n");
         return EXIT_FAILURE;
+        // LCOV_EXCL_STOP
     }
 
     FILE *input = fopen(argv[1], "r");

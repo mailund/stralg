@@ -43,16 +43,20 @@ static void iter_test(
 int main(int argc, char * argv[])
 {
     if (argc != 4) {
+        // LCOV_EXCL_START
         printf("Needs three arguments: algorithm pattern inputfile.\n");
         return EXIT_FAILURE;
+        // LCOV_EXCL_STOP
     }
     const char *alg = argv[1];
     const char *pattern = argv[2];
     const char *fname = argv[3];
     char *string = load_file(fname);
     if (!string) {
+        // LCOV_EXCL_START
         printf("Couldn't read file %s\n", fname);
         return EXIT_FAILURE;
+        // LCOV_EXCL_STOP
     }
 
     if (strcmp(alg, "naive") == 0) {
@@ -92,9 +96,11 @@ int main(int argc, char * argv[])
             (iter_dealloc_func)dealloc_bmh_match_iter
         );
     } else {
+        // LCOV_EXCL_START
         printf("unknown algorithm %s\n", alg);
         free(string);
         return EXIT_FAILURE;
+        // LCOV_EXCL_STOP
     }
 
     free(string);
