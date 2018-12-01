@@ -1,3 +1,5 @@
+[![TODO board](https://imdone.io/api/1.0/projects/5c02c3b4dfdd1c0ebf0c4291/badge)](https://imdone.io/app#/board/mailund/stralg)
+
 # stralg
 
 [![TravisCI Status](https://travis-ci.org/mailund/stralg.svg?branch=master)](https://travis-ci.org/mailund/stralg)

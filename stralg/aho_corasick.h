@@ -4,9 +4,12 @@
 #include <stddef.h>
 #include <trie.h>
 
-// FIXME: not sure exactly how to design the interface for reporting
+// FIXME: not sure exactly how to design the interface for reporting id:7
 // hits for this function...
 // matching callbacks
+// - <https://github.com/mailund/stralg/issues/25>
+// Thomas Mailund
+// mailund@birc.au.dk
 
 struct ac_iter {
     const char *text;
