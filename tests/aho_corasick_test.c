@@ -9,7 +9,7 @@
 
 static struct trie *build_my_trie(char * patterns[], int N)
 {
-    struct trie *trie = empty_trie();
+    struct trie *trie = alloc_trie();
     for (int i = 0; i < N; ++i) {
         add_string_to_trie(trie, patterns[i], i);
     }
@@ -52,7 +52,7 @@ int main(int argc, char * argv[])
     }
     dealloc_ac_iter(&iter);
 
-    delete_trie(patterns_trie);
+    free_trie(patterns_trie);
 
     return EXIT_SUCCESS;
 }

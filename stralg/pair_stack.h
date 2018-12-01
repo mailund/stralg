@@ -18,11 +18,31 @@ struct stack {
     struct pair *elements;
 };
 
-struct stack *empty_stack(size_t size);
-void delete_stack(struct stack *stack);
+struct stack *allocate_stack(
+    size_t size
+);
+void free_stack(
+    struct stack *stack
+);
 
-void push(struct stack *stack, int first, int second);
-struct pair *top(struct stack *stack);
-void pop(struct stack *stack);
+void init_stack(
+    size_t size,
+    struct stack *stack
+);
+void dealloc_stack(
+    struct stack *stack
+);
+
+void push(
+    struct stack *stack,
+    int first,
+    int second
+);
+struct pair *top(
+    struct stack *stack
+);
+void pop(
+    struct stack *stack
+);
 
 #endif

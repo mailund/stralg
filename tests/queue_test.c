@@ -21,7 +21,7 @@ static void queue_to_array(const struct queue *queue, size_t *array)
 
 int main(int argc, char * argv[])
 {
-    struct queue *queue = empty_queue();
+    struct queue *queue = alloc_queue();
     size_t array[10];
     
     assert(queue_length(queue) == 0);
@@ -46,12 +46,12 @@ int main(int argc, char * argv[])
     assert(queue_length(queue) == 5);
     assert((size_t)queue_front(queue) == 5);
     
-    delete_queue(queue);
+    free_queue(queue);
     
     
     // make sure we can delete empty queues.
-    queue = empty_queue();
-    delete_queue(queue);
+    queue = alloc_queue();
+    free_queue(queue);
     
     return EXIT_SUCCESS;
 }

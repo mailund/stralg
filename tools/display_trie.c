@@ -66,7 +66,7 @@ static void print_dot(struct trie *trie, const char *filename_prefix) {
 
 int main(int argc, const char** argv)
 {
-    struct trie* trie = empty_trie();
+    struct trie* trie = alloc_trie();
 
     if (argc != 2)
     {

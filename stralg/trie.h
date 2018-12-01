@@ -20,8 +20,8 @@ struct trie {
     struct output_list *output;
 };
 
-struct trie *empty_trie();
-void delete_trie(struct trie *trie);
+struct trie *alloc_trie();
+void free_trie(struct trie *trie);
 
 void add_string_to_trie(struct trie *trie, const char *str, int string_label);
 
