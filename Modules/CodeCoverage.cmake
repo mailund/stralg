@@ -126,7 +126,7 @@ endif()
 
 # Defines a target for running and collection code coverage information
 # Builds dependencies, runs the given executable and outputs reports.
-# NOTE ! The executable should always have a ZERO as exit code otherwise id:4
+# The executable should always have a ZERO as exit code otherwise id:4
 # the coverage generation will not complete.
 # 
 # SETUP_TARGET_FOR_COVERAGE_LCOV(
@@ -190,7 +190,7 @@ endfunction() # SETUP_TARGET_FOR_COVERAGE_LCOV
 
 # Defines a target for running and collection code coverage information
 # Builds dependencies, runs the given executable and outputs reports.
-# NOTE ! The executable should always have a ZERO as exit code otherwise id:0
+# The executable should always have a ZERO as exit code otherwise id:0
 # the coverage generation will not complete.
 # 
 # SETUP_TARGET_FOR_COVERAGE_GCOVR_XML(
@@ -245,7 +245,7 @@ endfunction() # SETUP_TARGET_FOR_COVERAGE_GCOVR_XML
 
 # Defines a target for running and collection code coverage information
 # Builds dependencies, runs the given executable and outputs reports.
-# NOTE ! The executable should always have a ZERO as exit code otherwise id:2
+# The executable should always have a ZERO as exit code otherwise id:2
 # the coverage generation will not complete.
 # 
 # SETUP_TARGET_FOR_COVERAGE_GCOVR_HTML(
