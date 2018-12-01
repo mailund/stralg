@@ -1,12 +1,10 @@
-[![TODO board](https://imdone.io/api/1.0/projects/5c02e1cddfdd1c0ebf0c438f/badge)](https://imdone.io/app#/board/mailund/stralg)
-
-[![TODO board](https://imdone.io/api/1.0/projects/5c02c3b4dfdd1c0ebf0c4291/badge)](https://imdone.io/app#/board/mailund/stralg)
 
 # stralg
 
 [![TravisCI Status](https://travis-ci.org/mailund/stralg.svg?branch=master)](https://travis-ci.org/mailund/stralg)
 [![codecov](https://codecov.io/gh/mailund/stralg/branch/master/graph/badge.svg)](https://codecov.io/gh/mailund/stralg)
 [![Coverage Status](https://coveralls.io/repos/github/mailund/stralg/badge.svg?branch=improve-tests)](https://coveralls.io/github/mailund/stralg?branch=improve-tests)
+[![TODO board](https://imdone.io/api/1.0/projects/5c02e1cddfdd1c0ebf0c438f/badge)](https://imdone.io/app#/board/mailund/stralg)
 
 Small library of string algorithms
 
