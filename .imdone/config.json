@@ -7,32 +7,13 @@
   "code": {
     "include_lists": [
       "TODO",
-      "DOING",
-      "DONE",
-      "PLANNING",
-      "FIXME",
-      "ARCHIVE",
-      "HACK",
-      "CHANGED",
-      "XXX",
-      "IDEA",
-      "NOTE",
-      "REVIEW",
-      "HELP"
+      "FIXME"
     ]
   },
   "lists": [
     {
-      "name": "HELP",
-      "hidden": false
-    },
-    {
       "hidden": false,
       "name": "DONE"
-    },
-    {
-      "name": "NOTE",
-      "hidden": false
     },
     {
       "name": "FIXME",
