@@ -71,7 +71,5 @@ int main(int argc, char **argv)
     assert(!load_fasta_records(malformed, &err));
     assert(err == MALFORMED_FASTA_RECORD_ERROR);
     
-
-
     return EXIT_SUCCESS;
 }

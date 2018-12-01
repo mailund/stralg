@@ -8,9 +8,10 @@ addons:
             - lcov
 
 script:
-  - cmake . -DCMAKE_BUILD_TYPE=Debug
+  - cmake -DCOVERALLS=ON -DCMAKE_BUILD_TYPE=Debug
   - make
   - make test
 after_success:
   - make coverage
   - bash <(curl -s https://codecov.io/bash)
+  - make coveralls

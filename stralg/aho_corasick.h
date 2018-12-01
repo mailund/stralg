@@ -4,10 +4,6 @@
 #include <stddef.h>
 #include <trie.h>
 
-// FIXME: not sure exactly how to design the interface for reporting
-// hits for this function...
-// matching callbacks
-
 struct ac_iter {
     const char *text;
     size_t n;
