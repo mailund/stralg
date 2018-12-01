@@ -22,7 +22,7 @@ int main(int argc, char **argv)
         // LCOV_EXCL_START
         printf("Could not load %s (%d)\n", fname, err);
         return EXIT_FAILURE;
-        // LCOV_EXCL_START
+        // LCOV_EXCL_STOP
     }
     assert(err == NO_FASTA_ERRORS);
 
