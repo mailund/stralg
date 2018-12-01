@@ -149,9 +149,9 @@ void init_kmp_match_iter(
     size_t *prefixtab = calloc(m, sizeof(size_t));
     prefixtab[0] = 0;
     for (size_t i = 1; i < m; ++i) {
-        size_t k = prefixtab[i-1];
+        size_t k = prefixtab[i - 1];
         while (k > 0 && pattern[i] != pattern[k])
-            k = iter->prefixtab[k-1];
+            k = prefixtab[k - 1];
         prefixtab[i] = (pattern[i] == pattern[k]) ? k + 1 : 0;
     }
 
