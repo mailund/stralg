@@ -126,14 +126,15 @@ endif()
 
 # Defines a target for running and collection code coverage information
 # Builds dependencies, runs the given executable and outputs reports.
-# NOTE! The executable should always have a ZERO as exit code otherwise
+# NOTE ! The executable should always have a ZERO as exit code otherwise id:4
 # the coverage generation will not complete.
-#
+# 
 # SETUP_TARGET_FOR_COVERAGE_LCOV(
 #     NAME testrunner_coverage                    # New target name
 #     EXECUTABLE testrunner -j ${PROCESSOR_COUNT} # Executable in PROJECT_BINARY_DIR
 #     DEPENDENCIES testrunner                     # Dependencies to build first
 # )
+# - <https://github.com/mailund/stralg/issues/24>
 function(SETUP_TARGET_FOR_COVERAGE_LCOV)
 
     set(options NONE)
@@ -189,14 +190,15 @@ endfunction() # SETUP_TARGET_FOR_COVERAGE_LCOV
 
 # Defines a target for running and collection code coverage information
 # Builds dependencies, runs the given executable and outputs reports.
-# NOTE! The executable should always have a ZERO as exit code otherwise
+# NOTE ! The executable should always have a ZERO as exit code otherwise id:0
 # the coverage generation will not complete.
-#
+# 
 # SETUP_TARGET_FOR_COVERAGE_GCOVR_XML(
 #     NAME ctest_coverage                    # New target name
 #     EXECUTABLE ctest -j ${PROCESSOR_COUNT} # Executable in PROJECT_BINARY_DIR
 #     DEPENDENCIES executable_target         # Dependencies to build first
 # )
+# - <https://github.com/mailund/stralg/issues/22>
 function(SETUP_TARGET_FOR_COVERAGE_GCOVR_XML)
 
     set(options NONE)
@@ -243,14 +245,15 @@ endfunction() # SETUP_TARGET_FOR_COVERAGE_GCOVR_XML
 
 # Defines a target for running and collection code coverage information
 # Builds dependencies, runs the given executable and outputs reports.
-# NOTE! The executable should always have a ZERO as exit code otherwise
+# NOTE ! The executable should always have a ZERO as exit code otherwise id:2
 # the coverage generation will not complete.
-#
+# 
 # SETUP_TARGET_FOR_COVERAGE_GCOVR_HTML(
 #     NAME ctest_coverage                    # New target name
 #     EXECUTABLE ctest -j ${PROCESSOR_COUNT} # Executable in PROJECT_BINARY_DIR
 #     DEPENDENCIES executable_target         # Dependencies to build first
 # )
+# - <https://github.com/mailund/stralg/issues/23>
 function(SETUP_TARGET_FOR_COVERAGE_GCOVR_HTML)
 
     set(options NONE)
