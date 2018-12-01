@@ -298,7 +298,7 @@ bool next_edit_pattern(
             break;
 
         default:
-            assert(false);
+            assert(false); // LCOV_EXCL_LINE
     }
 
     free(frame);

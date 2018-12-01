@@ -42,18 +42,18 @@ static void iter_test(
 
 int main(int argc, char * argv[])
 {
-    if (argc != 3) {
-        printf("Needs two arguments: algorithm inputfile.\n");
+    if (argc != 4) {
+        printf("Needs three arguments: algorithm pattern inputfile.\n");
         return EXIT_FAILURE;
     }
     const char *alg = argv[1];
-    const char *fname = argv[2];
+    const char *pattern = argv[2];
+    const char *fname = argv[3];
     char *string = load_file(fname);
     if (!string) {
         printf("Couldn't read file %s\n", fname);
         return EXIT_FAILURE;
     }
-    const char *pattern = "the";
 
     if (strcmp(alg, "naive") == 0) {
         struct naive_match_iter naive_iter;
