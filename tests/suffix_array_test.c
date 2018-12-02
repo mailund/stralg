@@ -41,7 +41,6 @@ static void test_inverse(struct suffix_array *sa)
     }
 }
 
-/*
 static int lcp(const char *a, const char *b)
 {
     int l = 0;
