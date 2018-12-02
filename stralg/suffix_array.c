@@ -24,6 +24,18 @@ static struct suffix_array *allocate_sa(char *string)
     return sa;
 }
 
+
+
+void delete_suffix_array(struct suffix_array *sa)
+{
+    free(sa->string);
+    free(sa->array);
+    if (sa->inverse) free(sa->inverse);
+    if (sa->lcp) free(sa->lcp);
+    if (sa->sct_children) free(sa->sct_children);
+}
+
+
 static // Wrapper of strcmp needed for qsort
 int construction_cmpfunc(const void *a, const void *b)
 {
@@ -46,6 +58,7 @@ struct suffix_array *qsort_sa_construction(char *string)
     return sa;
 }
 
+/*
 void compute_inverse(struct suffix_array *sa)
 {
     if (sa->inverse) return; // only compute if it is needed
@@ -105,7 +118,7 @@ void compute_super_cartesian_tree(struct suffix_array *sa)
 {
     assert(false); // Static analyser complaints and not sure I need this
     
-/*
+
     compute_lcp(sa);
     assert(sa->lcp);
 
@@ -138,16 +151,7 @@ void compute_super_cartesian_tree(struct suffix_array *sa)
     }
 
     delete_stack(stack);
- */
-}
-
-void delete_suffix_array(struct suffix_array *sa)
-{
-    free(sa->string);
-    free(sa->array);
-    if (sa->inverse) free(sa->inverse);
-    if (sa->lcp) free(sa->lcp);
-    if (sa->sct_children) free(sa->sct_children);
+ 
 }
 
 // when searching, we cannot simply use bsearch because we want
@@ -201,3 +205,5 @@ size_t lower_bound_search(struct suffix_array *sa, const char *key)
     }
     assert(false); // we should never get here.
 }
+*/
+

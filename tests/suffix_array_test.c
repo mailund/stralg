@@ -15,6 +15,7 @@ static void test_order(struct suffix_array *sa)
                < 0);
 }
 
+/*
 static void test_search(struct suffix_array *sa)
 {
     int idx = lower_bound_search(sa, "ab");
@@ -81,7 +82,7 @@ int main(int argc, char *argv[])
     char *string = string_copy("ababacabac");
     struct suffix_array *sa = qsort_sa_construction(string);
 
-#if 0
+/*
     compute_lcp(sa);
     compute_super_cartesian_tree(sa);
     
@@ -101,12 +102,12 @@ int main(int argc, char *argv[])
     for (int i = 0; i < sa->length + 1; ++i)
         printf("R[%d] == %d\n", i, sct_right(sa, i));
     printf("\n");
-#endif
+*/
 
     test_order(sa);
-    test_search(sa);
+    /*test_search(sa);
     test_inverse(sa);
-    /*test_lcp(sa);
+    test_lcp(sa);
     test_sct(sa);*/
 
     delete_suffix_array(sa);
