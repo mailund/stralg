@@ -1,0 +1,3 @@
+add_executable(exact_readmapper exact_readmapper.c)
+target_link_libraries(exact_readmapper stralg stralg_bioinf)
+
