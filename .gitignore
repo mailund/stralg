@@ -29,9 +29,16 @@ tests/string_vector_test
 tests/pair_stack_test
 tests/suffix_array_test
 tests/sa_bsearch_bug
-tools/ac_readmap
+tools/
 tools/match_readmap
 tools/Debug/
 tools/Release
 tools/*.sam
 bioinf/Debug
+tools/edit_cloud/edit_cloud
+tools/display_match/display_match
+tools/display_trie/display_trie
+build/
+tests/fasta_test
+tests/fastq_iterator_test
+bioinf/libstralg_bioinf.dylib

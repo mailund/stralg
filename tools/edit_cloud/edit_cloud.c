@@ -1,9 +1,16 @@
 #include <edit_distance_generator.h>
-#include "options.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <getopt.h>
+#include <stdbool.h>
+
+struct options {
+    bool verbose;
+    bool extended_cigars;
+    int edit_distance;
+};
+
 
 int main(int argc, char *argv[]) {
     struct options options;

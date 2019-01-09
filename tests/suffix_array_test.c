@@ -53,10 +53,10 @@ static int lcp(const char *a, const char *b)
 static void test_lcp(struct suffix_array *sa)
 {
     compute_lcp(sa);
-    
+
     assert(sa->lcp[0] == sa->lcp[sa->length]);
     assert(sa->lcp[0] == -1);
-    
+
     for (size_t i = 1; i < sa->length; ++i) {
         int l = lcp(sa->string + sa->array[i-1], sa->string + sa->array[i]);
         assert(sa->lcp[i] == l);
@@ -68,7 +68,7 @@ static void test_sct(struct suffix_array *sa)
     size_t n = sa->length + 1;
     int L[] = { -1, -1, -1, 1, -1, 3, -1, -1, 6, -1, 5 };
     int R[] = { 10, 2, -1, 4, -1, 8, 7, -1, 9, -1, -1 };
-    
+
     for (size_t i = 0; i < n; ++i) {
         assert(L[i] == sct_left(sa, i));
         assert(R[i] == sct_right(sa, i));
@@ -84,7 +84,7 @@ int main(int argc, char *argv[])
 /*
     compute_lcp(sa);
     compute_super_cartesian_tree(sa);
-    
+
     for (int i = 0; i < sa->length; ++i)
         printf("sa[%d] == %zu\t%s\n", i, sa->array[i], string + sa->array[i]);
     printf("\n");
@@ -110,6 +110,6 @@ int main(int argc, char *argv[])
     test_sct(sa);*/
 
     delete_suffix_array(sa);
-    
+
     return EXIT_SUCCESS;
 }

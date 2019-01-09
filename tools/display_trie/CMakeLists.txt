@@ -1,0 +1,2 @@
+add_executable(display_trie display_trie.c)
+target_link_libraries(display_trie stralg stralg_bioinf)
