@@ -13,8 +13,9 @@ char *load_file(const char *fname)
 
     char *string = malloc(fsize + 1);
     fread(string, fsize, 1, f);
+    
+    string[fsize] = 0;
     fclose(f);
 
-    string[fsize] = 0;
     return string;
 }

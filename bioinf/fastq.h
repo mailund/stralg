@@ -17,6 +17,8 @@ struct fastq_record {
     char quality[MAX_STRING_LEN];
 };
 
+// FIXME: a way to report errors if we have
+// a malformed fastq file.
 void init_fastq_iter(
     struct fastq_iter *iter,
     FILE *file
