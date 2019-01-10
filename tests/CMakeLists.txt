@@ -50,7 +50,7 @@ add_test(
     WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/tests"
 )
 
-    
+
 add_test(
     NAME Run-naive-rep
     COMMAND
@@ -104,7 +104,7 @@ target_link_libraries(
 )
 add_test(
     NAME Edit-distance-generator-run
-    COMMAND 
+    COMMAND
     sh -c "$<TARGET_FILE:edit_distance_generator_test> > test-data/edit_distance_generator_test_observed.txt"
     WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/tests"
 )
@@ -192,13 +192,13 @@ target_link_libraries(
 )
 add_test(
     NAME FASTQ-iterator-run
-    COMMAND 
+    COMMAND
     sh -c "$<TARGET_FILE:fastq_iterator_test> test-data/test.fq > test-data/fastq_iterator_test_current.txt"
     WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/tests"
 )
 add_test(
     NAME FASTQ-iterator-compare
-    COMMAND 
+    COMMAND
     cmp fastq_iterator_test_current.txt fastq_iterator_test_expected.txt
     WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/tests/test-data"
 )
@@ -213,7 +213,7 @@ target_link_libraries(
 )
 add_test(
     NAME FASTA-run
-    COMMAND 
+    COMMAND
     sh -c "$<TARGET_FILE:fasta_test> test-data/ref.fa test-data/malformed.fa > test-data/fasta-test-observed.txt"
     WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/tests"
 )
@@ -223,3 +223,23 @@ add_test(
     cmp test-data/fasta-test-observed.txt test-data/fasta-test-expected.txt
     WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/tests"
 )
+
+add_executable(
+    suffix_tree_test
+    suffix_tree_test.c
+)
+target_link_libraries(
+    suffix_tree_test stralg
+)
+add_test(
+    NAME Suffix-tree-run
+    COMMAND
+    sh -c "$<TARGET_FILE:suffix_tree_test> > test-data/suffix-tree-test-observed.txt"
+    WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/tests"
+)
+#add_test(
+#    NAME Suffix-tree-compare-output
+#    COMMAND
+#    cmp test-data/suffix-tree-test-observed.txt test-data/suffix-tree-test-expected.txt
+#    WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/tests"
+#)

@@ -1,6 +1,5 @@
 
 #include <suffix_array.h>
-#include <strings.h>
 
 #include <string.h>
 #include <stdlib.h>
@@ -78,7 +77,7 @@ static void test_sct(struct suffix_array *sa)
 
 int main(int argc, char *argv[])
 {
-    char *string = string_copy("ababacabac");
+    char *string = "ababacabac";//string_copy("ababacabac");
     struct suffix_array *sa = qsort_sa_construction(string);
 
 /*

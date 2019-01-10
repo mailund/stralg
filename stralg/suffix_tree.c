@@ -54,24 +54,12 @@ void naive_insert(struct suffix_tree *st, size_t suffix,
         for (; s != t; ++s, ++x) {
             if (*s != *x) {
                 size_t split_point = s - st->string;
-                printf("we should split edge [%ld,%ld] into [%ld,%ld] and [%ld,%ld]\n",
-                       w->range.from, w->range.to,
-                       w->range.from, split_point,
-                       split_point, w->range.to
-                       );
-                printf("s[%ld:] = %s\n", w->range.from, st->string + w->range.from);
-                printf("s[%ld:] = %s\n", split_point, st->string + split_point);
-                
                 struct suffix_tree_node *split = new_node(split_point, w->range.to);
                 split->leaf_label = w->leaf_label; // in case w was a leaf
-                //FIXME:  id:1
-// - <https://github.com/mailund/stralg/issues/31>
                 w->range.to = split_point;
                 
                 split->child = w->child;
                 w->child = split;
-                printf("w: [%ld,%ld]\n", w->range.from, w->range.to);
-                printf("split: [%ld,%ld]\n", split->range.from, split->range.to);
                 
                 struct suffix_tree_node *leaf =
                     new_node(x - st->string, st->s_end - st->string);
@@ -95,7 +83,6 @@ struct suffix_tree *naive_suffix_tree(const char *string)
 
     st->root = new_node(0, 0);
     for (size_t i = 0; i < slen; ++i) {
-        printf("suffix %zu, %s\n", i, string + i);
         naive_insert(st, i, st->root, string + i);
     }
 
@@ -118,4 +105,71 @@ void get_edge_label(struct suffix_tree *st, struct suffix_tree_node *node, char 
     size_t n = node->range.to - node->range.from;
     strncpy(buffer, st->string + node->range.from, n);
     buffer[n] = '\0';
+}
+
+struct st_leaf_iter_frame {
+    struct st_leaf_iter_frame *next;
+    struct suffix_tree_node *node;
+};
+static struct st_leaf_iter_frame *new_frame(struct suffix_tree_node *node)
+{
+    struct st_leaf_iter_frame *frame = malloc(sizeof(struct st_leaf_iter_frame));
+    frame->node = node;
+    frame->next = 0;
+    return frame;
+}
+
+void init_st_leaf_iter(struct st_leaf_iter *iter,
+                       struct suffix_tree *st,
+                       struct suffix_tree_node *node)
+{
+    iter->stack = new_frame(st->root);
+}
+
+bool next_st_leaf(struct st_leaf_iter *iter,
+                  struct st_leaf_iter_result *res)
+{
+    struct st_leaf_iter_frame *frame = iter->stack;
+    while (frame) {
+        // pop the frame
+        iter->stack = frame->next;
+        struct suffix_tree_node *node = frame->node;
+        
+        // if there is a sibling, we always push it
+        if (node->sibling) {
+            struct st_leaf_iter_frame *sib_frame = new_frame(node->sibling);
+            sib_frame->next = iter->stack;
+            iter->stack = sib_frame;
+        }
+        
+        if (node->child) {
+            // inner node: push the children
+            struct st_leaf_iter_frame *child_frame = new_frame(node->child);
+            child_frame->next = iter->stack;
+            iter->stack = child_frame;
+            
+        } else {
+            // leaf
+            // clean up and return result
+            free(frame);
+            res->leaf = node;
+            return true;
+        }
+        
+        // get rid of the frame before we go to the next
+        struct st_leaf_iter_frame *next_frame = frame->next;
+        free(frame);
+        frame = next_frame;
+    }
+    return false;
+}
+
+void dealloc_st_leaf_iter(struct st_leaf_iter *iter)
+{
+    struct st_leaf_iter_frame *frame = iter->stack;
+    while (frame) {
+        struct st_leaf_iter_frame *next = frame->next;
+        free(frame);
+        frame = next;
+    }
 }

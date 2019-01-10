@@ -1,6 +1,5 @@
 
 #include "suffix_array.h"
-#include "strings.h"
 #include "pair_stack.h"
 
 #include <stdlib.h>
@@ -28,7 +27,6 @@ static struct suffix_array *allocate_sa(char *string)
 
 void delete_suffix_array(struct suffix_array *sa)
 {
-    free(sa->string);
     free(sa->array);
     if (sa->inverse) free(sa->inverse);
     if (sa->lcp) free(sa->lcp);

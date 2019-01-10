@@ -7,9 +7,8 @@
 #include <assert.h>
 
 struct suffix_array {
-    // the suffix array owns this, so copy it if you want to keep it.
-    // it will be freed when the suffix array is freed.
-    char *string;
+    // memory management of the string must be handled elsewhere
+    const char *string;
     // length of the array
     size_t length;
     // the actual suffix array
