@@ -1,0 +1,2 @@
+add_executable(display_suffix_tree display_suffix_tree.c)
+target_link_libraries(display_suffix_tree stralg)

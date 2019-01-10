@@ -11,6 +11,7 @@ add_library(stralg SHARED
 	strings.h strings.c
 	pair_stack.h pair_stack.c
 	suffix_array.h suffix_array.c
+	suffix_tree.h suffix_tree.c
 	io.h io.c
 )
 
