@@ -156,10 +156,9 @@ bool next_st_leaf(struct st_leaf_iter *iter,
             return true;
         }
         
-        // get rid of the frame before we go to the next
-        struct st_leaf_iter_frame *next_frame = frame->next;
+        // get rid of the frame and pop the next
         free(frame);
-        frame = next_frame;
+        frame = iter->stack;
     }
     return false;
 }
