@@ -42,3 +42,7 @@ build/
 tests/fasta_test
 tests/fastq_iterator_test
 bioinf/libstralg_bioinf.dylib
+tools/display_suffix_tree/Debug/
+tools/display_suffix_tree/display_suffix_tree
+tools/display_suffix_tree/tree.dot
+tools/display_suffix_tree/tree.pdf
