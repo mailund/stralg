@@ -26,6 +26,11 @@ void free_node(struct suffix_tree_node *node)
     free(node);
 }
 
+inline static char out_letter(struct suffix_tree *st, struct suffix_tree_node *v)
+{
+    return st->string[v->range.from];
+}
+
 #pragma mark naive suffix tree construction
 
 void naive_insert(struct suffix_tree *st, size_t suffix,
@@ -36,6 +41,7 @@ void naive_insert(struct suffix_tree *st, size_t suffix,
     // find child that matches *x
     struct suffix_tree_node *w = v->child;
     while (w) {
+        // FIXME: exploit that the lists are sorted (when they are)
         if (s[w->range.from] == *x) break;
         w = w->sibling;
     }
@@ -44,6 +50,8 @@ void naive_insert(struct suffix_tree *st, size_t suffix,
         // there is no outgoing edge that matches -> we must insert here
         struct suffix_tree_node *leaf = new_node(x - st->string, st->s_end - st->string);
         leaf->leaf_label = x - st->string;
+        
+        // FIXME: insert sorted!
         leaf->sibling = v->child;
         v->child = leaf;
         
@@ -57,14 +65,22 @@ void naive_insert(struct suffix_tree *st, size_t suffix,
                 struct suffix_tree_node *split = new_node(split_point, w->range.to);
                 split->leaf_label = w->leaf_label; // in case w was a leaf
                 w->range.to = split_point;
-                
                 split->child = w->child;
-                w->child = split;
                 
                 struct suffix_tree_node *leaf =
                     new_node(x - st->string, st->s_end - st->string);
                 leaf->leaf_label = suffix;
-                split->sibling = leaf;
+                
+                // get the children in the right order.
+                char split_letter = out_letter(st, split);
+                char leaf_letter = out_letter(st, leaf);
+                if (split_letter < leaf_letter) {
+                    w->child = split;
+                    split->sibling = leaf;
+                } else {
+                    w->child = leaf;
+                    leaf->sibling = split;
+                }
                 
                 return; // we are done now
             }
