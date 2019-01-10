@@ -64,7 +64,8 @@ void naive_insert(struct suffix_tree *st, size_t suffix,
                 
                 struct suffix_tree_node *split = new_node(split_point, w->range.to);
                 split->leaf_label = w->leaf_label; // in case w was a leaf
-                //FIXME:
+                //FIXME:  id:1
+// - <https://github.com/mailund/stralg/issues/31>
                 w->range.to = split_point;
                 
                 split->child = w->child;
