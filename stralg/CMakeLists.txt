@@ -4,7 +4,7 @@ add_library(stralg SHARED
 	stralg.h
 	match.h match.c
 	trie.h trie.c
-	queue.h queue.c
+	generic_data_structures.h generic_data_structures.c
 	aho_corasick.h aho_corasick.c
 	edit_distance_generator.h edit_distance_generator.c
 	cigar.h cigar.c

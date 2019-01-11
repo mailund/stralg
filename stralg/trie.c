@@ -1,5 +1,6 @@
 #include "trie.h"
-#include "queue.h"
+#include "generic_data_structures.h"
+
 #include <stdlib.h>
 #include <assert.h>
 #include <stdio.h>
@@ -121,10 +122,10 @@ struct trie *get_trie_node(struct trie *trie, const char *str)
 }
 
 
-static void enqueue_siblings(struct queue *queue, struct trie *siblings)
+static void enqueue_siblings(pointer_queue *queue, struct trie *siblings)
 {
     for (struct trie *s = siblings; s; s = s->sibling)
-        enqueue(queue, (void*)s);
+        enqueue_pointer(queue, (void*)s);
 }
 
 
@@ -140,7 +141,7 @@ static struct output_list *new_output_link(int label, struct output_list *next)
 
 static void compute_failure_link_for_node(struct trie *v,
                                           struct trie *root,
-                                          struct queue *queue)
+                                          pointer_queue *queue)
 {
     enqueue_siblings(queue, v->children); // breadth first traversal...
     
@@ -177,10 +178,10 @@ void compute_failure_links(struct trie *trie)
 {
     trie->failure_link = trie; // make the root its own failure link.
     
-    struct queue *nodes = alloc_queue();
+    pointer_queue *nodes = alloc_pointer_queue();
     enqueue_siblings(nodes, trie->children);
-    while (!queue_is_empty(nodes)) {
-        struct trie *v = (struct trie *)queue_front(nodes);
+    while (!is_queue_empty(nodes)) {
+        struct trie *v = (struct trie *)pointer_queue_front(nodes);
         dequeue(nodes);
         compute_failure_link_for_node(v, trie, nodes);
     }

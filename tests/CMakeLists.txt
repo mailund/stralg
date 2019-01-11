@@ -1,5 +1,30 @@
 
 add_executable(
+    queue_test
+    queue_test.c
+)
+target_link_libraries(
+    queue_test
+    stralg
+)
+add_test(
+    Queue
+    queue_test
+)
+add_executable(
+    vector_test
+    vector_test.c
+)
+target_link_libraries(
+    vector_test
+    stralg
+)
+add_test(
+    Vector
+    vector_test
+)
+
+add_executable(
     match_test
     match_test.c
 )
@@ -8,90 +33,16 @@ target_link_libraries(
     stralg
 )
 add_test(
-    NAME Run-naive-modest-proposal
+    NAME Match[modest-proposal]
     COMMAND
-    sh -c "$<TARGET_FILE:match_test> naive the test-data/modest-proposal.txt > test-data/naive-modest-match.txt"
+    sh -c "$<TARGET_FILE:match_test> the test-data/modest-proposal.txt"
     WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/tests"
 )
 add_test(
-    NAME Run-border-modest-proposal
+    NAME "Match[rep]"
     COMMAND
-    sh -c "$<TARGET_FILE:match_test> border the test-data/modest-proposal.txt > test-data/border-modest-match.txt"
+    sh -c "$<TARGET_FILE:match_test> ababaaba test-data/repetitive-string.txt"
     WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/tests"
-)
-add_test(
-    NAME Run-KMP-modest-proposal
-    COMMAND
-    sh -c "$<TARGET_FILE:match_test> kmp the test-data/modest-proposal.txt > test-data/kmp-modest-match.txt"
-    WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/tests"
-)
-add_test(
-    NAME Run-BMH-modest-proposal
-    COMMAND
-    sh -c "$<TARGET_FILE:match_test> bmh the test-data/modest-proposal.txt > test-data/bmh-modest-match.txt"
-    WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/tests"
-)
-add_test(
-    NAME Naive-border-modest-proposal-cmp
-    COMMAND
-    cmp test-data/naive-modest-match.txt test-data/border-modest-match.txt
-    WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/tests"
-)
-add_test(
-    NAME Naive-KMP-modest-proposal-cmp
-    COMMAND
-    cmp test-data/naive-modest-match.txt test-data/kmp-modest-match.txt
-    WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/tests"
-)
-add_test(
-    NAME Naive-BMH-modest-proposal-cmp
-    COMMAND
-    cmp test-data/naive-modest-match.txt test-data/bmh-modest-match.txt
-    WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/tests"
-)
-
-
-add_test(
-    NAME Run-naive-rep
-    COMMAND
-    sh -c "$<TARGET_FILE:match_test> naive ababaaba test-data/repetitive-string.txt > test-data/naive-rep-match.txt"
-    WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/tests"
-)
-add_test(
-    NAME Run-border-rep
-    COMMAND
-    sh -c "$<TARGET_FILE:match_test> border ababaaba test-data/repetitive-string.txt > test-data/border-rep-match.txt"
-    WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/tests"
-)
-add_test(
-    NAME Run-KMP-rep
-    COMMAND
-    sh -c "$<TARGET_FILE:match_test> kmp ababaaba test-data/repetitive-string.txt > test-data/kmp-rep-match.txt"
-    WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/tests"
-)
-add_test(
-    NAME Run-BMH-rep
-    COMMAND
-    sh -c "$<TARGET_FILE:match_test> bmh ababaaba test-data/repetitive-string.txt > test-data/bmh-rep-match.txt"
-    WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/tests"
-)
-add_test(
-    NAME Naive-border-rep-cmp
-    COMMAND
-    cmp naive-rep-match.txt border-rep-match.txt
-    WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/tests/test-data"
-)
-add_test(
-    NAME Naive-KMP-rep-cmp
-    COMMAND
-    cmp naive-rep-match.txt kmp-rep-match.txt
-    WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/tests/test-data"
-)
-add_test(
-    NAME Naive-BMH-rep-cmp
-    COMMAND
-    cmp naive-rep-match.txt bmh-rep-match.txt
-    WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/tests/test-data"
 )
 
 add_executable(
@@ -113,19 +64,6 @@ add_test(
     COMMAND
     cmp edit_distance_generator_test_observed.txt edit_distance_generator_test_expected.txt
     WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/tests/test-data"
-)
-
-add_executable(
-    queue_test
-    queue_test.c
-)
-target_link_libraries(
-    queue_test
-    stralg
-)
-add_test(
-    Queue
-    queue_test
 )
 
 add_executable(

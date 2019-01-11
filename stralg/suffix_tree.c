@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <assert.h>
 
 #pragma helpers
 
@@ -28,6 +29,7 @@ void free_node(struct suffix_tree_node *node)
 
 inline static char out_letter(struct suffix_tree *st, struct suffix_tree_node *v)
 {
+    assert(v != 0);
     return st->string[v->range.from];
 }
 

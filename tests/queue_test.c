@@ -1,52 +1,46 @@
-#include <queue.h>
+#include <generic_data_structures.h>
 #include <stdlib.h>
 #include <assert.h>
 
 static int queue_length(const struct queue *queue)
 {
     int i = 0;
-    for (struct linked_list *link = queue->front; link; link = link->next) {
+    for (struct linked_list *link = queue->front;
+         link;
+         link = link->next) {
         i++;
     }
     return i;
 }
 
-static void queue_to_array(const struct queue *queue, size_t *array)
-{
-    size_t i = 0;
-    for (struct linked_list *link = queue->front; link; link = link->next) {
-        array[i++] = (size_t)link->data;
-    }
-}
-
 int main(int argc, char * argv[])
 {
-    struct queue *queue = alloc_queue();
-    size_t array[10];
+    index_queue *queue = alloc_index_queue();
     
     assert(queue_length(queue) == 0);
-    enqueue(queue, (void *)1);
+    enqueue_index(queue, 1);
     assert(queue_length(queue) == 1);
-    assert((size_t)queue_front(queue) == 1);
-    dequeue(queue);
+    assert(index_queue_front(queue) == 1);
+    dequeue_index_queue(queue);
     assert(queue_length(queue) == 0);
     
     for (long int i = 0; i < 10; i++) {
-        enqueue(queue, (void*)i);
+        enqueue_index(queue, i);
     }
     assert(queue_length(queue) == 10);
+    /*
     queue_to_array(queue, array);
     for (int i = 0; i < 10; i++) {
         assert(i == array[i]);
     }
-    
+    */
     for (int i = 0; i < 5; i++) {
         dequeue(queue);
     }
     assert(queue_length(queue) == 5);
-    assert((size_t)queue_front(queue) == 5);
+    assert(index_queue_front(queue) == 5);
     
-    free_queue(queue);
+    free_index_queue(queue);
     
     
     // make sure we can delete empty queues.
