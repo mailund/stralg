@@ -168,19 +168,6 @@ add_test(
     suffix_array_test
 )
 
-add_executable(
-    pair_stack_test
-    pair_stack_test.c
-)
-target_link_libraries(
-    pair_stack_test
-    stralg
-)
-add_test(
-    Pair-stack
-    pair_stack_test
-)
-
 # BIOINF ----------------------------------------------
 add_executable(
     fastq_iterator_test

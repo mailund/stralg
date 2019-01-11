@@ -48,3 +48,4 @@ tools/display_suffix_tree/tree.dot
 tools/display_suffix_tree/tree.pdf
 tests/suffix_tree_test
 tests/test-data/suffix-tree-test-observed.txt
+tools/exact_readmapper/Debug

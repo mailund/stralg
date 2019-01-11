@@ -1,6 +1,5 @@
 
 #include "suffix_array.h"
-#include "pair_stack.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -56,7 +55,7 @@ struct suffix_array *qsort_sa_construction(char *string)
     return sa;
 }
 
-/*
+
 void compute_inverse(struct suffix_array *sa)
 {
     if (sa->inverse) return; // only compute if it is needed
@@ -84,72 +83,6 @@ void compute_lcp(struct suffix_array *sa)
         sa->lcp[j] = l;
         l = l > 0 ? l - 1 : 0;
     }
-}
-
-int sct_left(struct suffix_array *sa, size_t i)
-{
-    if (i == 0) return -1; // first suffix doesn't have a left child
-    return (sa->lcp[i-1] > sa->lcp[i]) ? sa->sct_children[i-1] : -1;
-}
-
-void set_sct_left(struct suffix_array *sa, size_t i, int val)
-{
-    assert(i > 0 && sa->lcp[i-1] > sa->lcp[i]);
-    sa->sct_children[i-1] = val;
-}
-
-int sct_right(struct suffix_array *sa, size_t i)
-{
-    return (sa->lcp[i+1] >= sa->lcp[i]) ? sa->sct_children[i] : -1;
-}
-
-void set_sct_right(struct suffix_array *sa, size_t i, int val)
-{
-    // Removed assert because the static analyser
-    // did not like it -- and right now I'm not sure
-    // if I need this lcp stuff...
-    //assert(sa->lcp[i+1] >= sa->lcp[i]);
-    sa->sct_children[i] = val;
-}
-
-void compute_super_cartesian_tree(struct suffix_array *sa)
-{
-    assert(false); // Static analyser complaints and not sure I need this
-    
-
-    compute_lcp(sa);
-    assert(sa->lcp);
-
-    sa->sct_children = (int*)malloc((sa->length + 1) * sizeof(int));
-    for (size_t i = 0; i < sa->length + 1; ++i)
-        sa->sct_children[i] = -1;
-
-    struct stack *stack = empty_stack(sa->length + 1);
-
-    set_sct_right(sa, 0, sa->length);
-    push(stack, 0, -1);
-    for (size_t k = 1; k < sa->length + 1; ++k) {
-        while (sa->lcp[k] < top(stack)->second) {
-            int idx = top(stack)->first;
-            int lcp = top(stack)->second;
-            pop(stack);
-            while (top(stack)->second == lcp) {
-                set_sct_right(sa, top(stack)->first, idx);
-                idx = top(stack)->first;
-                lcp = top(stack)->second;
-                pop(stack);
-            }
-            if (sa->lcp[k] < top(stack)->second) {
-                set_sct_right(sa, top(stack)->first, idx);
-            } else {
-                set_sct_left(sa, k, idx);
-            }
-        }
-        push(stack, k, sa->lcp[k]);
-    }
-
-    delete_stack(stack);
- 
 }
 
 // when searching, we cannot simply use bsearch because we want
@@ -203,5 +136,5 @@ size_t lower_bound_search(struct suffix_array *sa, const char *key)
     }
     assert(false); // we should never get here.
 }
-*/
+
 
