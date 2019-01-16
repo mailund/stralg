@@ -4,6 +4,7 @@
 
 #include <stdlib.h>
 #include <stdbool.h>
+#include <stdio.h>
 
 struct range {
     size_t from;
@@ -48,5 +49,12 @@ bool next_st_leaf(
 void dealloc_st_leaf_iter(
     struct st_leaf_iter *iter
 );
+
+struct suffix_tree_node *st_search(struct suffix_tree *st, const char *pattern);
+
+
+void st_print_dot(struct suffix_tree *st, struct suffix_tree_node *n, FILE *file);
+
+
 
 #endif

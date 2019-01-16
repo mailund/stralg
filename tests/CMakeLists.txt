@@ -157,14 +157,26 @@ target_link_libraries(
     suffix_tree_test stralg
 )
 add_test(
-    NAME Suffix-tree-run
+    NAME Suffix-tree
+    COMMAND suffix_tree_test
+)
+
+add_executable(
+    suffix_tree_match_test
+    suffix_tree_match_test.c
+)
+target_link_libraries(
+    suffix_tree_match_test stralg
+)
+add_test(
+    NAME Suffix-tree[Match/modest-proposal]
     COMMAND
-    sh -c "$<TARGET_FILE:suffix_tree_test> > test-data/suffix-tree-test-observed.txt"
+    sh -c "$<TARGET_FILE:suffix_tree_match_test> the test-data/modest-proposal.txt"
     WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/tests"
 )
-#add_test(
-#    NAME Suffix-tree-compare-output
-#    COMMAND
-#    cmp test-data/suffix-tree-test-observed.txt test-data/suffix-tree-test-expected.txt
-#    WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/tests"
-#)
+add_test(
+    NAME Suffix-tree[Match/rep]
+    COMMAND
+    sh -c "$<TARGET_FILE:suffix_tree_match_test> ababaaba test-data/repetitive-string.txt"
+    WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/tests"
+)

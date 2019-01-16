@@ -35,6 +35,12 @@ inline static char out_letter(struct suffix_tree *st, struct suffix_tree_node *v
 
 #pragma mark naive suffix tree construction
 
+/*
+ Invariant: we keep the children of a node in reverse order with respect
+ to the lexicographical order of edge labels. It is *reverse* order
+ to make the iterator traversal simple. It makes a direct depth-first
+ traversal harder, but the preferred interface is the iterators.
+ */
 void naive_insert(struct suffix_tree *st, size_t suffix,
                   struct suffix_tree_node *v, const char *x)
 {
@@ -53,18 +59,18 @@ void naive_insert(struct suffix_tree *st, size_t suffix,
     if (!w) {
         // there is no outgoing edge that matches -> we must insert here
         struct suffix_tree_node *leaf = new_node(x - st->string, st->s_end - st->string);
-        leaf->leaf_label = x - st->string;
+        leaf->leaf_label = suffix;
         
         // Insert sorted
         struct suffix_tree_node *p = v->child;
         // special case for the first child
-        if (*x < out_letter(st, p)) {
+        if (*x > out_letter(st, p)) {
             leaf->sibling = v->child;
             v->child = leaf;
         } else {
             // find p such that it is the last chain with an outgoing
-            // edge that is smaller than the new
-            while (p->sibling && *x > out_letter(st, p->sibling))
+            // edge that is larger than the new
+            while (p->sibling && *x < out_letter(st, p->sibling))
                 p = p->sibling;
             leaf->sibling = p->sibling;
             p->sibling = leaf;
@@ -90,7 +96,7 @@ void naive_insert(struct suffix_tree *st, size_t suffix,
                 // get the children in the right order.
                 char split_letter = out_letter(st, split);
                 char leaf_letter = out_letter(st, leaf);
-                if (split_letter < leaf_letter) {
+                if (split_letter > leaf_letter) {
                     w->child = split;
                     split->sibling = leaf;
                 } else {
@@ -136,6 +142,7 @@ void free_suffix_tree(struct suffix_tree *st)
     free(st);
 }
 
+
 #pragma mark API
 
 void get_edge_label(struct suffix_tree *st, struct suffix_tree_node *node, char *buffer)
@@ -161,7 +168,7 @@ void init_st_leaf_iter(struct st_leaf_iter *iter,
                        struct suffix_tree *st,
                        struct suffix_tree_node *node)
 {
-    iter->stack = new_frame(st->root);
+    iter->stack = new_frame(node);
 }
 
 bool next_st_leaf(struct st_leaf_iter *iter,
@@ -173,18 +180,15 @@ bool next_st_leaf(struct st_leaf_iter *iter,
         iter->stack = frame->next;
         struct suffix_tree_node *node = frame->node;
         
-        // if there is a sibling, we always push it
-        if (node->sibling) {
-            struct st_leaf_iter_frame *sib_frame = new_frame(node->sibling);
-            sib_frame->next = iter->stack;
-            iter->stack = sib_frame;
-        }
-        
         if (node->child) {
             // inner node: push the children
-            struct st_leaf_iter_frame *child_frame = new_frame(node->child);
-            child_frame->next = iter->stack;
-            iter->stack = child_frame;
+            struct suffix_tree_node *child = node->child;
+            while (child) {
+                struct st_leaf_iter_frame *child_frame = new_frame(child);
+                child_frame->next = iter->stack;
+                iter->stack = child_frame;
+                child = child->sibling;
+            }
             
         } else {
             // leaf
@@ -210,3 +214,80 @@ void dealloc_st_leaf_iter(struct st_leaf_iter *iter)
         frame = next;
     }
 }
+
+static struct suffix_tree_node *st_search_internal(struct suffix_tree *st,
+                                                   struct suffix_tree_node *v,
+                                                   const char *x)
+{
+    if (*x == '\0')
+        // we are searching from an empty string, so we must
+        // already be at the right node.
+        return v;
+    
+    // find child that matches *x
+    struct suffix_tree_node *w = v->child;
+    while (w) {
+        // We might be able to exploit that the lists are sorted
+        // but it requires lookups in the string, so it might not be
+        // worthwhile.
+        if (st->string[w->range.from] == *x) break;
+        w = w->sibling;
+    }
+    if (!w) return 0; // the pattern is not here.
+
+    // we have an edge to follow!
+    const char *s = st->string + w->range.from;
+    const char *t = st->string + w->range.to;
+    for (; s != t; ++s, ++x) {
+        if (*x == '\0') return w; // end of the pattern
+        if (*s != *x)   return 0; // mismatch
+    }
+
+    // we made it through the edge, so continue from the next node
+    return st_search_internal(st, w, x);
+}
+
+struct suffix_tree_node *st_search(struct suffix_tree *st, const char *pattern)
+{
+    return st_search_internal(st, st->root, pattern);
+}
+
+#pragma mark IO
+
+static void print_out_edges(FILE *f,
+                            struct suffix_tree *st,
+                            struct suffix_tree_node *from,
+                            char *label_buffer)
+{
+    struct suffix_tree_node *child = from->child;
+    
+    if (!child) {
+        // this is a leaf
+        fprintf(f, "\"%p\" [label=\"%zu\"];\n", from, from->leaf_label);
+        return;
+    }
+    
+    // inner node
+    fprintf(f, "\"%p\" [shape=point];\n", from);
+    while (child) {
+        get_edge_label(st, child, label_buffer);
+        fprintf(f, "\"%p\" -> \"%p\" [label=\"%s (%ld,%ld)\"];\n",
+                from, child, label_buffer, child->range.from, child->range.to);
+        print_out_edges(f, st, child, label_buffer);
+        child = child->sibling;
+    }
+}
+
+void st_print_dot(struct suffix_tree *st,
+                  struct suffix_tree_node *n,
+                  FILE *file)
+{
+    struct suffix_tree_node *root = n ? n : st->root;
+    char buffer[strlen(st->string) + 1];
+    
+    fprintf(file, "digraph {\n");
+    fprintf(file, "node[shape=circle];\n");
+    print_out_edges(file, st, root, buffer);
+    fprintf(file, "}\n");
+}
+

@@ -141,3 +141,19 @@ bool vector_equal(struct vector *v1, struct vector *v2)
     }
     return true;
 }
+
+static int index_cmpfunc (const void *void_a, const void *void_b) {
+    struct boxed_data *box_a = (struct boxed_data *)void_a;
+    struct boxed_data *box_b = (struct boxed_data *)void_b;
+    size_t index_a = box_a->data.index;
+    size_t index_b = box_b->data.index;
+    if (index_a  < index_b) return -1;
+    if (index_a == index_b) return  0;
+    if (index_a  > index_b) return  1;
+    return 42; // we can't reach this point but we get a warning anyway
+}
+
+void sort_index_vector(index_vector *vec)
+{
+    qsort(vec->data, vec->used, sizeof(struct boxed_data), index_cmpfunc);
+}

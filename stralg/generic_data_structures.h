@@ -132,4 +132,6 @@ static inline void index_vector_append(index_vector *vec, size_t index) {
     vector_append(vec, box_index(index));
 }
 
+void sort_index_vector(index_vector *vec);
+
 #endif
