@@ -49,7 +49,10 @@ struct linked_list {
     struct boxed_data data;
 };
 
-//FIXME: linked lists functions
+//FIXME: linked lists functions id:2
+// - <https://github.com/mailund/stralg/issues/36>
+// Thomas Mailund
+// mailund@birc.au.dk
 
 #pragma mark queue
 struct queue {
