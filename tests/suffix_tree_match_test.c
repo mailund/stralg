@@ -113,7 +113,7 @@ int main(int argc, const char **argv)
     printf("\n");
     
     // Compare the two
-    //assert(vector_equal(naive_matches, st_matches));
+    assert(vector_equal(naive_matches, st_matches));
     
     free(string);
     free_index_vector(naive_matches);
