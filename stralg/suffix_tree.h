@@ -34,8 +34,11 @@ struct suffix_tree *naive_suffix_tree(const char *string);
 
 void free_suffix_tree(struct suffix_tree *st);
 
-void get_edge_label(struct suffix_tree *st, struct suffix_tree_node *node, char *buffer);
+// Suffix array and LCP
+void st_compute_sa_and_lcp(struct suffix_tree *st,
+                           size_t *sa, size_t *lcp);
 
+// Iteration
 struct st_leaf_iter {
     struct st_leaf_iter_frame *stack;
 };
@@ -56,8 +59,14 @@ void dealloc_st_leaf_iter(
     struct st_leaf_iter *iter
 );
 
+//  Searching
 struct suffix_tree_node *st_search(struct suffix_tree *st, const char *pattern);
 
+
+// Debugging/visualisation help
+void get_edge_label(struct suffix_tree *st,
+                    struct suffix_tree_node *node,
+                    char *buffer);
 
 void st_print_dot(struct suffix_tree *st, struct suffix_tree_node *n, FILE *file);
 

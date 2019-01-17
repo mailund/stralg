@@ -157,12 +157,16 @@ void free_suffix_tree(struct suffix_tree *st)
 
 #pragma mark API
 
-void get_edge_label(struct suffix_tree *st, struct suffix_tree_node *node, char *buffer)
+void get_edge_label(struct suffix_tree *st,
+                    struct suffix_tree_node *node,
+                    char *buffer)
 {
     size_t n = node->range.to - node->range.from;
     strncpy(buffer, st->string + node->range.from, n);
     buffer[n] = '\0';
 }
+
+// Iteration
 
 struct st_leaf_iter_frame {
     struct st_leaf_iter_frame *next;
@@ -231,6 +235,7 @@ void dealloc_st_leaf_iter(struct st_leaf_iter *iter)
     }
 }
 
+// Searching
 static struct suffix_tree_node *st_search_internal(struct suffix_tree *st,
                                                    struct suffix_tree_node *v,
                                                    const char *x)
@@ -267,6 +272,48 @@ struct suffix_tree_node *st_search(struct suffix_tree *st, const char *pattern)
 {
     return st_search_internal(st, st->root, pattern);
 }
+
+// Build suffix array and LCP
+struct sa_lcp_data {
+    size_t *sa;
+    size_t *lcp;
+    size_t idx;
+};
+static void lcp_traverse(struct suffix_tree *st,
+                         struct suffix_tree_node *n,
+                         struct sa_lcp_data *data,
+                         size_t node_depth,
+                         size_t branch_depth)
+{
+    if (!n->child) {
+        // Leaf
+        data->sa[data->idx] = n->leaf_label;
+        data->lcp[data->idx] = branch_depth;
+        data->idx++;
+    } else {
+        // Inner node
+        // The first child should be treated differently than
+        // the rest; it has a different branch depth
+        struct suffix_tree_node *child = n->child;
+        size_t this_depth = node_depth + edge_length(n);
+        lcp_traverse(st, child, data, this_depth, branch_depth);
+        for (child = child->sibling; child; child = child->sibling) {
+            // handle the remaining children
+            lcp_traverse(st, child, data, this_depth, this_depth);
+        }
+
+
+    }
+}
+
+void st_compute_sa_and_lcp(struct suffix_tree *st,
+                           size_t *sa, size_t *lcp)
+{
+    struct sa_lcp_data data;
+    data.sa = sa; data.lcp = lcp; data.idx = 0;
+    lcp_traverse(st, st->root, &data, 0, 0);
+}
+
 
 #pragma mark IO
 

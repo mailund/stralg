@@ -6,32 +6,6 @@
 #include <string.h>
 #include <assert.h>
 
-static void traverse(struct suffix_tree *st,
-                     struct suffix_tree_node *n,
-                     size_t node_depth,
-                     size_t branch_depth)
-{
-    if (!n->child) {
-        // Leaf
-        printf("%3lu %3lu %s\n",
-               n->leaf_label, branch_depth,
-               st->string + n->leaf_label);
-    } else {
-        // Inner node
-        // The first child should be treated differently than
-        // the rest; it has a different branch depth
-        struct suffix_tree_node *child = n->child;
-        size_t this_depth = node_depth + edge_length(n);
-        traverse(st, child, this_depth, branch_depth);
-        for (child = child->sibling; child; child = child->sibling) {
-            // handle the remaining children
-            traverse(st, child, this_depth, this_depth);
-        }
-
-
-    }
-}
-
 int main(int argc, const char** argv)
 {
     if (argc != 2)
@@ -50,8 +24,15 @@ int main(int argc, const char** argv)
     struct suffix_tree* st = naive_suffix_tree(string);
 
     printf("Traversing tree.\n");
-    traverse(st, st->root, 0, 0);
+    size_t len = st->s_end - st->string;
+    size_t sa[len];
+    size_t lcp[len];
+    st_compute_sa_and_lcp(st, sa, lcp);
 
+    for (size_t i = 0; i < len; ++i) {
+        printf("%3lu: %3lu %3lu %s\n",
+               i, sa[i], lcp[i], st->string + sa[i]);
+    }
 
     printf("Done!\n");
     free_suffix_tree(st);
