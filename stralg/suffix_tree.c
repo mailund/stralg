@@ -138,7 +138,7 @@ struct suffix_tree *naive_suffix_tree(const char *string)
     // in the rest of the code.
     struct suffix_tree_node *first = new_node(0, slen + 1);
     st->root->child = first;
-    for (size_t i = 1; i < slen; ++i) {
+    for (size_t i = 1; i < slen + 1; ++i) {
         naive_insert(st, i, st->root, string + i);
     }
 

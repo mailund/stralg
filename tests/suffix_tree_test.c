@@ -8,7 +8,7 @@ int main(int argc, const char **argv)
 {
     struct suffix_tree *st = naive_suffix_tree("mississippi");
     size_t expected[] = {
-      10, 7, 4, 1, 0, 9, 8, 6, 3, 5, 2
+      11, 10, 7, 4, 1, 0, 9, 8, 6, 3, 5, 2
     };
     size_t no_indices = sizeof(expected) / sizeof(size_t);
 
