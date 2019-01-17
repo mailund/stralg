@@ -10,6 +10,9 @@ struct range {
     size_t from;
     size_t to;
 };
+static inline size_t range_length(struct range r) {
+    return r.to - r.from;
+}
 
 struct suffix_tree_node {
     size_t leaf_label;
@@ -17,6 +20,9 @@ struct suffix_tree_node {
     struct suffix_tree_node *sibling;
     struct suffix_tree_node *child;
 };
+static inline size_t edge_length(struct suffix_tree_node *n) {
+    return range_length(n->range);
+}
 
 struct suffix_tree {
     const char *string;

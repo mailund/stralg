@@ -46,7 +46,7 @@ find_outgoing_edge(const char *s, struct suffix_tree_node *v, const char *x)
     return w;
 }
 
-// Insert sorted (reverse lex order)
+// Insert sorted (lex order)
 static void insert_child(struct suffix_tree *st,
                          size_t suffix,
                          struct suffix_tree_node *v,
@@ -56,13 +56,13 @@ static void insert_child(struct suffix_tree *st,
     leaf->leaf_label = suffix;
     
     struct suffix_tree_node *p = v->child;
-    if (*x > out_letter(st, p)) { // special case for the first child
+    if (*x < out_letter(st, p)) { // special case for the first child
         leaf->sibling = v->child;
         v->child = leaf;
     } else {
         // find p such that it is the last chain with an outgoing
         // edge that is larger than the new
-        while (p->sibling && *x < out_letter(st, p->sibling))
+        while (p->sibling && *x > out_letter(st, p->sibling))
             p = p->sibling;
         leaf->sibling = p->sibling;
         p->sibling = leaf;
@@ -83,10 +83,10 @@ static void split_edge(const char *s, struct suffix_tree *st,
     new_node(x - st->string, st->s_end - st->string);
     leaf->leaf_label = suffix;
     
-    // get the children in the right (reverse lex) order.
+    // get the children in the right (lex) order.
     char split_letter = out_letter(st, split);
     char leaf_letter = out_letter(st, leaf);
-    if (split_letter > leaf_letter) {
+    if (split_letter < leaf_letter) {
         w->child = split;
         split->sibling = leaf;
     } else {
@@ -95,12 +95,6 @@ static void split_edge(const char *s, struct suffix_tree *st,
     }
 }
 
-/*
- Invariant: we keep the children of a node in reverse order with respect
- to the lexicographical order of edge labels. It is *reverse* order
- to make the iterator traversal simple. It makes a direct depth-first
- traversal harder, but the preferred interface is the iterators.
- */
 void naive_insert(struct suffix_tree *st, size_t suffix,
                   struct suffix_tree_node *v, const char *x)
 {
@@ -137,8 +131,10 @@ struct suffix_tree *naive_suffix_tree(const char *string)
 
     st->root = new_node(0, 0);
     // I am inserting the first suffix manually to ensure that all
-    // inner nodes have at least one child. The root will be a special case
-    // for the first suffix otherwise, and I don't want to deal with that
+    // inner nodes have at least one child.
+    // The root will be a special case
+    // for the first suffix otherwise,
+    // and I don't want to deal with that
     // in the rest of the code.
     struct suffix_tree_node *first = new_node(0, slen + 1);
     st->root->child = first;
@@ -187,6 +183,15 @@ void init_st_leaf_iter(struct st_leaf_iter *iter,
     iter->stack = new_frame(node);
 }
 
+static void reverse_push(struct st_leaf_iter *iter,
+                         struct suffix_tree_node *child)
+{
+    if (child->sibling) reverse_push(iter, child->sibling);
+    struct st_leaf_iter_frame *child_frame = new_frame(child);
+    child_frame->next = iter->stack;
+    iter->stack = child_frame;
+}
+
 bool next_st_leaf(struct st_leaf_iter *iter,
                   struct st_leaf_iter_result *res)
 {
@@ -197,14 +202,9 @@ bool next_st_leaf(struct st_leaf_iter *iter,
         struct suffix_tree_node *node = frame->node;
         
         if (node->child) {
-            // inner node: push the children
-            struct suffix_tree_node *child = node->child;
-            while (child) {
-                struct st_leaf_iter_frame *child_frame = new_frame(child);
-                child_frame->next = iter->stack;
-                iter->stack = child_frame;
-                child = child->sibling;
-            }
+            // we have to push in reverse order to get
+            // an in-order depth-first traversal
+            reverse_push(iter, node->child);
             
         } else {
             // leaf
