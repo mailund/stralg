@@ -11,6 +11,7 @@ int main(int argc, const char **argv)
       11, 10, 7, 4, 1, 0, 9, 8, 6, 3, 5, 2
     };
     size_t no_indices = sizeof(expected) / sizeof(size_t);
+    assert((st->s_end - st->string) == no_indices);
 
     struct st_leaf_iter iter;
     struct st_leaf_iter_result res;
@@ -29,7 +30,21 @@ int main(int argc, const char **argv)
     for (size_t i = 0; i < no_indices; ++i) {
         assert(indices->data[i].data.index == expected[i]);
     }
-    
+
+    size_t sa[st->s_end - st->string];
+    size_t lcp[st->s_end - st->string];
+
+    st_compute_sa_and_lcp(st, sa, lcp);
+    for (size_t i = 0; i < no_indices; ++i) {
+        assert(sa[i] == expected[i]);
+    }
+    size_t expected_lcp[] = {
+        0, 0, 1, 1, 4, 0, 0, 1, 0, 2, 1, 3
+    };
+    for (size_t i = 0; i < no_indices; ++i) {
+        assert(lcp[i] == expected_lcp[i]);
+    }
+
     free_index_vector(indices);
     free_suffix_tree(st);
     
