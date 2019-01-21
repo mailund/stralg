@@ -14,6 +14,7 @@ new_node(size_t from, size_t to)
     node->leaf_label = 0;
     node->range.from = from;
     node->range.to = to;
+    node->parent = 0;
     node->sibling = 0;
     node->child = 0;
     
@@ -54,6 +55,7 @@ static void insert_child(struct suffix_tree *st,
 {
     struct suffix_tree_node *leaf = new_node(x - st->string, st->s_end - st->string);
     leaf->leaf_label = suffix;
+    leaf->parent = v;
     
     struct suffix_tree_node *p = v->child;
     if (*x < out_letter(st, p)) { // special case for the first child
@@ -76,12 +78,16 @@ static void split_edge(const char *s, struct suffix_tree *st,
     size_t split_point = s - st->string;
     struct suffix_tree_node *split = new_node(split_point, w->range.to);
     split->leaf_label = w->leaf_label; // in case w was a leaf
+    
     w->range.to = split_point;
     split->child = w->child;
+    split->parent = w;
+    if (split->child)
+        split->child->parent = split;
     
-    struct suffix_tree_node *leaf =
-    new_node(x - st->string, st->s_end - st->string);
+    struct suffix_tree_node *leaf = new_node(x - st->string, st->s_end - st->string);
     leaf->leaf_label = suffix;
+    leaf->parent = w;
     
     // get the children in the right (lex) order.
     char split_letter = out_letter(st, split);
@@ -130,6 +136,8 @@ struct suffix_tree *naive_suffix_tree(const char *string)
     st->s_end = st->string + slen + 1; // I am using '\0' as sentinel
 
     st->root = new_node(0, 0);
+    st->root->parent = st->root;
+    
     // I am inserting the first suffix manually to ensure that all
     // inner nodes have at least one child.
     // The root will be a special case
@@ -138,6 +146,7 @@ struct suffix_tree *naive_suffix_tree(const char *string)
     // in the rest of the code.
     struct suffix_tree_node *first = new_node(0, slen + 1);
     st->root->child = first;
+    first->parent = st->root;
     for (size_t i = 1; i < slen + 1; ++i) {
         naive_insert(st, i, st->root, string + i);
     }
@@ -161,9 +170,29 @@ void get_edge_label(struct suffix_tree *st,
                     struct suffix_tree_node *node,
                     char *buffer)
 {
-    size_t n = node->range.to - node->range.from;
+    size_t n = range_length(node->range);
     strncpy(buffer, st->string + node->range.from, n);
     buffer[n] = '\0';
+}
+
+void get_path_string(struct suffix_tree *st,
+                     struct suffix_tree_node *leaf,
+                     char *buffer)
+{
+    size_t s_len = (st->s_end - st->string);
+    size_t offset = s_len - leaf->leaf_label;
+    
+    char edge_buffer[s_len + 1];
+    char *s = buffer + offset;
+    struct suffix_tree_node *v = leaf;
+    while (v->parent != v) { // FIXME: change test if root->parent != root
+        size_t n = range_length(v->range);
+        s -= n;
+        strncpy(s, st->string + v->range.from, n);
+        get_edge_label(st, v, edge_buffer);
+        
+        v = v->parent;
+    }
 }
 
 // Iteration
@@ -336,6 +365,8 @@ static void print_out_edges(FILE *f,
         get_edge_label(st, child, label_buffer);
         fprintf(f, "\"%p\" -> \"%p\" [label=\"%s (%ld,%ld)\"];\n",
                 from, child, label_buffer, child->range.from, child->range.to);
+        fprintf(f, "\"%p\" -> \"%p\" [style=\"dashed\"];\n",
+                child, child->parent);
         print_out_edges(f, st, child, label_buffer);
         child = child->sibling;
     }

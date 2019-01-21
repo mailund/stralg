@@ -3,6 +3,7 @@
 #include <suffix_tree.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 int main(int argc, const char **argv)
 {
@@ -27,9 +28,24 @@ int main(int argc, const char **argv)
     dealloc_st_leaf_iter(&iter);
     
     printf("testing indices\n");
+    assert(indices->used == no_indices);
     for (size_t i = 0; i < no_indices; ++i) {
         assert(indices->data[i].data.index == expected[i]);
     }
+    
+    char buffer[st->s_end - st->string + 1];
+    init_st_leaf_iter(&iter, st, st->root);
+    while (next_st_leaf(&iter, &res)) {
+        printf("suffix %2lu: \"%s\"\n",
+               res.leaf->leaf_label,
+               st->string + res.leaf->leaf_label);
+        get_path_string(st, res.leaf, buffer);
+        printf("suffix path string: %2lu: \"%s\"\n",
+               res.leaf->leaf_label,
+               buffer);
+        assert(strcmp(buffer, st->string + res.leaf->leaf_label) == 0);
+    }
+    dealloc_st_leaf_iter(&iter);
 
     size_t sa[st->s_end - st->string];
     size_t lcp[st->s_end - st->string];

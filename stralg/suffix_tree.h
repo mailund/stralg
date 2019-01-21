@@ -17,6 +17,7 @@ static inline size_t range_length(struct range r) {
 struct suffix_tree_node {
     size_t leaf_label;
     struct range range;
+    struct suffix_tree_node *parent;
     struct suffix_tree_node *sibling;
     struct suffix_tree_node *child;
 };
@@ -67,6 +68,10 @@ struct suffix_tree_node *st_search(struct suffix_tree *st, const char *pattern);
 void get_edge_label(struct suffix_tree *st,
                     struct suffix_tree_node *node,
                     char *buffer);
+void get_path_string(struct suffix_tree *st,
+                     struct suffix_tree_node *leaf,
+                     char *buffer);
+
 
 void st_print_dot(struct suffix_tree *st, struct suffix_tree_node *n, FILE *file);
 
