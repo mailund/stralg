@@ -185,7 +185,10 @@ void get_path_string(struct suffix_tree *st,
     char edge_buffer[s_len + 1];
     char *s = buffer + offset;
     struct suffix_tree_node *v = leaf;
-    while (v->parent != v) { // FIXME: change test if root->parent != root
+    while (v->parent != v) { // FIXME: change test if root->parent != root id:3
+// - <https://github.com/mailund/stralg/issues/38>
+// Thomas Mailund
+// mailund@birc.au.dk
         size_t n = range_length(v->range);
         s -= n;
         strncpy(s, st->string + v->range.from, n);
