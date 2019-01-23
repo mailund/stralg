@@ -28,9 +28,9 @@ static inline size_t edge_length(struct suffix_tree_node *n) {
 struct suffix_tree {
     const char *string;
     const char *s_end; // FIXME: I use the length more than the end, so change the struct id:6
-// - <https://github.com/mailund/stralg/issues/42>
-// Thomas Mailund
-// mailund@birc.au.dk
+                       // - <https://github.com/mailund/stralg/issues/42>
+                       // Thomas Mailund
+                       // mailund@birc.au.dk
     struct suffix_tree_node *root;
 };
 

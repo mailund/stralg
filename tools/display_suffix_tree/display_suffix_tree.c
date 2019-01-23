@@ -19,7 +19,7 @@ int main(int argc, const char** argv)
         return EXIT_FAILURE;
     }
     string = "mississippi"; // FIXME  id:4
-// - <https://github.com/mailund/stralg/issues/40>
+                            // - <https://github.com/mailund/stralg/issues/40>
     printf("Building suffix tree.\n");
     struct suffix_tree* st = naive_suffix_tree(string);
     
@@ -39,7 +39,7 @@ int main(int argc, const char** argv)
     printf("done!\n");
     free_suffix_tree(st);
     //free(string); FIXME  id:5
-// - <https://github.com/mailund/stralg/issues/41>
+    // - <https://github.com/mailund/stralg/issues/41>
 
     return EXIT_SUCCESS;
 }
