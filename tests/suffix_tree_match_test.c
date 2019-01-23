@@ -24,6 +24,61 @@ static void print_leaves(struct suffix_tree_node *from)
     }
 }
 
+static void test_suffix_tree_match(index_vector *naive_matches, const char *pattern, struct suffix_tree *st, char *string) {
+    struct st_leaf_iter st_iter;
+    struct st_leaf_iter_result res;
+    index_vector *st_matches = alloc_index_vector(100);
+    
+    printf("I managed to build the suffix tree!\n");
+    printf("the root is %p\n", st->root);
+    
+    // just check that we do not find a node with a string that is not in the tree
+    printf("search that should miss!\n");
+    assert(!st_search(st, "blahblahblahdeblablabla"));
+    
+    printf("Search that should not.\n");
+    struct suffix_tree_node *match_root = st_search(st, pattern);
+    assert(match_root != st->root);
+    assert(match_root != 0);
+    
+    /*
+     printf("Printing tree.\n");
+     FILE *f = fopen("tree.dot", "w");
+     st_print_dot(st, 0, f);
+     fclose(f);
+     
+     printf("Printing subtree.\n");
+     f = fopen("subtree.dot", "w");
+     st_print_dot(st, match_root, f);
+     fclose(f);
+     */
+    
+    printf("Depth-first leaves:\n");
+    print_leaves(match_root);
+    
+    init_st_leaf_iter(&st_iter, st, match_root);
+    while (next_st_leaf(&st_iter, &res)) {
+        index_vector_append(st_matches, res.leaf->leaf_label);
+    }
+    dealloc_st_leaf_iter(&st_iter);
+    
+    printf("suffix tree matches:\n");
+    for (size_t i = 0; i < st_matches->used; ++i)
+        printf("%lu ", index_vector_get(st_matches, i));
+    printf("\n");
+    
+    sort_index_vector(st_matches); // st is not in same order as naive
+    printf("sorted suffix tree matches:\n");
+    for (size_t i = 0; i < st_matches->used; ++i)
+        printf("%lu ", index_vector_get(st_matches, i));
+    printf("\n");
+    
+    // Compare the two
+    assert(vector_equal(naive_matches, st_matches));
+    
+    free_index_vector(st_matches);
+}
+
 int main(int argc, const char **argv)
 {
     if (argc != 3) {
@@ -64,62 +119,22 @@ int main(int argc, const char **argv)
     
     // Get the matches using the suffix tree
     struct suffix_tree *st = naive_suffix_tree(string);
-    struct st_leaf_iter st_iter;
-    struct st_leaf_iter_result res;
-    index_vector *st_matches = alloc_index_vector(100);
+    test_suffix_tree_match(naive_matches, pattern, st, string);
     
-    printf("I managed to build the suffix tree!\n");
-    printf("the root is %p\n", st->root);
-    
-    // just check that we do not find a node with a string that is not in the tree
-    printf("search that should miss!\n");
-    assert(!st_search(st, "blahblahblahdeblablabla"));
-    
-    printf("Search that should not.\n");
-    struct suffix_tree_node *match_root = st_search(st, pattern);
-    assert(match_root != st->root);
-    assert(match_root != 0);
+    size_t sa[st->s_end - st->string];
+    size_t lcp[st->s_end - st->string];
+    st_compute_sa_and_lcp(st, sa, lcp);
 
-    /*
-    printf("Printing tree.\n");
-    FILE *f = fopen("tree.dot", "w");
-    st_print_dot(st, 0, f);
-    fclose(f);
+    free_suffix_tree(st);
 
-    printf("Printing subtree.\n");
-    f = fopen("subtree.dot", "w");
-    st_print_dot(st, match_root, f);
-    fclose(f);
-     */
+    
+    st = lcp_suffix_tree(string, sa, lcp);
+    test_suffix_tree_match(naive_matches, pattern, st, string);
+    free_suffix_tree(st);
 
-    printf("Depth-first leaves:\n");
-    print_leaves(match_root);
-    
-    init_st_leaf_iter(&st_iter, st, match_root);
-    while (next_st_leaf(&st_iter, &res)) {
-        index_vector_append(st_matches, res.leaf->leaf_label);
-    }
-    dealloc_st_leaf_iter(&st_iter);
-    
-    printf("suffix tree matches:\n");
-    for (size_t i = 0; i < st_matches->used; ++i)
-        printf("%lu ", index_vector_get(st_matches, i));
-    printf("\n");
-    
-    sort_index_vector(st_matches); // st is not in same order as naive
-    printf("sorted suffix tree matches:\n");
-    for (size_t i = 0; i < st_matches->used; ++i)
-        printf("%lu ", index_vector_get(st_matches, i));
-    printf("\n");
-    
-    // Compare the two
-    assert(vector_equal(naive_matches, st_matches));
-    
     free(string);
     free_index_vector(naive_matches);
-    free_index_vector(st_matches);
-    free_suffix_tree(st);
-    
+
     return EXIT_SUCCESS;
 }
 
