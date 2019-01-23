@@ -18,7 +18,8 @@ int main(int argc, const char** argv)
         fprintf(stderr, "Problems reading file %s\n", argv[1]);
         return EXIT_FAILURE;
     }
-    string = "mississippi"; // FIXME
+    string = "mississippi"; // FIXME  id:4
+// - <https://github.com/mailund/stralg/issues/40>
     printf("Building suffix tree.\n");
     struct suffix_tree* st = naive_suffix_tree(string);
     
@@ -37,7 +38,8 @@ int main(int argc, const char** argv)
     
     printf("done!\n");
     free_suffix_tree(st);
-    //free(string); FIXME
+    //free(string); FIXME  id:5
+// - <https://github.com/mailund/stralg/issues/41>
 
     return EXIT_SUCCESS;
 }
