@@ -27,11 +27,13 @@ static inline size_t edge_length(struct suffix_tree_node *n) {
 
 struct suffix_tree {
     const char *string;
-    const char *s_end;
+    const char *s_end; // FIXME: I use the length more than the end, so change the struct
     struct suffix_tree_node *root;
 };
 
 struct suffix_tree *naive_suffix_tree(const char *string);
+struct suffix_tree *lcp_suffix_tree(const char *string,
+                                    size_t *sa, size_t *lcp);
 
 void free_suffix_tree(struct suffix_tree *st);
 

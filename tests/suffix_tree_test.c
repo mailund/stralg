@@ -5,15 +5,24 @@
 #include <stdio.h>
 #include <string.h>
 
-int main(int argc, const char **argv)
+void check_parent_pointers(struct suffix_tree_node *v)
 {
-    struct suffix_tree *st = naive_suffix_tree("mississippi");
+    struct suffix_tree_node *w = v->child;
+    while (w) {
+        assert(w->parent == v);
+        check_parent_pointers(w);
+        w = w->sibling;
+    }
+}
+
+static void check_suffix_tree(struct suffix_tree *st)
+{
     size_t expected[] = {
-      11, 10, 7, 4, 1, 0, 9, 8, 6, 3, 5, 2
+        11, 10, 7, 4, 1, 0, 9, 8, 6, 3, 5, 2
     };
     size_t no_indices = sizeof(expected) / sizeof(size_t);
     assert((st->s_end - st->string) == no_indices);
-
+    
     struct st_leaf_iter iter;
     struct st_leaf_iter_result res;
     index_vector *indices = alloc_index_vector(100);
@@ -46,9 +55,25 @@ int main(int argc, const char **argv)
         assert(strcmp(buffer, st->string + res.leaf->leaf_label) == 0);
     }
     dealloc_st_leaf_iter(&iter);
+    free_index_vector(indices);
+    
+    printf("checking parent pointers.\n");
+    check_parent_pointers(st->root);
+}
+
+int main(int argc, const char **argv)
+{
+    const char *string = "mississippi";
+    struct suffix_tree *st = naive_suffix_tree(string);
+    check_suffix_tree(st);
 
     size_t sa[st->s_end - st->string];
     size_t lcp[st->s_end - st->string];
+
+    size_t no_indices = (st->s_end - st->string);
+    size_t expected[] = {
+        11, 10, 7, 4, 1, 0, 9, 8, 6, 3, 5, 2
+    };
 
     st_compute_sa_and_lcp(st, sa, lcp);
     for (size_t i = 0; i < no_indices; ++i) {
@@ -61,7 +86,10 @@ int main(int argc, const char **argv)
         assert(lcp[i] == expected_lcp[i]);
     }
 
-    free_index_vector(indices);
+    free_suffix_tree(st);
+    
+    st = lcp_suffix_tree(string, sa, lcp);
+    check_suffix_tree(st);
     free_suffix_tree(st);
     
     return EXIT_SUCCESS;
