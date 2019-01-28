@@ -121,8 +121,8 @@ int main(int argc, const char **argv)
     struct suffix_tree *st = naive_suffix_tree(string);
     test_suffix_tree_match(naive_matches, pattern, st, string);
     
-    size_t sa[st->s_end - st->string];
-    size_t lcp[st->s_end - st->string];
+    size_t sa[st->length];
+    size_t lcp[st->length];
     st_compute_sa_and_lcp(st, sa, lcp);
 
     free_suffix_tree(st);

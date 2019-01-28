@@ -21,7 +21,7 @@ static void check_suffix_tree(struct suffix_tree *st)
         11, 10, 7, 4, 1, 0, 9, 8, 6, 3, 5, 2
     };
     size_t no_indices = sizeof(expected) / sizeof(size_t);
-    assert((st->s_end - st->string) == no_indices);
+    assert(st->length == no_indices);
     
     struct st_leaf_iter iter;
     struct st_leaf_iter_result res;
@@ -42,7 +42,7 @@ static void check_suffix_tree(struct suffix_tree *st)
         assert(indices->data[i].data.index == expected[i]);
     }
     
-    char buffer[st->s_end - st->string + 1];
+    char buffer[st->length];
     init_st_leaf_iter(&iter, st, st->root);
     while (next_st_leaf(&iter, &res)) {
         printf("suffix %2lu: \"%s\"\n",
@@ -67,10 +67,10 @@ int main(int argc, const char **argv)
     struct suffix_tree *st = naive_suffix_tree(string);
     check_suffix_tree(st);
 
-    size_t sa[st->s_end - st->string];
-    size_t lcp[st->s_end - st->string];
+    size_t sa[st->length];
+    size_t lcp[st->length];
 
-    size_t no_indices = (st->s_end - st->string);
+    size_t no_indices = st->length;
     size_t expected[] = {
         11, 10, 7, 4, 1, 0, 9, 8, 6, 3, 5, 2
     };

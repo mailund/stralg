@@ -24,12 +24,11 @@ int main(int argc, const char** argv)
     struct suffix_tree* st = naive_suffix_tree(string);
 
     printf("Traversing tree.\n");
-    size_t len = st->s_end - st->string;
-    size_t sa[len];
-    size_t lcp[len];
+    size_t sa[st->length];
+    size_t lcp[st->length];
     st_compute_sa_and_lcp(st, sa, lcp);
 
-    for (size_t i = 0; i < len; ++i) {
+    for (size_t i = 0; i < st->length; ++i) {
         printf("%3lu: %3lu %3lu %s\n",
                i, sa[i], lcp[i], st->string + sa[i]);
     }

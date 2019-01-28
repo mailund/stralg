@@ -53,7 +53,7 @@ static void insert_child(struct suffix_tree *st,
                          struct suffix_tree_node *v,
                          const char *x)
 {
-    struct suffix_tree_node *leaf = new_node(x - st->string, st->s_end - st->string);
+    struct suffix_tree_node *leaf = new_node(x - st->string, st->length);
     leaf->leaf_label = suffix;
     leaf->parent = v;
     
@@ -90,7 +90,7 @@ static void naive_split_edge(const char *s, struct suffix_tree *st,
         child = child->sibling;
     }
     
-    struct suffix_tree_node *leaf = new_node(x - st->string, st->s_end - st->string);
+    struct suffix_tree_node *leaf = new_node(x - st->string, st->length);
     leaf->leaf_label = suffix;
     leaf->parent = w;
     
@@ -138,7 +138,7 @@ struct suffix_tree *naive_suffix_tree(const char *string)
     struct suffix_tree *st = malloc(sizeof(struct suffix_tree));
     st->string = string;
     size_t slen = strlen(string);
-    st->s_end = st->string + slen + 1; // I am using '\0' as sentinel
+    st->length = slen + 1; // I am using '\0' as sentinel
 
     st->root = new_node(0, 0);
     st->root->parent = st->root;
@@ -197,10 +197,9 @@ lcp_insert(struct suffix_tree *st,
            size_t *sa, size_t *lcp,
            struct suffix_tree_node *v)
 {
-    size_t n = st->s_end - st->string;
-    struct suffix_tree_node *new_leaf = new_node(sa[i] + lcp[i], n);
+    struct suffix_tree_node *new_leaf = new_node(sa[i] + lcp[i], st->length);
     new_leaf->leaf_label = sa[i];
-    size_t length_up = n - sa[i-1] - lcp[i];
+    size_t length_up = st->length - sa[i-1] - lcp[i];
     size_t v_edge_len = range_length(v->range);
     
     while ((length_up >= v_edge_len) && (v_edge_len != 0)) {
@@ -223,7 +222,7 @@ struct suffix_tree *lcp_suffix_tree(const char *string,
     struct suffix_tree *st = malloc(sizeof(struct suffix_tree));
     st->string = string;
     size_t slen = strlen(string);
-    st->s_end = st->string + slen + 1; // I am using '\0' as sentinel
+    st->length = slen + 1; // I am using '\0' as sentinel
     
     st->root = new_node(0, 0);
     st->root->parent = st->root;
@@ -266,16 +265,12 @@ void get_path_string(struct suffix_tree *st,
                      struct suffix_tree_node *leaf,
                      char *buffer)
 {
-    size_t s_len = (st->s_end - st->string);
-    size_t offset = s_len - leaf->leaf_label;
+    size_t offset = st->length - leaf->leaf_label;
     
-    char edge_buffer[s_len + 1];
+    char edge_buffer[st->length + 1];
     char *s = buffer + offset;
     struct suffix_tree_node *v = leaf;
-    while (v->parent != v) { // FIXME: change test if root->parent != root id:3
-                             // - <https://github.com/mailund/stralg/issues/38>
-                             // Thomas Mailund
-                             // mailund@birc.au.dk
+    while (v->parent != v) {
         size_t n = range_length(v->range);
         s -= n;
         strncpy(s, st->string + v->range.from, n);
