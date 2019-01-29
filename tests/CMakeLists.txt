@@ -190,5 +190,5 @@ target_link_libraries(
 )
 add_test(
     NAME Approximative-matching
-    COMMAND approx_test
+    COMMAND approx_match_test
 )

@@ -20,6 +20,8 @@ struct trie {
     struct output_list *output;
 };
 
+void init_trie(struct trie *trie);
+void dealloc_trie(struct trie *trie);
 struct trie *alloc_trie();
 void free_trie(struct trie *trie);
 

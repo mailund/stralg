@@ -20,6 +20,8 @@ static void free_strings(string_vector *vec)
     }
 }
 
+#pragma mark Collecting matches functions
+
 static void only_exact(char *string, char *pattern, string_vector *results)
 {
     size_t n = strlen(string);
@@ -65,6 +67,8 @@ static void exact_approach(char *string, char *pattern, const char *alphabet,
     dealloc_edit_iter(&iter);
     
 }
+
+#pragma mark The testing functions
 
 static void test_exact(char *pattern, char *string, const char *alphabet)
 {
