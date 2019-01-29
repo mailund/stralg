@@ -9,6 +9,7 @@
 
 enum data_type {
     INDEX,
+    STRING,
     POINTER
 };
 
@@ -16,6 +17,7 @@ struct boxed_data {
     enum data_type type_tag;
     union {
         size_t index;
+        char *string;
         void *pointer;
     } data;
 };
@@ -32,6 +34,17 @@ static inline size_t unbox_index(struct boxed_data box) {
     return box.data.index;
 }
 
+static inline struct boxed_data box_string(char *string) {
+    struct boxed_data box;
+    box.type_tag = STRING;
+    box.data.string = string;
+    return box;
+}
+static inline char *unbox_string(struct boxed_data box) {
+    assert(box.type_tag == STRING);
+    return box.data.string;
+}
+
 static inline struct boxed_data box_pointer(void *pointer) {
     struct boxed_data box;
     box.type_tag = POINTER;
@@ -42,6 +55,7 @@ static inline void *unbox_pointer(struct boxed_data box) {
     assert(box.type_tag == POINTER);
     return box.data.pointer;
 }
+
 
 #pragma mark linked lists
 struct linked_list {
@@ -116,7 +130,6 @@ struct boxed_data vector_get(struct vector *vec, size_t idx);
 void vector_set(struct vector *vec, size_t idx,
                 struct boxed_data data);
 void vector_append(struct vector *vec, struct boxed_data data);
-
 bool vector_equal(struct vector *v1, struct vector *v2);
 
 typedef struct vector index_vector;
@@ -134,7 +147,25 @@ static inline void index_vector_set(index_vector *vec,
 static inline void index_vector_append(index_vector *vec, size_t index) {
     vector_append(vec, box_index(index));
 }
-
 void sort_index_vector(index_vector *vec);
+#define index_vector_equal vector_equal
+
+typedef struct vector string_vector;
+#define init_string_vector    init_vector
+#define dealloc_string_vector dealloc_vector
+#define alloc_string_vector   alloc_vector
+#define free_string_vector    free_vector
+static inline char *string_vector_get(string_vector *vec, size_t idx) {
+    return unbox_string(vector_get(vec, idx));
+}
+static inline void string_vector_set(string_vector *vec,
+                                     size_t idx, char *string) {
+    vector_set(vec, idx, box_string(string));
+}
+static inline void string_vector_append(string_vector *vec, char *string) {
+    vector_append(vec, box_string(string));
+}
+void sort_string_vector(string_vector *vec);
+bool string_vector_equal(string_vector *v1, string_vector *v2);
 
 #endif

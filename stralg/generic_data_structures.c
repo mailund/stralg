@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
+#include <stdio.h>
 
 #pragma mark linked lists
 static struct linked_list *linked_list_link(struct boxed_data data)
@@ -134,6 +135,10 @@ bool vector_equal(struct vector *v1, struct vector *v2)
                 if (b1->data.index != b2->data.index) return false;
                 break;
                 
+            case STRING:
+                if (strcmp(b1->data.string, b2->data.string) != 0) return false;
+                break;
+                
             case POINTER:
                 if (b1->data.pointer != b2->data.pointer) return false;
                 break;
@@ -156,4 +161,28 @@ static int index_cmpfunc (const void *void_a, const void *void_b) {
 void sort_index_vector(index_vector *vec)
 {
     qsort(vec->data, vec->used, sizeof(struct boxed_data), index_cmpfunc);
+}
+
+bool string_vector_equal(string_vector *v1, string_vector *v2)
+{
+    if (v1->used != v2->used) return false;
+    for (size_t i = 0; i < v1->used; ++i) {
+        const char *s1 = string_vector_get(v1, i);
+        const char *s2 = string_vector_get(v2, i);
+        if (strcmp(s1, s2) != 0) return false;
+    }
+    return true;
+}
+
+static int string_cmpfunc (const void *void_a, const void *void_b) {
+    struct boxed_data *box_a = (struct boxed_data *)void_a;
+    struct boxed_data *box_b = (struct boxed_data *)void_b;
+    char *string_a = box_a->data.string;
+    char *string_b = box_b->data.string;
+    return strcmp(string_a, string_b);
+}
+
+void sort_string_vector(index_vector *vec)
+{
+    qsort(vec->data, vec->used, sizeof(struct boxed_data), string_cmpfunc);
 }

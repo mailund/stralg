@@ -180,3 +180,15 @@ add_test(
     sh -c "$<TARGET_FILE:suffix_tree_match_test> ababaaba test-data/repetitive-string.txt"
     WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/tests"
 )
+
+add_executable(
+    approx_match_test
+    approx_match_test.c
+)
+target_link_libraries(
+    approx_match_test stralg
+)
+add_test(
+    NAME Approximative-matching
+    COMMAND approx_test
+)
