@@ -238,5 +238,6 @@ int main(int argc, char **argv)
     test_exact(pattern, string, alphabet);
     approx_test(pattern, string, alphabet);
 
-    return EXIT_SUCCESS;
+//    return EXIT_SUCCESS;
+    return EXIT_FAILURE;
 }
