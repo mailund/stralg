@@ -73,13 +73,6 @@ static struct trie *string_to_trie(const char *str, int string_label)
         
     } while (s != str);
 
-    FILE *file = fopen("single-string-trie.dot", "w");
-    fprintf(file, "digraph {\n");
-    fprintf(file, "node[style=filled];\n");
-    print_out_edges(trie, file);
-    fprintf(file, "}\n");
-    fclose(file);
-
     return trie;
 }
 
