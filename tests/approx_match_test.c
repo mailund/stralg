@@ -27,12 +27,12 @@ static void free_strings(string_vector *vec)
     }
 }
 
-static void print_matchs(string_vector *vec)
-{
-    for (size_t i = 0; i < vec->used; ++i) {
-        printf("%s\n", string_vector_get(vec, i));
-    }
-}
+//static void print_matchs(string_vector *vec)
+//{
+//    for (size_t i = 0; i < vec->used; ++i) {
+//        printf("%s\n", string_vector_get(vec, i));
+//    }
+//}
 
 #pragma mark Collecting matches functions
 
@@ -81,15 +81,15 @@ static void exact_approach(char *string, char *pattern, const char *alphabet,
     dealloc_edit_iter(&iter);
 }
 
-static void print_cigar_list(index_list *list, string_vector *patterns)
-{
-    while (list) {
-        size_t idx = unbox_index(list->data);
-        printf("[%lu,%s]->", idx, string_vector_get(patterns, idx));
-        list = list->next;
-    }
-    printf("|\n");
-}
+//static void print_cigar_list(index_list *list, string_vector *patterns)
+//{
+//    while (list) {
+//        size_t idx = unbox_index(list->data);
+//        printf("[%lu,%s]->", idx, string_vector_get(patterns, idx));
+//        list = list->next;
+//    }
+//    printf("|\n");
+//}
 
 static void aho_corasick_approach(char *string, char *pattern, const char *alphabet,
                                   int dist, string_vector *results)
