@@ -13,10 +13,24 @@ static char *match_string(size_t idx, const char *string, const char *cigar)
     return new_string;
 }
 
+static char *copy_string(const char *x)
+{
+    char *copy = malloc(strlen(x) + 1);
+    strcpy(copy, x);
+    return copy;
+}
+
 static void free_strings(string_vector *vec)
 {
     for (int i = 0; i < vec->used; i++) {
         free(string_vector_get(vec, i));
+    }
+}
+
+static void print_matchs(string_vector *vec)
+{
+    for (size_t i = 0; i < vec->used; ++i) {
+        printf("%s\n", string_vector_get(vec, i));
     }
 }
 
@@ -45,27 +59,116 @@ static void exact_approach(char *string, char *pattern, const char *alphabet,
 {
     size_t n = strlen(string);
     
-    struct edit_pattern edit_iter;
+    struct edit_pattern edit_pattern;
     struct match match;
     
     struct edit_iter iter;
     init_edit_iter(&iter, pattern, alphabet, dist);
-    while (next_edit_pattern(&iter, &edit_iter)) {
-        size_t m = strlen(edit_iter.pattern);
+    while (next_edit_pattern(&iter, &edit_pattern)) {
+        size_t m = strlen(edit_pattern.pattern);
         
         // if the exact matchers work, I can pick any of them.
         struct border_match_iter match_iter;
-        init_border_match_iter(&match_iter, string, n, edit_iter.pattern, m);
+        init_border_match_iter(&match_iter, string, n, edit_pattern.pattern, m);
         while (next_border_match(&match_iter, &match)) {
             string_vector_append(results,
                                  match_string(match.pos,
-                                              edit_iter.pattern,
-                                              edit_iter.cigar));
+                                              edit_pattern.pattern,
+                                              edit_pattern.cigar));
         }
         dealloc_border_match_iter(&match_iter);
     }
     dealloc_edit_iter(&iter);
+}
+
+static void print_cigar_list(index_list *list, string_vector *patterns)
+{
+    while (list) {
+        size_t idx = unbox_index(list->data);
+        printf("[%lu,%s]->", idx, string_vector_get(patterns, idx));
+        list = list->next;
+    }
+    printf("|\n");
+}
+
+static void aho_corasick_approach(char *string, char *pattern, const char *alphabet,
+                                  int dist, string_vector *results)
+{
     
+    string_vector patterns; init_string_vector(&patterns, 10);
+    string_vector cigars;   init_string_vector(&cigars, 10);
+    
+    struct edit_iter pattern_iter;
+    struct edit_pattern edit_pattern;
+    
+    // get pattern cloud
+    init_edit_iter(&pattern_iter, pattern, alphabet, dist);
+    while (next_edit_pattern(&pattern_iter, &edit_pattern)) {
+        string_vector_append(&patterns, copy_string(edit_pattern.pattern));
+        string_vector_append(&cigars, copy_string(edit_pattern.cigar));
+    }
+    dealloc_edit_iter(&pattern_iter);
+
+    // init patter->cigars table -- we need it if there are more than one
+    // cigar per pattern (which there often will be)
+    index_list *cigar_table[patterns.used];
+    for (size_t i = 0; i < patterns.used; ++i) {
+        cigar_table[i] = 0;
+    }
+    
+    struct trie trie;
+    init_trie(&trie);
+    for (size_t i = 0; i < patterns.used; ++i) {
+        char *pattern = string_vector_get(&patterns, i);
+        struct trie *node = get_trie_node(&trie, pattern);
+        if (node) {
+            // we have a repeated pattern but with a new cigar
+            cigar_table[node->string_label] = prepend_index_link(cigar_table[node->string_label], i);
+//            printf("%s: tbl[%d]->", pattern, node->string_label);
+//            print_cigar_list(cigar_table[node->string_label], &patterns);
+        } else {
+            add_string_to_trie(&trie, pattern, i);
+            cigar_table[i] = prepend_index_link(cigar_table[i], i);
+//            printf("%s: tbl[%lu]->", pattern, i);
+//            print_cigar_list(cigar_table[i], &cigars);
+        }
+        
+    }
+    compute_failure_links(&trie);
+
+    size_t pattern_lengths[patterns.used];
+    for (size_t i = 0; i < patterns.used; ++i) {
+        pattern_lengths[i] = strlen(string_vector_get(&patterns, i));
+    }
+
+    struct ac_iter ac_iter;
+    struct ac_match ac_match;
+    
+    init_ac_iter(&ac_iter, string, strlen(string), pattern_lengths, &trie);
+    while (next_ac_match(&ac_iter, &ac_match)) {
+        size_t pattern_idx = ac_match.string_label;
+        const char *pattern = string_vector_get(&patterns, pattern_idx);
+        
+        // there might be more than one cigar per pattern
+        index_list *pattern_cigars = cigar_table[pattern_idx];
+        while (pattern_cigars) {
+            size_t cigar_index = unbox_index(pattern_cigars->data);
+            const char *cigar = string_vector_get(&cigars, cigar_index);
+            char *hit = match_string(ac_match.index, pattern, cigar);
+            string_vector_append(results, hit);
+            pattern_cigars = pattern_cigars->next;
+        }
+        
+    }
+    dealloc_ac_iter(&ac_iter);
+
+    
+    free_strings(&patterns);
+    free_strings(&cigars);
+    dealloc_string_vector(&patterns);
+    dealloc_string_vector(&cigars);
+    dealloc_trie(&trie);
+
 }
 
 #pragma mark The testing functions
@@ -101,18 +204,35 @@ static void approx_test(char *pattern, char *string, const char *alphabet)
     
     string_vector exact_results;
     init_string_vector(&exact_results, 10);
-    
     exact_approach(string, pattern, alphabet, 1, &exact_results);
     sort_string_vector(&exact_results);
     
+    string_vector ac_results;
+    init_string_vector(&ac_results, 10);
+    aho_corasick_approach(string, pattern, alphabet, 1, &ac_results);
+    sort_string_vector(&ac_results);
+    
+    printf("Testing naive vs Aho-Corrasick.\n");
+    assert(string_vector_equal(&exact_results, &ac_results));
+    
+//    printf("EXACT\n");
+//    print_matchs(&exact_results);
+//    printf("\n");
+//    printf("AHO-CORASICK\n");
+//    print_matchs(&ac_results);
+//    printf("\n");
+    
+    
     free_strings(&exact_results);
+    free_strings(&ac_results);
     dealloc_string_vector(&exact_results);
+    dealloc_string_vector(&ac_results);
 }
 
 int main(int argc, char **argv)
 {
     char *alphabet = "acgt";
-    char *string = "acacacgtagca";
+    char *string = "acacacgaccatagca";
     char *pattern = "aca";
     
     test_exact(pattern, string, alphabet);

@@ -2,6 +2,7 @@
 #define TRIE_H
 
 #include <stdbool.h>
+#include <stdio.h>
 
 struct output_list {
     int string_label;
@@ -39,5 +40,8 @@ static inline bool string_in_trie(struct trie *trie, const char *str) {
 }
 
 void compute_failure_links(struct trie *trie);
+
+void trie_print_dot(struct trie *trie, FILE *file);
+
 
 #endif // TRIE_H

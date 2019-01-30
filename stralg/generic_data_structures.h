@@ -6,8 +6,8 @@
 #include <assert.h>
 
 #pragma mark box definitions
-
 enum data_type {
+    NONE, // Used to indicate that a box has no data yet
     INDEX,
     STRING,
     POINTER
@@ -63,10 +63,28 @@ struct linked_list {
     struct boxed_data data;
 };
 
+void init_list(struct linked_list *list);
+void dealloc_list(struct linked_list *list);
+struct linked_list *alloc_list(struct boxed_data data);
+void free_list(struct linked_list *list);
+struct linked_list *prepend_link(struct linked_list *list, struct boxed_data box);
+
+typedef struct linked_list index_list;
+#define init_index_list init_list
+#define dealloc_index_list dealloc_list
+inline index_list *alloc_index_list(size_t index) {
+    return alloc_list(box_index(index));
+}
+#define free_index_list free_list
+static inline index_list *prepend_index_link(index_list *list, size_t index) {
+    return prepend_link(list, box_index(index));
+}
+
 //FIXME: linked lists functions id:2
 // - <https://github.com/mailund/stralg/issues/36>
 // Thomas Mailund
 // mailund@birc.au.dk
+
 
 #pragma mark queue
 struct queue {

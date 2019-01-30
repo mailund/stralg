@@ -4,6 +4,9 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <stdio.h>
+#include <string.h>
+
+static void print_out_edges(struct trie *trie, FILE *dot_file);
 
 void init_trie(struct trie *trie)
 {
@@ -12,6 +15,10 @@ void init_trie(struct trie *trie)
     trie->parent = 0;
     trie->sibling = 0;
     trie->children = 0;
+    trie->output = 0;
+    
+    // For Aho-Corasick
+    trie->failure_link = 0;
     trie->output = 0;
 }
 
@@ -65,7 +72,14 @@ static struct trie *string_to_trie(const char *str, int string_label)
         string_label = -1; // so we only label the leaf...
         
     } while (s != str);
-    
+
+    FILE *file = fopen("single-string-trie.dot", "w");
+    fprintf(file, "digraph {\n");
+    fprintf(file, "node[style=filled];\n");
+    print_out_edges(trie, file);
+    fprintf(file, "}\n");
+    fclose(file);
+
     return trie;
 }
 
@@ -82,6 +96,12 @@ struct trie *out_link(struct trie *v, char label)
 
 void add_string_to_trie(struct trie *trie, const char *str, int string_label)
 {
+    if (!trie->children) { // first string is a special case (FIXME: check if I can avoid this)
+        trie->children = string_to_trie(str, string_label);
+        trie->children->parent = trie;
+        return;
+    }
+    
     while (*str) {
         struct trie *child = out_link(trie, *str);
         if (!child) {
@@ -109,6 +129,8 @@ void add_string_to_trie(struct trie *trie, const char *str, int string_label)
 
 struct trie *get_trie_node(struct trie *trie, const char *str)
 {
+    if (!trie->children) return 0;
+    
     while (*str) {
         struct trie *child = out_link(trie, *str);
         if (!child) {
@@ -182,6 +204,7 @@ void compute_failure_links(struct trie *trie)
     enqueue_siblings(nodes, trie->children);
     while (!is_queue_empty(nodes)) {
         struct trie *v = (struct trie *)pointer_queue_front(nodes);
+        assert(v);
         dequeue(nodes);
         compute_failure_link_for_node(v, trie, nodes);
     }
@@ -189,4 +212,57 @@ void compute_failure_links(struct trie *trie)
     free_queue(nodes);
 }
 
+static void print_out_edges(struct trie *trie, FILE *dot_file)
+{
+    // node attributes
+    if (trie->string_label >= 0) {
+        fprintf(dot_file, "\"%p\" [label=\"%d\"];\n",
+                trie, trie->string_label);
+    } else {
+        fprintf(dot_file, "\"%p\" [label=\"\"];\n", (void*)trie);
+    }
+    fprintf(dot_file, "\"%p\" -> \"%p\" [style=\"dotted\"];\n",
+            trie, trie->parent);
+    
+    // the out-edges
+    struct trie *children = trie->children;
+    while (children) {
+        fprintf(dot_file, "\"%p\" -> \"%p\" [label=\"%c\"];\n",
+                trie, children, children->in_edge_label);
+        children = children->sibling;
+    }
+    // then failure and output links
+    if (trie->failure_link) {
+        fprintf(dot_file, "\"%p\" -> \"%p\" [style=\"dotted\", color=red];\n",
+                trie, trie->failure_link);
+    }
+    if (trie->output) {
+        fprintf(dot_file, "\"%p\" [color=blue, shape=point];\n",
+                trie->output);
+        fprintf(dot_file, "\"%p\" -> \"%p\" [style=\"dashed\", color=blue, label=%d];\n",
+                trie, trie->output, trie->output->string_label);
+        struct output_list *list = trie->output;
+        while (list->next) {
+            fprintf(dot_file, "\"%p\" -> \"%p\" [style=\"dashed\", color=blue, label=%d];\n",
+                    list, list->next, list->next->string_label);
+            list = list->next;
+        }
+    }
+    
+    // finally, recurse
+    children = trie->children;
+    while (children) {
+        print_out_edges(children, dot_file);
+        children = children->sibling;
+    }
+}
 
+void trie_print_dot(struct trie *trie, FILE *file)
+{
+    fprintf(file, "digraph {\n");
+    fprintf(file, "node[style=filled];\n");
+    if (trie->children) {
+        print_out_edges(trie, file); // children
+    }
+    fprintf(file, "}\n");
+}

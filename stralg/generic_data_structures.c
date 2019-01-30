@@ -6,15 +6,42 @@
 #include <stdio.h>
 
 #pragma mark linked lists
-static struct linked_list *linked_list_link(struct boxed_data data)
+
+void init_list(struct linked_list *link)
+{
+    link->next = 0;
+    link->data.type_tag = NONE;
+}
+
+void dealloc_list(struct linked_list *list)
+{
+    // assume that this function is for sentinels, so delete but not `list`.
+    free_list(list->next);
+}
+
+struct linked_list *alloc_list(struct boxed_data data)
 {
     struct linked_list *link =
-        (struct linked_list *)malloc(sizeof(struct linked_list));
+    (struct linked_list *)malloc(sizeof(struct linked_list));
     link->next = 0;
     link->data = data;
     return link;
 }
-
+void free_list(struct linked_list *list)
+{
+    while (list) {
+        struct linked_list *next = list->next;
+        free(list);
+        list = next;
+    }
+}
+struct linked_list *prepend_link(struct linked_list *list, struct boxed_data box)
+{
+    struct linked_list *new_link = alloc_list(box);
+    new_link->data = box;
+    new_link->next = list;
+    return new_link;
+}
 
 #pragma mark queue
 void init_queue(struct queue *queue)
@@ -50,7 +77,7 @@ struct boxed_data queue_front(const struct queue *queue)
 
 void enqueue(struct queue *queue, struct boxed_data data)
 {
-    struct linked_list *link = linked_list_link(data);
+    struct linked_list *link = alloc_list(data);
     if (queue->front == 0) {
         queue->front = queue->back = link;
     } else {
@@ -131,6 +158,9 @@ bool vector_equal(struct vector *v1, struct vector *v2)
         if (b1->type_tag != b2->type_tag) return false;
         
         switch (b1->type_tag) {
+            case NONE:
+                break;
+                
             case INDEX:
                 if (b1->data.index != b2->data.index) return false;
                 break;
