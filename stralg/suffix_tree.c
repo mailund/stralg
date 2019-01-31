@@ -128,7 +128,9 @@ void naive_insert(struct suffix_tree *st, size_t suffix,
                 return; // we are done now
             }
         }
-        // we made it through the edge, so continue from the next node
+        // We made it through the edge, so continue from the next node.
+        // The call is tail-recursive, so the compiler will optimise
+        // it to a loop, at least gcc and LLVM based, so clang as well.
         naive_insert(st, suffix, w, x);
     }
 }
