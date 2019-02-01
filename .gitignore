@@ -55,3 +55,4 @@ tests/vector_test
 tests/approx_match_test
 tests/suffix_tree_match_test
 tools/st_build_lcp/st_build_lcp
+tests/tree.dot

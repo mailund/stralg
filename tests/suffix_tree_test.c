@@ -1,6 +1,7 @@
 
 #include <generic_data_structures.h>
 #include <suffix_tree.h>
+#include <cigar.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -90,6 +91,119 @@ static void check_suffix_tree(struct suffix_tree *st)
     check_leaf_search(st);
 }
 
+struct approx_frame {
+    struct approx_frame *next;
+    const char *x;
+    const char *end; // FIXME
+    const char *p;
+    char cigar_op;
+    char *cigar;
+    int edit;
+};
+static void push_frame(struct approx_frame *sentinel,
+                       const char *x, const char *end, const char *p,
+                       char cigar_op, char *cigar,
+                       int edit)
+{
+    struct approx_frame *frame = malloc(sizeof(struct approx_frame));
+    frame->x = x;
+    frame->end = end;
+    frame->p = p;
+    frame->cigar_op = cigar_op;
+    frame->cigar = cigar;
+    frame->edit = edit;
+    frame->next = sentinel->next;
+    sentinel->next = frame;
+}
+static void pop_frame(struct approx_frame *sentinel,
+                      const char **x, const char **end, const char **p,
+                      char *cigar_op, char **cigar,
+                      int *edit)
+{
+    struct approx_frame *frame = sentinel->next;
+    sentinel->next = frame->next;
+    *x = frame->x;
+    *end = frame->end; // FIXME: end?
+    *p = frame->p;
+    *cigar_op = frame->cigar_op;
+    *cigar = frame->cigar;
+    *edit = frame->edit;
+    free(frame);
+}
+
+struct approx_iter {
+    struct approx_frame sentinel;
+    char *full_cigar_buf;
+    char *cigar_buf;
+};
+void init_approx_iter(struct approx_iter *iter,
+                      const char *x, const char *p,
+                      int edits)
+{
+    const char *end = x + strlen(x) + 1;
+    size_t m = strlen(p);
+
+    iter->sentinel.next = 0;
+    iter->full_cigar_buf = malloc(m + 1); iter->full_cigar_buf[0] = '\0';
+    iter->cigar_buf = malloc(m + 1);      iter->cigar_buf[0] = '\0';
+    
+    push_frame(&iter->sentinel, x, end, p, '\0', iter->full_cigar_buf, edits);
+}
+void dealloc_approx_iter(struct approx_iter *iter)
+{
+    free(iter->full_cigar_buf);
+    free(iter->cigar_buf);
+}
+
+struct approx_match {
+    const char *cigar;
+};
+
+
+static bool next_approx_match(struct approx_iter *iter,
+                              struct approx_match *match)
+{
+    const char *x; const char *end;
+    const char *p; char *cigar;
+    int edit;
+    char cigar_op;
+    
+    while (iter->sentinel.next) {
+        pop_frame(&iter->sentinel, &x, &end, &p, &cigar_op, &cigar, &edit);
+        
+        if (cigar_op) // remember the step we took to get here
+            cigar[-1] = cigar_op;
+
+        if (edit < 0) {
+            // we have already made too many edits
+            continue;
+        }
+        if (*p == '\0') {
+            *cigar = '\0';
+            simplify_cigar(iter->cigar_buf, iter->full_cigar_buf);
+            match->cigar = iter->cigar_buf;
+            return true;
+        }
+        if (x == end) {
+            // we ran out of text..
+            continue;
+        }
+        if (edit == 0 && *x != *p) {
+            // we cannot do any more edits and
+            // we need at least a substitution
+            continue;
+        }
+        
+        // recursion
+        int match_cost = *p != *x;
+        push_frame(&iter->sentinel, x + 1, end, p + 1, 'M', cigar + 1, edit - match_cost);
+        push_frame(&iter->sentinel, x + 1, end, p,     'I', cigar + 1, edit - 1);
+        push_frame(&iter->sentinel, x,     end, p + 1, 'D', cigar + 1, edit - 1);
+    }
+    return false;
+}
+
+
 int main(int argc, const char **argv)
 {
     const char *string = "mississippi";
@@ -124,8 +238,27 @@ int main(int argc, const char **argv)
     st_print_dot(st, 0, f);
     fclose(f);
     
+    
     check_suffix_tree(st);
     free_suffix_tree(st);
+
+    printf("experimenting...\n");
+    struct approx_iter iter;
+    struct approx_match match;
+    
+    init_approx_iter(&iter, "miss", "mis", 1);
+    while (next_approx_match(&iter, &match)) {
+        printf("cigar: %s\n", match.cigar);
+    }
+    dealloc_approx_iter(&iter);
+    
+    printf("pi / ppi\n");
+    init_approx_iter(&iter, "pi", "ppi", 1);
+    while (next_approx_match(&iter, &match)) {
+        printf("cigar: %s\n", match.cigar);
+    }
+    dealloc_approx_iter(&iter);
+    
     
     return EXIT_SUCCESS;
 }
