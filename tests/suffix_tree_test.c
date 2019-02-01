@@ -5,13 +5,38 @@
 #include <stdio.h>
 #include <string.h>
 
-void check_parent_pointers(struct suffix_tree_node *v)
+static void check_parent_pointers(struct suffix_tree_node *v)
 {
     struct suffix_tree_node *w = v->child;
     while (w) {
         assert(w->parent == v);
         check_parent_pointers(w);
         w = w->sibling;
+    }
+}
+
+static bool has_leaf(struct suffix_tree *st, struct suffix_tree_node *v, size_t leaf)
+{
+    struct st_leaf_iter iter;
+    struct st_leaf_iter_result res;
+    
+    init_st_leaf_iter(&iter, st, v);
+    while (next_st_leaf(&iter, &res)) {
+        if (!res.leaf->child && res.leaf->leaf_label == leaf)
+            return true;
+    }
+    dealloc_st_leaf_iter(&iter);
+    
+    
+    return false;
+}
+
+static void check_leaf_search(struct suffix_tree *st)
+{
+    for (size_t i = 0; i < st->length; ++i) {
+        printf("checking suffix %2lu: %s\n", i, st->string + i);
+        struct suffix_tree_node *leaf = st_search(st, st->string + i);
+        assert(has_leaf(st, leaf, i));
     }
 }
 
@@ -59,6 +84,8 @@ static void check_suffix_tree(struct suffix_tree *st)
     
     printf("checking parent pointers.\n");
     check_parent_pointers(st->root);
+    printf("test leaf search\n");
+    check_leaf_search(st);
 }
 
 int main(int argc, const char **argv)
@@ -89,6 +116,12 @@ int main(int argc, const char **argv)
     free_suffix_tree(st);
     
     st = lcp_suffix_tree(string, sa, lcp);
+    
+    printf("Printing tree.\n");
+    FILE *f = fopen("tree.dot", "w");
+    st_print_dot(st, 0, f);
+    fclose(f);
+    
     check_suffix_tree(st);
     free_suffix_tree(st);
     
