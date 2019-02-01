@@ -94,7 +94,8 @@ static void check_suffix_tree(struct suffix_tree *st)
 struct approx_frame {
     struct approx_frame *next;
     const char *x;
-    const char *end; // FIXME
+    const char *end; // FIXME  id:8
+// - <https://github.com/mailund/stralg/issues/51>
     const char *p;
     char cigar_op;
     char *cigar;
@@ -123,7 +124,10 @@ static void pop_frame(struct approx_frame *sentinel,
     struct approx_frame *frame = sentinel->next;
     sentinel->next = frame->next;
     *x = frame->x;
-    *end = frame->end; // FIXME: end?
+    *end = frame->end; // FIXME: end? id:7
+// - <https://github.com/mailund/stralg/issues/50>
+// Thomas Mailund
+// mailund@birc.au.dk
     *p = frame->p;
     *cigar_op = frame->cigar_op;
     *cigar = frame->cigar;
