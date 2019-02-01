@@ -65,17 +65,23 @@ void dealloc_st_leaf_iter(
 //  Searching
 struct suffix_tree_node *st_search(struct suffix_tree *st, const char *pattern);
 
+size_t get_string_depth(struct suffix_tree *st,
+                        struct suffix_tree_node *v);
+void get_edge_label    (struct suffix_tree *st,
+                        struct suffix_tree_node *node,
+                        char *buffer);
+void get_path_string   (struct suffix_tree *st,
+                        struct suffix_tree_node *v,
+                        char *buffer);
+
 
 // Debugging/visualisation help
-void get_edge_label(struct suffix_tree *st,
-                    struct suffix_tree_node *node,
-                    char *buffer);
-void get_path_string(struct suffix_tree *st,
-                     struct suffix_tree_node *leaf,
-                     char *buffer);
-
-
-void st_print_dot(struct suffix_tree *st, struct suffix_tree_node *n, FILE *file);
+void st_print_dot     (struct suffix_tree *st,
+                       struct suffix_tree_node *n,
+                       FILE *file);
+void st_print_dot_name(struct suffix_tree *st,
+                       struct suffix_tree_node *n,
+                       const char *fname);
 
 
 

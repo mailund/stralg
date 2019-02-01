@@ -263,15 +263,29 @@ void get_edge_label(struct suffix_tree *st,
     buffer[n] = '\0';
 }
 
+size_t get_string_depth(struct suffix_tree *st, struct suffix_tree_node *v)
+{
+    size_t depth = 0;
+    while (v->parent != v) {
+        depth += range_length(v->range);
+        v = v->parent;
+    }
+    return depth;
+}
+
 void get_path_string(struct suffix_tree *st,
-                     struct suffix_tree_node *leaf,
+                     struct suffix_tree_node *v,
                      char *buffer)
 {
-    size_t offset = st->length - leaf->leaf_label;
+    size_t offset = get_string_depth(st, v);
     
     char edge_buffer[st->length + 1];
-    char *s = buffer + offset;
-    struct suffix_tree_node *v = leaf;
+    char *s = buffer + offset; *s = 0;
+    // We need *s = 0 for inner nodes. Leaves
+    // have paths that are '\0' terminated, so
+    // we wouldn't need it there, but for paths
+    // that do not end in a leaf, we do.
+    
     while (v->parent != v) {
         size_t n = range_length(v->range);
         s -= n;
@@ -472,3 +486,11 @@ void st_print_dot(struct suffix_tree *st,
     fprintf(file, "}\n");
 }
 
+void st_print_dot_name(struct suffix_tree *st,
+                       struct suffix_tree_node *n,
+                       const char *fname)
+{
+    FILE *file = fopen(fname, "w");
+    st_print_dot(st, n, file);
+    fclose(file);
+}

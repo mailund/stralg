@@ -33,10 +33,12 @@ static bool has_leaf(struct suffix_tree *st, struct suffix_tree_node *v, size_t 
 
 static void check_leaf_search(struct suffix_tree *st)
 {
+    char buffer[st->length + 1];
     for (size_t i = 0; i < st->length; ++i) {
-        printf("checking suffix %2lu: %s\n", i, st->string + i);
-        struct suffix_tree_node *leaf = st_search(st, st->string + i);
-        assert(has_leaf(st, leaf, i));
+        struct suffix_tree_node *v = st_search(st, st->string + i);
+        assert(has_leaf(st, v, i));
+        get_path_string(st, v, buffer);
+        assert(strcmp(st->string + i, buffer) == 0);
     }
 }
 
@@ -55,13 +57,13 @@ static void check_suffix_tree(struct suffix_tree *st)
     init_st_leaf_iter(&iter, st, st->root);
     while (next_st_leaf(&iter, &res)) {
         index_vector_append(indices, res.leaf->leaf_label);
-        printf("suffix %2lu: \"%s\"\n",
-               res.leaf->leaf_label,
-               st->string + res.leaf->leaf_label);
+//        printf("suffix %2lu: \"%s\"\n",
+//               res.leaf->leaf_label,
+//               st->string + res.leaf->leaf_label);
     }
     dealloc_st_leaf_iter(&iter);
     
-    printf("testing indices\n");
+//    printf("testing indices\n");
     assert(indices->used == no_indices);
     for (size_t i = 0; i < no_indices; ++i) {
         assert(indices->data[i].data.index == expected[i]);
@@ -70,13 +72,13 @@ static void check_suffix_tree(struct suffix_tree *st)
     char buffer[st->length];
     init_st_leaf_iter(&iter, st, st->root);
     while (next_st_leaf(&iter, &res)) {
-        printf("suffix %2lu: \"%s\"\n",
-               res.leaf->leaf_label,
-               st->string + res.leaf->leaf_label);
+//        printf("suffix %2lu: \"%s\"\n",
+//               res.leaf->leaf_label,
+//               st->string + res.leaf->leaf_label);
         get_path_string(st, res.leaf, buffer);
-        printf("suffix path string: %2lu: \"%s\"\n",
-               res.leaf->leaf_label,
-               buffer);
+//        printf("suffix path string: %2lu: \"%s\"\n",
+//               res.leaf->leaf_label,
+//               buffer);
         assert(strcmp(buffer, st->string + res.leaf->leaf_label) == 0);
     }
     dealloc_st_leaf_iter(&iter);
