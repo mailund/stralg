@@ -525,7 +525,10 @@ bool next_approx_match(struct approx_iter *iter,
         if (x == end) {
             // we ran out of text..
             push_children(iter, iter->st, v, match_depth, cigar, p, edit);
-            continue; // FIXME: continue along out-edge
+            continue; // FIXME: continue along out-edge id:9
+// - <https://github.com/mailund/stralg/issues/53>
+// Thomas Mailund
+// mailund@birc.au.dk
         }
         if (edit == 0 && *x != *p) {
             // we cannot do any more edits and
