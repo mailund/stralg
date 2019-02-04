@@ -1,4 +1,5 @@
 #include <suffix_tree.h>
+#include <cigar.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -402,6 +403,145 @@ struct suffix_tree_node *st_search(struct suffix_tree *st, const char *pattern)
 {
     return st_search_internal(st, st->root, pattern);
 }
+
+static void push_frame(struct approx_frame *sentinel,
+                       struct suffix_tree_node *v,
+                       const char *x, const char *end,
+                       size_t match_depth,
+                       const char *p,
+                       char cigar_op, char *cigar,
+                       int edit)
+{
+    struct approx_frame *frame = malloc(sizeof(struct approx_frame));
+    frame->v = v;
+    frame->x = x;
+    frame->end = end;
+    frame->match_depth = match_depth;
+    frame->p = p;
+    frame->cigar_op = cigar_op;
+    frame->cigar = cigar;
+    frame->edit = edit;
+    frame->next = sentinel->next;
+    sentinel->next = frame;
+}
+static void pop_frame(struct approx_frame *sentinel,
+                      struct suffix_tree_node **v,
+                      const char **x, const char **end,
+                      size_t *match_depth,
+                      const char **p,
+                      char *cigar_op, char **cigar,
+                      int *edit)
+{
+    struct approx_frame *frame = sentinel->next;
+    sentinel->next = frame->next;
+    *v = frame->v;
+    *x = frame->x;
+    *end = frame->end;
+    *match_depth = frame->match_depth;
+    *p = frame->p;
+    *cigar_op = frame->cigar_op;
+    *cigar = frame->cigar;
+    *edit = frame->edit;
+    
+    free(frame);
+}
+
+
+static void push_children(struct approx_iter *iter,
+                          struct suffix_tree *st,
+                          struct suffix_tree_node *v,
+                          size_t match_depth,
+                          char *cigar,
+                          const char *p, int edits)
+{
+    struct suffix_tree_node *child = v->child;
+    while (child) {
+        const char *x = st->string + child->range.from;
+        const char *end = st->string + child->range.to;
+        push_frame(&iter->sentinel, child,
+                   x, end, match_depth,
+                   p, '\0', cigar, edits);
+        
+        child = child->sibling;
+    }
+}
+
+void init_approx_iter(struct approx_iter *iter,
+                      struct suffix_tree *st,
+                      const char *p,
+                      int edits)
+{
+    size_t m = strlen(p);
+    iter->st = st;
+    iter->sentinel.next = 0;
+    iter->full_cigar_buf = malloc(m + 1); iter->full_cigar_buf[0] = '\0';
+    iter->cigar_buf = malloc(m + 1);      iter->cigar_buf[0] = '\0';
+    
+    // push the root's children
+    push_children(iter, st, st->root, 0, iter->full_cigar_buf, p, edits);
+}
+void dealloc_approx_iter(struct approx_iter *iter)
+{
+    free(iter->full_cigar_buf);
+    free(iter->cigar_buf);
+}
+
+
+
+bool next_approx_match(struct approx_iter *iter,
+                       struct approx_match *match)
+{
+    struct suffix_tree_node *v;
+    const char *x; const char *end;
+    const char *p; char *cigar;
+    int edit;
+    size_t match_depth;
+    char cigar_op;
+    
+    
+    while (iter->sentinel.next) {
+        pop_frame(&iter->sentinel, &v, &x, &end, &match_depth, &p, &cigar_op, &cigar, &edit);
+        
+        //printf("pop cigar %p\n", cigar);
+        if (cigar_op) // remember the step we took to get here
+            cigar[-1] = cigar_op;
+        
+        //        *cigar = '\0'; // for output
+        //        printf("poped [%lu,%lu]: x:%s end:%s depth:%d p:%s cigar:%s edits:%d\n", v->range.from, v->range.to, x, end - 1, depth, p, iter->full_cigar_buf, edit);
+        //        printf("\tcigar length %lu\n", cigar - iter->full_cigar_buf);
+        
+        if (edit < 0) {
+            // we have already made too many edits
+            continue;
+        }
+        if (*p == '\0') {
+            *cigar = '\0';
+            simplify_cigar(iter->cigar_buf, iter->full_cigar_buf);
+            match->cigar = iter->cigar_buf;
+            match->match_root = v;
+            match->match_depth = match_depth;
+            return true;
+        }
+        if (x == end) {
+            // we ran out of text..
+            push_children(iter, iter->st, v, match_depth, cigar, p, edit);
+            continue; // FIXME: continue along out-edge
+        }
+        if (edit == 0 && *x != *p) {
+            // we cannot do any more edits and
+            // we need at least a substitution
+            continue;
+        }
+        
+        // recursion
+        int match_cost = *p != *x;
+        push_frame(&iter->sentinel, v, x + 1, end, match_depth + 1, p + 1, 'M', cigar + 1, edit - match_cost);
+        push_frame(&iter->sentinel, v, x + 1, end, match_depth + 1, p,     'D', cigar + 1, edit - 1);
+        push_frame(&iter->sentinel, v, x,     end, match_depth, p + 1, 'I', cigar + 1, edit - 1);
+    }
+    return false;
+}
+
 
 // Build suffix array and LCP
 struct sa_lcp_data {

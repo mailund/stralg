@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+
+
 #define BUFFER_SIZE 1024
 
 static char *match_string(size_t idx, const char *string, const char *cigar)
@@ -27,12 +29,12 @@ static void free_strings(string_vector *vec)
     }
 }
 
-//static void print_matchs(string_vector *vec)
-//{
-//    for (size_t i = 0; i < vec->used; ++i) {
-//        printf("%s\n", string_vector_get(vec, i));
-//    }
-//}
+static void print_matchs(string_vector *vec)
+{
+    for (size_t i = 0; i < vec->used; ++i) {
+        printf("%s\n", string_vector_get(vec, i));
+    }
+}
 
 #pragma mark Collecting matches functions
 
@@ -41,7 +43,7 @@ static void only_exact(char *string, char *pattern, string_vector *results)
     size_t n = strlen(string);
     size_t m = strlen(pattern);
     
-    char cigar[100]; // 100 should be plenty enough
+    char cigar[1000]; // 1000 should be plenty enough
     sprintf(cigar, "%luM", m);
     
     struct match match;
@@ -198,6 +200,34 @@ static void test_exact(char *pattern, char *string, const char *alphabet)
     dealloc_string_vector(&exact_results);
 }
 
+static void st_match(char *pattern, char *string, string_vector *st_results)
+{
+    struct suffix_tree *st = naive_suffix_tree(string);
+    printf("printing suffix tree...\n");
+    st_print_dot_name(st, st->root, "tree.dot");
+    struct approx_iter iter;
+    struct approx_match match;
+    struct st_leaf_iter leaf_iter;
+    struct st_leaf_iter_result st_match;
+    char path_buffer[st->length];
+    
+    init_approx_iter(&iter, st, pattern, 1);
+    while (next_approx_match(&iter, &match)) {
+        get_path_string(st, match.match_root, path_buffer);
+        path_buffer[match.match_depth] = '\0';
+        init_st_leaf_iter(&leaf_iter, st, match.match_root);
+        while (next_st_leaf(&leaf_iter, &st_match)) {
+            string_vector_append(st_results,
+                                 match_string(st_match.leaf->leaf_label, path_buffer, match.cigar));
+            printf("%lu %s %s\n", st_match.leaf->leaf_label, path_buffer, match.cigar);
+        }
+        dealloc_st_leaf_iter(&leaf_iter);
+    }
+    dealloc_approx_iter(&iter);
+    
+    free_suffix_tree(st);
+}
+
 static void approx_test(char *pattern, char *string, const char *alphabet)
 {
     printf("Testing approximative matching\n");
@@ -215,19 +245,34 @@ static void approx_test(char *pattern, char *string, const char *alphabet)
     printf("Testing naive vs Aho-Corrasick.\n");
     assert(string_vector_equal(&exact_results, &ac_results));
     
-//    printf("EXACT\n");
-//    print_matchs(&exact_results);
-//    printf("\n");
-//    printf("AHO-CORASICK\n");
-//    print_matchs(&ac_results);
-//    printf("\n");
-    
+    string_vector st_results;
+    init_string_vector(&st_results, 10);
+    st_match(pattern, string, &st_results);
+    sort_string_vector(&st_results);
+
+    printf("Testing naive vs suffix tree.\n");
+    assert(string_vector_equal(&exact_results, &st_results));
+
+    printf("EXACT\n");
+    print_matchs(&exact_results);
+    printf("\n");
+    printf("AHO-CORASICK\n");
+    print_matchs(&ac_results);
+    printf("\n");
+    printf("SUFFIX TREE\n");
+    print_matchs(&st_results);
+    printf("\n");
+
     
     free_strings(&exact_results);
     free_strings(&ac_results);
+    free_strings(&st_results);
     dealloc_string_vector(&exact_results);
     dealloc_string_vector(&ac_results);
+    dealloc_string_vector(&st_results);
 }
+
+
 
 int main(int argc, char **argv)
 {
@@ -237,6 +282,8 @@ int main(int argc, char **argv)
     
     test_exact(pattern, string, alphabet);
     approx_test(pattern, string, alphabet);
+    
+    printf("experimenting...\n");
 
     return EXIT_SUCCESS;
 }
