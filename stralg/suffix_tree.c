@@ -502,13 +502,8 @@ bool next_approx_match(struct approx_iter *iter,
     while (iter->sentinel.next) {
         pop_frame(&iter->sentinel, &v, &x, &end, &match_depth, &p, &cigar_op, &cigar, &edit);
         
-        //printf("pop cigar %p\n", cigar);
         if (cigar_op) // remember the step we took to get here
             cigar[-1] = cigar_op;
-        
-        //        *cigar = '\0'; // for output
-        //        printf("poped [%lu,%lu]: x:%s end:%s depth:%d p:%s cigar:%s edits:%d\n", v->range.from, v->range.to, x, end - 1, depth, p, iter->full_cigar_buf, edit);
-        //        printf("\tcigar length %lu\n", cigar - iter->full_cigar_buf);
         
         if (edit < 0) {
             // we have already made too many edits
@@ -535,9 +530,15 @@ bool next_approx_match(struct approx_iter *iter,
         
         // recursion
         int match_cost = *p != *x;
-        push_frame(&iter->sentinel, v, x + 1, end, match_depth + 1, p + 1, 'M', cigar + 1, edit - match_cost);
-        push_frame(&iter->sentinel, v, x + 1, end, match_depth + 1, p,     'D', cigar + 1, edit - 1);
-        push_frame(&iter->sentinel, v, x,     end, match_depth, p + 1, 'I', cigar + 1, edit - 1);
+        push_frame(&iter->sentinel, v, x + 1, end,
+                   match_depth + 1, p + 1, 'M', cigar + 1,
+                   edit - match_cost);
+        push_frame(&iter->sentinel, v, x + 1, end,
+                   match_depth + 1, p, 'D', cigar + 1,
+                   edit - 1);
+        push_frame(&iter->sentinel, v, x, end,
+                   match_depth, p + 1, 'I', cigar + 1,
+                   edit - 1);
     }
     return false;
 }

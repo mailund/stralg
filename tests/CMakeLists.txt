@@ -92,6 +92,14 @@ add_test(
     aho_corasick_test
 )
 
+add_executable(
+    remap_test
+    remap_test.c
+)
+target_link_libraries(
+    remap_test
+    stralg
+)
 
 add_executable(
     suffix_array_test

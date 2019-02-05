@@ -8,6 +8,7 @@ add_library(stralg SHARED
 	aho_corasick.h aho_corasick.c
 	edit_distance_generator.h edit_distance_generator.c
 	cigar.h cigar.c
+	remap.h remap.c
 	suffix_array.h suffix_array.c
 	suffix_tree.h suffix_tree.c
 	io.h io.c
