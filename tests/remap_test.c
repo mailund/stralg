@@ -3,19 +3,19 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
+#include <stdio.h>
 
 int main(int argc, char **argv)
 {
     const char *string = "acagt";
     size_t n = strlen(string);
+    printf("n is %lu\n", n);
     char mapped[n + 1];
     char revmapped[n + 1];
     
-    
     struct remap_table table;
     
-    init_remap_table(&table);
-    build_remap_table(&table, string);
+    init_remap_table(&table, string);
     
     for (int i = 0; i < 256; ++i) {
         unsigned char c = (unsigned char)i;
@@ -38,14 +38,19 @@ int main(int argc, char **argv)
     }
     
     remap(mapped, string, &table);
+    for (size_t i = 0; i < n + 1; ++i) {
+        printf("mapped[%lu] == %d\n", i, mapped[i]);
+    }
     assert(mapped[0] == 1);
     assert(mapped[1] == 2);
     assert(mapped[2] == 1);
     assert(mapped[3] == 3);
     assert(mapped[4] == 4);
+    assert(mapped[5] == 0);
     
     rev_remap(revmapped, mapped, &table);
     assert(strcmp(revmapped, string) == 0);
+    assert(revmapped[n] == 0);
     
     dealloc_remap_table(&table);
     

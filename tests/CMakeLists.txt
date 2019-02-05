@@ -106,6 +106,20 @@ add_test(
 )
 
 add_executable(
+    bwt_test
+    bwt_test.c
+)
+target_link_libraries(
+    bwt_test
+    stralg
+)
+add_test(
+    BWT
+    bwt_test
+)
+
+
+add_executable(
     suffix_array_test
     suffix_array_test.c
 )

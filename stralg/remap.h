@@ -9,13 +9,10 @@ struct remap_table {
     unsigned char rev_table[256];
 };
 
-struct remap_table *alloc_remap_table(void);
-void init_remap_table(struct remap_table *table);
+struct remap_table *alloc_remap_table(const char *string);
+void init_remap_table(struct remap_table *table, const char *string);
 void dealloc_remap_table(struct remap_table *table);
 void free_remap_table(struct remap_table *table);
-
-void build_remap_table(struct remap_table *table,
-                       const char *string);
 
 // Normally, I would put the table first, but
 // this order is the same as other str-functions.

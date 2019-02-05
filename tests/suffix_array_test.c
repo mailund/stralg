@@ -18,15 +18,15 @@ static void test_order(struct suffix_array *sa)
 static void test_search(struct suffix_array *sa)
 {
     int idx = lower_bound_search(sa, "ab");
-    assert(idx == 0); //printf("ab idx == %d\n", idx);
+    assert(idx == 1); //printf("ab idx == %d\n", idx);
     idx = lower_bound_search(sa, "ac");
-    assert(idx == 3); //printf("ac idx == %d\n", idx);
+    assert(idx == 4); //printf("ac idx == %d\n", idx);
     idx = lower_bound_search(sa, "x");
-    assert(idx == 9); //printf("x idx == %d\n", idx);
+    assert(idx == 10); //printf("x idx == %d\n", idx);
     idx = lower_bound_search(sa, "b");
-    assert(idx == 5); //printf("b idx == %d\n", idx);
+    assert(idx == 6); //printf("b idx == %d\n", idx);
     idx = lower_bound_search(sa, "c");
-    assert(idx == 8); //printf("c idx == %d\n", idx);
+    assert(idx == 9); //printf("c idx == %d\n", idx);
     idx = lower_bound_search(sa, "0");
     assert(idx == 0); //printf("0 idx == %d\n", idx);
 }
@@ -84,11 +84,11 @@ int main(int argc, char *argv[])
     printf("\n");
 
     test_order(sa);
-    test_search(sa);
     test_inverse(sa);
     test_lcp(sa);
-
-    delete_suffix_array(sa);
+    test_search(sa);
+    
+    free_suffix_array(sa);
 
     return EXIT_SUCCESS;
 }

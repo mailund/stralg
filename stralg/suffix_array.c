@@ -7,12 +7,13 @@
 #include <assert.h>
 #include <stdbool.h>
 
-static struct suffix_array *allocate_sa(char *string)
+static struct suffix_array *allocate_sa(const char *string)
 {
     struct suffix_array *sa =
         (struct suffix_array*)malloc(sizeof(struct suffix_array));
     sa->string = string;
-    sa->length = strlen(string);
+    sa->length = strlen(string) + 1;
+    printf("sa length == %lu\n", sa->length);
     sa->array = (size_t*)malloc(sa->length * sizeof(size_t));
 
     sa->inverse = 0;
@@ -23,11 +24,13 @@ static struct suffix_array *allocate_sa(char *string)
 
 
 
-void delete_suffix_array(struct suffix_array *sa)
+void free_suffix_array(struct suffix_array *sa)
 {
     free(sa->array);
-    if (sa->inverse) free(sa->inverse);
-    if (sa->lcp) free(sa->lcp);
+    if (sa->inverse)
+        free(sa->inverse);
+    if (sa->lcp)
+        free(sa->lcp);
 }
 
 
@@ -37,7 +40,7 @@ int construction_cmpfunc(const void *a, const void *b)
     return strcmp(*(char **)a, *(char **)b);
 }
 
-struct suffix_array *qsort_sa_construction(char *string)
+struct suffix_array *qsort_sa_construction(const char *string)
 {
     struct suffix_array *sa = allocate_sa(string);
 
