@@ -1,4 +1,5 @@
 #include <remap.h>
+#include <string.h>
 
 struct remap_table *alloc_remap_table(void)
 {
@@ -10,10 +11,9 @@ struct remap_table *alloc_remap_table(void)
 void init_remap_table(struct remap_table *table)
 {
     table->alphabet_size = 1; // we always have zero
-    for (size_t i = 0; i < 256; ++i) {
-        table->table[i] = 0;
-        table->rev_table[i] = 0;
-    }
+    
+    memset(table->table, 0, sizeof(table->table));
+    memset(table->rev_table, 0, sizeof(table->rev_table));
 }
 void dealloc_remap_table(struct remap_table *table)
 {

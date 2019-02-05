@@ -17,7 +17,6 @@ static struct suffix_array *allocate_sa(char *string)
 
     sa->inverse = 0;
     sa->lcp = 0;
-    sa->sct_children = 0;
 
     return sa;
 }
@@ -29,7 +28,6 @@ void delete_suffix_array(struct suffix_array *sa)
     free(sa->array);
     if (sa->inverse) free(sa->inverse);
     if (sa->lcp) free(sa->lcp);
-    if (sa->sct_children) free(sa->sct_children);
 }
 
 
