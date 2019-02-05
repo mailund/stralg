@@ -2,10 +2,16 @@
 #include <remap.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <string.h>
 
 int main(int argc, char **argv)
 {
     const char *string = "acagt";
+    size_t n = strlen(string);
+    char mapped[n + 1];
+    char revmapped[n + 1];
+    
+    
     struct remap_table table;
     
     init_remap_table(&table);
@@ -30,6 +36,18 @@ int main(int argc, char **argv)
             // we cannot check reverse here...
         }
     }
+    
+    remap(mapped, string, &table);
+    assert(mapped[0] == 1);
+    assert(mapped[1] == 2);
+    assert(mapped[2] == 1);
+    assert(mapped[3] == 3);
+    assert(mapped[4] == 4);
+    
+    rev_remap(revmapped, mapped, &table);
+    assert(strcmp(revmapped, string) == 0);
+    
+    dealloc_remap_table(&table);
     
     return EXIT_SUCCESS;
 }

@@ -17,4 +17,11 @@ void free_remap_table(struct remap_table *table);
 void build_remap_table(struct remap_table *table,
                        const char *string);
 
+// Normally, I would put the table first, but
+// this order is the same as other str-functions.
+void remap(const char *output, const char *input,
+           struct remap_table *table);
+void rev_remap(const char *output, const char *input,
+               struct remap_table *table);
+
 #endif

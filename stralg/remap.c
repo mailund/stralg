@@ -41,3 +41,23 @@ void build_remap_table(struct remap_table *table,
         }
     }
 }
+
+void remap(const char *output, const char *input,
+           struct remap_table *table)
+{
+    unsigned char *x = (unsigned char*)output;
+    unsigned char *y = (unsigned char*)input;
+    for (; *y; ++y, ++x) {
+        *x = table->table[*y];
+    }
+}
+
+void rev_remap(const char *output, const char *input,
+           struct remap_table *table)
+{
+    unsigned char *x = (unsigned char*)output;
+    unsigned char *y = (unsigned char*)input;
+    for (; *y; ++y, ++x) {
+        *x = table->rev_table[*y];
+    }
+}
