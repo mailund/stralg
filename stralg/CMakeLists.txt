@@ -10,6 +10,7 @@ add_library(stralg SHARED
 	cigar.h cigar.c
 	remap.h remap.c
 	suffix_array.h suffix_array.c
+	bwt.h bwt.c
 	suffix_tree.h suffix_tree.c
 	io.h io.c
 )

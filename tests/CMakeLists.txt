@@ -100,6 +100,10 @@ target_link_libraries(
     remap_test
     stralg
 )
+add_test(
+    Remap
+    remap_test
+)
 
 add_executable(
     suffix_array_test
