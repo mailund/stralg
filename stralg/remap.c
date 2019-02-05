@@ -12,12 +12,13 @@ void init_remap_table(struct remap_table *table)
 {
     table->alphabet_size = 1; // we always have zero
     
-    memset(table->table, 0, sizeof(table->table));
+    // set table intries to zero
+    memset(table->table,     0, sizeof(table->table));
     memset(table->rev_table, 0, sizeof(table->rev_table));
 }
 void dealloc_remap_table(struct remap_table *table)
 {
-    // nop
+    // we haven't allocated any resources
 }
 
 void free_remap_table(struct remap_table *table)
