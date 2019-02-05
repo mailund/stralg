@@ -56,5 +56,5 @@ tests/approx_match_test
 tests/suffix_tree_match_test
 tools/st_build_lcp/st_build_lcp
 tests/tree.dot
-tests/readmap_test
+tests/remap_test
 tests/bwt_test
