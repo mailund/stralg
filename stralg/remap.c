@@ -68,3 +68,4 @@ void rev_remap(const char *output, const char *input,
     }
     *x = '\0'; // last index should still be the sentinel
 }
+

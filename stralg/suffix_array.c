@@ -13,7 +13,6 @@ static struct suffix_array *allocate_sa(const char *string)
         (struct suffix_array*)malloc(sizeof(struct suffix_array));
     sa->string = string;
     sa->length = strlen(string) + 1;
-    printf("sa length == %lu\n", sa->length);
     sa->array = (size_t*)malloc(sa->length * sizeof(size_t));
 
     sa->inverse = 0;

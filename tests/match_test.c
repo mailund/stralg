@@ -1,5 +1,6 @@
 #include <stralg.h>
 #include <generic_data_structures.h>
+#include <bwt.h>
 
 #include <stdlib.h>
 #include <assert.h>
@@ -44,26 +45,29 @@ static void iter_test(
 
 int main(int argc, char * argv[])
 {
-    if (argc != 3) {
+    char *string;
+    const char *pattern;
+    const char *fname;
+    
+    if (argc == 3) {
+        pattern = argv[1];
+        fname = argv[2];
         // LCOV_EXCL_START
-        printf("Needs two arguments: pattern inputfile.\n");
-        return EXIT_FAILURE;
-        // LCOV_EXCL_STOP
-    }
-    const char *pattern = argv[1];
-    const char *fname = argv[2];
-    char *string = load_file(fname);
-    if (!string) {
-        // LCOV_EXCL_START
-        printf("Couldn't read file %s\n", fname);
-        return EXIT_FAILURE;
-        // LCOV_EXCL_STOP
+        string = load_file(fname);
+        if (!string) {
+            printf("Couldn't read file %s\n", fname);
+            return EXIT_FAILURE;
+        }
+    } else {
+        string = "mississipi";
+        pattern = "ssi";
     }
     
-    index_vector *naive  = alloc_index_vector(10);
-    index_vector *border = alloc_index_vector(10);
-    index_vector *kmp    = alloc_index_vector(10);
-    index_vector *bmh    = alloc_index_vector(10);
+    
+    index_vector naive;  init_index_vector(&naive, 10);
+    index_vector border; init_index_vector(&border, 10);
+    index_vector kmp;    init_index_vector(&kmp, 10);
+    index_vector bmh;    init_index_vector(&bmh, 10);
     
     struct naive_match_iter naive_iter;
     iter_test(
@@ -72,7 +76,7 @@ int main(int argc, char * argv[])
         (iter_init_func)init_naive_match_iter,
         (iteration_func)next_naive_match,
         (iter_dealloc_func)dealloc_naive_match_iter,
-         naive
+        &naive
     );
     struct border_match_iter border_iter;
     iter_test(
@@ -81,7 +85,7 @@ int main(int argc, char * argv[])
         (iter_init_func)init_border_match_iter,
         (iteration_func)next_border_match,
         (iter_dealloc_func)dealloc_border_match_iter,
-         border
+        &border
     );
     struct kmp_match_iter kmp_iter;
     iter_test(
@@ -90,7 +94,7 @@ int main(int argc, char * argv[])
         (iter_init_func)init_kmp_match_iter,
         (iteration_func)next_kmp_match,
         (iter_dealloc_func)dealloc_kmp_match_iter,
-        kmp
+        &kmp
     );
     struct bmh_match_iter bmh_iter;
     iter_test(
@@ -99,19 +103,63 @@ int main(int argc, char * argv[])
         (iter_init_func)init_bmh_match_iter,
         (iteration_func)next_bmh_match,
         (iter_dealloc_func)dealloc_bmh_match_iter,
-        bmh
+        &bmh
     );
     
-    assert(vector_equal(naive, border));
-    assert(vector_equal(naive, kmp));
-    assert(vector_equal(naive, bmh));
+    assert(vector_equal(&naive, &border));
+    assert(vector_equal(&naive, &kmp));
+    assert(vector_equal(&naive, &bmh));
+    
+    dealloc_index_vector(&border);
+    dealloc_index_vector(&kmp);
+    dealloc_index_vector(&bmh);
+    // do not release free yet. I need to test it below
 
-    free_index_vector(naive);
-    free_index_vector(border);
-    free_index_vector(kmp);
-    free_index_vector(bmh);
+    // setup for bwt tests.
+    // it is quite involved because we need to
+    // remap both the string and the patter and
+    // build the suffix array and the bwt tables
+    // before we can search.
+    index_vector bwt; init_index_vector(&bwt, 10);
+    
+    size_t n = strlen(string);
+    char remappe_string[n + 1];
+    size_t m = strlen(pattern);
+    char remapped_pattern[m + 1];
 
-    free(string);
+    struct remap_table remap_table;
+    init_remap_table(&remap_table, string);
+    
+    remap(remappe_string, string, &remap_table);
+    remap(remapped_pattern, pattern, &remap_table);
+    
+    struct suffix_array *sa = qsort_sa_construction(remappe_string);
+
+    struct bwt_table bwt_table;
+    init_bwt_table(&bwt_table, sa, &remap_table);
+    
+    struct exact_bwt_match_iter bwt_iter;
+    struct exact_bwt_match bwt_match;
+    
+    init_exact_bwt_match_iter(&bwt_iter, &bwt_table, sa, remapped_pattern);
+    while (next_exact_bwt_match(&bwt_iter, &bwt_match)) {
+        index_vector_append(&bwt, bwt_match.pos);
+    }
+    dealloc_exact_bwt_match_iter(&bwt_iter);
+    
+    free_suffix_array(sa);
+    dealloc_remap_table(&remap_table);
+    dealloc_bwt_table(&bwt_table);
+    
+    sort_index_vector(&bwt);
+    assert(vector_equal(&naive, &bwt));
+    dealloc_index_vector(&bwt);
+    
+    dealloc_index_vector(&naive);
+
+    if (argc == 3)
+        free(string); // it was loaded from a file in this setup
+    
     return EXIT_SUCCESS;
 }
 

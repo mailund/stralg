@@ -47,3 +47,51 @@ void dealloc_bwt_table(struct bwt_table *bwt_table)
     free(bwt_table->c_table);
     free(bwt_table->o_table);
 }
+
+void init_exact_bwt_match_iter(struct exact_bwt_match_iter *iter,
+                               struct bwt_table *bwt_table,
+                               struct suffix_array *sa,
+                               const char *remapped_pattern)
+{
+    iter->sa = sa;
+    
+    size_t n = sa->length;
+    size_t m = strlen(remapped_pattern);
+    size_t L = 0;
+    size_t R = n - 1;
+    int i = m - 1;
+    while (i >= 0 && L <= R) {
+        unsigned char a = remapped_pattern[i];
+        L = (L == 0) ?
+            bwt_table->c_table[a] :
+            bwt_table->c_table[a] + bwt_table->o_table[o_index(a, L - 1, sa)] + 1;
+        R = bwt_table->c_table[a] + bwt_table->o_table[o_index(a, R, sa)];
+        i--;
+    }
+    
+    iter->L = L;
+    iter->i = L;
+    iter->R = R;
+}
+
+bool next_exact_bwt_match        (struct exact_bwt_match_iter *iter,
+                                  struct exact_bwt_match      *match)
+{
+    // cases where we never had a match
+    if (iter->i < 0)       return false;
+    // cases where we no longer have a match
+    if (iter->i > iter->R) return false;
+    
+    // we still have a match.
+    // report it and update the position
+    // to the next match (if any)
+    match->pos = iter->sa->array[iter->i];
+    iter->i++;
+    
+    return true;
+}
+
+void dealloc_exact_bwt_match_iter(struct exact_bwt_match_iter *iter)
+{
+    // nothing to free
+}
