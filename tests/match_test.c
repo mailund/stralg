@@ -42,6 +42,27 @@ static void iter_test(
     iter_dealloc(iter);
 }
 
+static void test_suffix_tree_match(index_vector *naive_matches,
+                                   const char *pattern,
+                                   struct suffix_tree *st,
+                                   char *string)
+{
+    struct st_leaf_iter st_iter;
+    struct st_leaf_iter_result res;
+    index_vector *st_matches = alloc_index_vector(100);
+    
+    struct suffix_tree_node *match_root = st_search(st, pattern);
+    init_st_leaf_iter(&st_iter, st, match_root);
+    while (next_st_leaf(&st_iter, &res)) {
+        index_vector_append(st_matches, res.leaf->leaf_label);
+    }
+    dealloc_st_leaf_iter(&st_iter);
+    sort_index_vector(st_matches);
+    
+    assert(vector_equal(naive_matches, st_matches));
+    
+    free_index_vector(st_matches);
+}
 
 int main(int argc, char * argv[])
 {
@@ -113,8 +134,24 @@ int main(int argc, char * argv[])
     dealloc_index_vector(&border);
     dealloc_index_vector(&kmp);
     dealloc_index_vector(&bmh);
-    // do not release free yet. I need to test it below
+    // do not release naive yet. I need to test it below
 
+    // ------------- SUFFIX TREE ----------------
+    struct suffix_tree *st = naive_suffix_tree(string);
+    st_print_dot_name(st, st->root, "tree.dot");
+    test_suffix_tree_match(&naive, pattern, st, string);
+    
+    size_t sorted_suffixes[st->length];
+    size_t lcp[st->length];
+    st_compute_sa_and_lcp(st, sorted_suffixes, lcp);
+    free_suffix_tree(st);
+    
+    st = lcp_suffix_tree(string, sorted_suffixes, lcp);
+    test_suffix_tree_match(&naive, pattern, st, string);
+    free_suffix_tree(st);
+
+    
+    // --------------- BWT ----------------------
     // setup for bwt tests.
     // it is quite involved because we need to
     // remap both the string and the patter and

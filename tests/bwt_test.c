@@ -15,6 +15,11 @@ int main(int argc, char **argv)
     size_t n = strlen(string);
     char remapped[n + 1];
     
+    // to shut up static analysis
+    for (size_t i = 0; i < n + 1; ++i) {
+        remapped[i] = '\0';
+    }
+    
     init_remap_table(&remap_table, string);
     remap(remapped, string, &remap_table);
     
