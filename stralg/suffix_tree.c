@@ -471,7 +471,7 @@ void init_approx_iter(struct approx_iter *iter,
                       const char *p,
                       int edits)
 {
-    size_t m = strlen(p);
+    size_t m = strlen(p) + 4*edits + 1; // one edit can max cost four characters
     iter->st = st;
     iter->sentinel.next = 0;
     iter->full_cigar_buf = malloc(m + 1); iter->full_cigar_buf[0] = '\0';

@@ -69,7 +69,7 @@ void init_edit_iter(
     const char *alphabet,
     int max_edit_distance
 ) {
-    size_t n = strlen(pattern) + max_edit_distance + 1;
+    size_t n = strlen(pattern) + max_edit_distance + 10;
 
     iter->pattern = pattern;
     iter->alphabet = alphabet;
