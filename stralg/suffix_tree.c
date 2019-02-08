@@ -404,7 +404,7 @@ struct suffix_tree_node *st_search(struct suffix_tree *st, const char *pattern)
     return st_search_internal(st, st->root, pattern);
 }
 
-static void push_frame(struct approx_frame *sentinel,
+static void push_frame(struct st_approx_frame *sentinel,
                        struct suffix_tree_node *v,
                        const char *x, const char *end,
                        size_t match_depth,
@@ -412,7 +412,7 @@ static void push_frame(struct approx_frame *sentinel,
                        char cigar_op, char *cigar,
                        int edit)
 {
-    struct approx_frame *frame = malloc(sizeof(struct approx_frame));
+    struct st_approx_frame *frame = malloc(sizeof(struct st_approx_frame));
     frame->v = v;
     frame->x = x;
     frame->end = end;
@@ -424,7 +424,7 @@ static void push_frame(struct approx_frame *sentinel,
     frame->next = sentinel->next;
     sentinel->next = frame;
 }
-static void pop_frame(struct approx_frame *sentinel,
+static void pop_frame(struct st_approx_frame *sentinel,
                       struct suffix_tree_node **v,
                       const char **x, const char **end,
                       size_t *match_depth,
@@ -432,7 +432,7 @@ static void pop_frame(struct approx_frame *sentinel,
                       char *cigar_op, char **cigar,
                       int *edit)
 {
-    struct approx_frame *frame = sentinel->next;
+    struct st_approx_frame *frame = sentinel->next;
     sentinel->next = frame->next;
     *v = frame->v;
     *x = frame->x;
@@ -447,7 +447,7 @@ static void pop_frame(struct approx_frame *sentinel,
 }
 
 
-static void push_children(struct approx_iter *iter,
+static void push_children(struct st_approx_iter *iter,
                           struct suffix_tree *st,
                           struct suffix_tree_node *v,
                           size_t match_depth,
@@ -466,7 +466,7 @@ static void push_children(struct approx_iter *iter,
     }
 }
 
-void init_approx_iter(struct approx_iter *iter,
+void init_st_approx_iter(struct st_approx_iter *iter,
                       struct suffix_tree *st,
                       const char *p,
                       int edits)
@@ -480,7 +480,7 @@ void init_approx_iter(struct approx_iter *iter,
     // push the root's children
     push_children(iter, st, st->root, 0, iter->full_cigar_buf, p, edits);
 }
-void dealloc_approx_iter(struct approx_iter *iter)
+void dealloc_st_approx_iter(struct st_approx_iter *iter)
 {
     free(iter->full_cigar_buf);
     free(iter->cigar_buf);
@@ -488,8 +488,8 @@ void dealloc_approx_iter(struct approx_iter *iter)
 
 
 
-bool next_approx_match(struct approx_iter *iter,
-                       struct approx_match *match)
+bool next_st_approx_match(struct st_approx_iter *iter,
+                       struct st_approx_match *match)
 {
     struct suffix_tree_node *v;
     const char *x; const char *end;

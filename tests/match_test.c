@@ -175,14 +175,14 @@ int main(int argc, char * argv[])
     struct bwt_table bwt_table;
     init_bwt_table(&bwt_table, sa, &remap_table);
     
-    struct exact_bwt_match_iter bwt_iter;
-    struct exact_bwt_match bwt_match;
+    struct bwt_exact_match_iter bwt_iter;
+    struct bwt_exact_match bwt_match;
     
-    init_exact_bwt_match_iter(&bwt_iter, &bwt_table, sa, remapped_pattern);
-    while (next_exact_bwt_match(&bwt_iter, &bwt_match)) {
+    init_bwt_exact_match_iter(&bwt_iter, &bwt_table, sa, remapped_pattern);
+    while (next_bwt_exact_match_iter(&bwt_iter, &bwt_match)) {
         index_vector_append(&bwt, bwt_match.pos);
     }
-    dealloc_exact_bwt_match_iter(&bwt_iter);
+    dealloc_bwt_exact_match_iter(&bwt_iter);
     
     free_suffix_array(sa);
     dealloc_remap_table(&remap_table);

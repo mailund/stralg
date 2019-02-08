@@ -62,8 +62,8 @@ void dealloc_st_leaf_iter(
     struct st_leaf_iter *iter
 );
 
-struct approx_frame {
-    struct approx_frame *next;
+struct st_approx_frame {
+    struct st_approx_frame *next;
     struct suffix_tree_node *v;
     const char *x;
     const char *end;
@@ -74,26 +74,26 @@ struct approx_frame {
     int edit;
 };
 
-struct approx_iter {
+struct st_approx_iter {
     struct suffix_tree *st;
-    struct approx_frame sentinel;
+    struct st_approx_frame sentinel;
     char *full_cigar_buf;
     char *cigar_buf;
 };
-struct approx_match {
+struct st_approx_match {
     const char *cigar;
     struct suffix_tree_node *match_root;
     size_t match_depth;
 };
 
 
-void init_approx_iter(struct approx_iter *iter,
+void init_st_approx_iter(struct st_approx_iter *iter,
                       struct suffix_tree *st,
                       const char *p,
                       int edits);
-bool next_approx_match(struct approx_iter *iter,
-                       struct approx_match *match);
-void dealloc_approx_iter(struct approx_iter *iter);
+bool next_st_approx_match(struct st_approx_iter *iter,
+                       struct st_approx_match *match);
+void dealloc_st_approx_iter(struct st_approx_iter *iter);
 
 //  Searching
 struct suffix_tree_node *st_search(struct suffix_tree *st, const char *pattern);
