@@ -1,9 +1,28 @@
 {
-  "exclude": [
-    "^(node_modules|bower_components|\\.imdone|target|build|dist|logs|flow-typed|imdone-export.json)[\\/\\\\]?|\\.(git|svn|hg|npmignore)|\\~$|\\.(jpg|png|gif|swp|ttf|otf)$"
+  "noHelp": true,
+  "sync": {
+    "useImdoneioForPriority": true,
+    "name": "mailund/stralg",
+    "id": "5c02c3b4dfdd1c0ebf0c4291"
+  },
+  "marked": {
+    "langPrefix": "language-",
+    "smartLists": true,
+    "pedantic": false,
+    "breaks": false,
+    "tables": true,
+    "gfm": true
+  },
+  "lists": [
+    {
+      "name": "TODO",
+      "hidden": false
+    },
+    {
+      "name": "FIXME",
+      "hidden": false
+    }
   ],
-  "watcher": true,
-  "keepEmptyPriority": true,
   "code": {
     "include_lists": [
       "TODO",
@@ -20,28 +39,9 @@
       "REVIEW"
     ]
   },
-  "lists": [
-    {
-      "hidden": false,
-      "name": "TODO"
-    },
-    {
-      "name": "FIXME",
-      "hidden": false
-    }
-  ],
-  "marked": {
-    "gfm": true,
-    "tables": true,
-    "breaks": false,
-    "pedantic": false,
-    "smartLists": true,
-    "langPrefix": "language-"
-  },
-  "sync": {
-    "id": "5c02c3b4dfdd1c0ebf0c4291",
-    "name": "mailund/stralg",
-    "useImdoneioForPriority": true
-  },
-  "noHelp": true
+  "keepEmptyPriority": true,
+  "watcher": true,
+  "exclude": [
+    "^(node_modules|bower_components|\\.imdone|target|build|dist|logs|flow-typed|imdone-export.json)[\\/\\\\]?|\\.(git|svn|hg|npmignore)|\\~$|\\.(jpg|png|gif|swp|ttf|otf)$"
+  ]
 }
