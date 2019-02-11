@@ -153,7 +153,10 @@ static void push_edits(struct bwt_approx_match_iter *iter,
     size_t new_L;
     size_t new_R;
     
-    // FIXME: these are for debugging
+    // FIXME: these are for debugging id:10
+// - <https://github.com/mailund/stralg/issues/60>
+// Thomas Mailund
+// mailund@birc.au.dk
     char orig_string[iter->sa->length];
     char orig_pattern[iter->sa->length]; // def enough
  
@@ -297,8 +300,14 @@ bool next_bwt_approx_match_iter   (struct bwt_approx_match_iter *iter,
             char org_string[iter->sa->length];
             rev_remap(org_string, iter->sa->string, iter->remap_table);
             // we have a match.
-            // FIXME: reverse cigar and matched string
-            res->cigar = iter->full_cigar_buf; // FIXME: simplify
+            // FIXME: reverse cigar and matched string id:13
+// - <https://github.com/mailund/stralg/issues/65>
+// Thomas Mailund
+// mailund@birc.au.dk
+            res->cigar = iter->full_cigar_buf; // FIXME: simplify id:19
+// - <https://github.com/mailund/stralg/issues/69>
+// Thomas Mailund
+// mailund@birc.au.dk
             res->sa = iter->sa;
             res->L = L;
             res->R = R;
