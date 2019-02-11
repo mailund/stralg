@@ -140,8 +140,8 @@ void init_kmp_match_iter(
 
     iter->text = text;       iter->n = n;
     iter->pattern = pattern; iter->m = m;
-    iter->j = 0;             iter->q = 0;
-    iter->max_match_len = n - m + 1;
+    iter->j = 0;             iter->i = 0;
+    iter->max_match_len = n - m;
 
     // Build prefix border array -- I allocate with calloc
     // because the static analyser otherwise think it can contain
@@ -170,33 +170,36 @@ bool next_kmp_match(
     struct kmp_match_iter *iter,
     struct match *match
 ) {
-    // aliases to make the code easier to read... but
-    // remember to update the actual integers before
-    // yielding to the caller...
+    // aliases to make the code easier to read...
     size_t j = iter->j;
-    size_t q = iter->q;
+    size_t i = iter->i;
     size_t m = iter->m;
     size_t max_match_index = iter->max_match_len;
     const char *text = iter->text;
     const char *pattern = iter->pattern;
 
-    // here we compensate for j pointing q into match
-    while (j < max_match_index + q) {
-        while (q < m && text[j] == pattern[q]) {
-            q++; j++;
+    // Remember that j matches the first i
+    // items into the string, so + i.
+    while (j <= max_match_index + i) {
+        // Match as far as we can
+        while (i < m && text[j] == pattern[i]) {
+            i++; j++;
         }
-        if (q == m) {
-            // yield
-            if (q == 0) j++;
-            else q = iter->prefixtab[q - 1];
-            iter->j = j; iter->q = q;
+        
+        // We need to check this
+        // before we update i.
+        bool we_have_a_match = i == m;
+        
+        // Update indices
+        if (i == 0) j++;
+        else i = iter->prefixtab[i - 1];
+        
+        // If we have a hit...
+        if (we_have_a_match) {
+            // ...yield new match
+            iter->j = j; iter->i = i;
             match->pos = j - m;
             return true;
-        }
-        if (q == 0) {
-            j++;
-        } else {
-            q = iter->prefixtab[q - 1];
         }
     }
     return false;
