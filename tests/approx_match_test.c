@@ -203,9 +203,9 @@ static void bwt_match(struct suffix_array *sa,
     rev_remap(orig_string, sa->string, remap_table);
     
     // FIXME: make this double loop a single iterator in bwt id:22
-// - <https://github.com/mailund/stralg/issues/72>
-// Thomas Mailund
-// mailund@birc.au.dk
+    // - <https://github.com/mailund/stralg/issues/72>
+    // Thomas Mailund
+    // mailund@birc.au.dk
     init_bwt_approx_match_iter(&approx_iter, bwt_table, sa, remap_table, pattern, edits);
     while (next_bwt_approx_match_iter(&approx_iter, &approx_match)) {
         init_bwt_exact_match_from_approx_match(&approx_match, &exact_iter);
@@ -263,14 +263,14 @@ static void test_exact(char *pattern, char *string,
     printf("----------------------------------------------------\n");
 
     // FIXME: add searches using the lcp construction id:14
-// - <https://github.com/mailund/stralg/issues/66>
-// Thomas Mailund
-// mailund@birc.au.dk
+    // - <https://github.com/mailund/stralg/issues/66>
+    // Thomas Mailund
+    // mailund@birc.au.dk
     
     // FIXME: make all the matches work with the remapped string id:20
-// - <https://github.com/mailund/stralg/issues/70>
-// Thomas Mailund
-// mailund@birc.au.dk
+    // - <https://github.com/mailund/stralg/issues/70>
+    // Thomas Mailund
+    // mailund@birc.au.dk
     size_t n = strlen(string);
     char remappe_string[n + 1];
     size_t m = strlen(pattern);
@@ -287,14 +287,14 @@ static void test_exact(char *pattern, char *string,
     init_bwt_table(&bwt_table, sa, &remap_table);
 
     // FIXME: add lower bound sa search id:17
-// - <https://github.com/mailund/stralg/issues/67>
-// Thomas Mailund
-// mailund@birc.au.dk
+    // - <https://github.com/mailund/stralg/issues/67>
+    // Thomas Mailund
+    // mailund@birc.au.dk
     
     // FIXME: add bwt test id:23
-// - <https://github.com/mailund/stralg/issues/73>
-// Thomas Mailund
-// mailund@birc.au.dk
+    // - <https://github.com/mailund/stralg/issues/73>
+    // Thomas Mailund
+    // mailund@birc.au.dk
     string_vector bwt_results;
     init_string_vector(&bwt_results, 10);
     bwt_match(sa, remapped_pattern, remappe_string, &remap_table, &bwt_table, 0, &bwt_results);
@@ -348,14 +348,14 @@ static void test_approx(char *pattern, char *string, const char *alphabet)
     printf("----------------------------------------------------\n");
 
     // FIXME: add lcp test id:12
-// - <https://github.com/mailund/stralg/issues/64>
-// Thomas Mailund
-// mailund@birc.au.dk
+    // - <https://github.com/mailund/stralg/issues/64>
+    // Thomas Mailund
+    // mailund@birc.au.dk
     
     // FIXME: make all the matches work with the remapped string id:15
-// - <https://github.com/mailund/stralg/issues/62>
-// Thomas Mailund
-// mailund@birc.au.dk
+    // - <https://github.com/mailund/stralg/issues/62>
+    // Thomas Mailund
+    // mailund@birc.au.dk
     size_t n = strlen(string);
     char remappe_string[n + 1];
     size_t m = strlen(pattern);
@@ -373,13 +373,13 @@ static void test_approx(char *pattern, char *string, const char *alphabet)
     
 
     // FIXME: add lower bound search for suffix array id:21
-// - <https://github.com/mailund/stralg/issues/71>
-// Thomas Mailund
-// mailund@birc.au.dk
+    // - <https://github.com/mailund/stralg/issues/71>
+    // Thomas Mailund
+    // mailund@birc.au.dk
     // FIXME: add bwt test id:18
-// - <https://github.com/mailund/stralg/issues/68>
-// Thomas Mailund
-// mailund@birc.au.dk
+    // - <https://github.com/mailund/stralg/issues/68>
+    // Thomas Mailund
+    // mailund@birc.au.dk
     string_vector bwt_results;
     init_string_vector(&bwt_results, 10);
     bwt_match(sa, remapped_pattern, remappe_string, &remap_table, &bwt_table, edits, &bwt_results);
