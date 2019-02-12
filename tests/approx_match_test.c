@@ -192,14 +192,29 @@ static void bwt_match(struct suffix_array *sa,
     struct bwt_exact_match_iter exact_iter;
     struct bwt_exact_match exact_match;
     
+    size_t n = 3 * strlen(pattern) + 1;
+    // for alignment (not that we use it, but we need
+    // it for the function call).
+    char align_match_buf[n];
+    char allign_pat_buf[n];
+    
+    char rev_mapped_match[n];
+    
     // FIXME: make this double loop a single iterator in bwt id:22
     init_bwt_approx_match_iter(&approx_iter, bwt_table,
                                sa, remap_table, pattern, edits);
     
     while (next_bwt_approx_match_iter(&approx_iter, &approx_match)) {
         init_bwt_exact_match_from_approx_match(&approx_match, &exact_iter);
+        //rev_remap_between0(rev_mapped_match, string + approx_match.L,
+         //                  approx_match.
+        //printf("match!! %s\n", approx_match.matched_string);
+        
+        //rev_remap(rev_mapped_match, approx_match.matched_string, remap_table);
+        // FIXME: get the missing strings from the iterators...
+        
         while (next_bwt_exact_match_iter(&exact_iter, &exact_match)) {
-            // FIXME: get the missing strings from the iterators...
+            
             string_vector_append(bwt_results,
                                  match_string(exact_match.pos, "?", approx_match.cigar));
         }
@@ -249,16 +264,17 @@ static void test_exact(char *pattern, char *string,
     // FIXME: make all the matches work with the remapped string id:20
 
     size_t n = strlen(string);
-    char remappe_string[n + 1];
+    printf("allocated size %lu\n", n + 1);
+    char remapped_string[n + 1];
     size_t m = strlen(pattern);
     char remapped_pattern[m + 1];
     
     struct remap_table remap_table;
     init_remap_table(&remap_table, string);
-    remap(remappe_string, string, &remap_table);
+    remap(remapped_string, string, &remap_table);
     remap(remapped_pattern, pattern, &remap_table);
     
-    struct suffix_array *sa = qsort_sa_construction(remappe_string);
+    struct suffix_array *sa = qsort_sa_construction(remapped_string);
     
     struct bwt_table bwt_table;
     init_bwt_table(&bwt_table, sa, &remap_table);
@@ -268,7 +284,7 @@ static void test_exact(char *pattern, char *string,
 
     string_vector bwt_results;
     init_string_vector(&bwt_results, 10);
-    bwt_match(sa, remapped_pattern, remappe_string,
+    bwt_match(sa, remapped_pattern, remapped_string,
               &remap_table, &bwt_table, 0, &bwt_results);
     
     dealloc_remap_table(&remap_table);
@@ -417,7 +433,7 @@ int main(int argc, char **argv)
     // Build them here and pass them on as parameters
     // to the tests.
     test_exact(pattern, string, alphabet);
-    test_approx(pattern, string, alphabet);
+    //test_approx(pattern, string, alphabet);
     
     printf("experimenting...\n");
 

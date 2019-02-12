@@ -47,15 +47,8 @@ void dealloc_bwt_exact_match_iter(struct bwt_exact_match_iter *iter);
 struct bwt_approx_frame {
     struct bwt_approx_frame *next;
     
-    char edit_op;
-    unsigned char match_char;    
-    
     int edits;
-    
-    // used to fill the buffers with
-    // the edited string and its
-    // cigar
-    char *match;
+    char edit_op;
     char *cigar;
     
     size_t L;
@@ -71,12 +64,11 @@ struct bwt_approx_match_iter {
     struct bwt_approx_frame sentinel;
     
     const char *remapped_pattern;
-    char *matched_string; // string with edits.
+    //char *matched_string; // string with edits.
     char *full_cigar_buf;
     char *cigar_buf;
 };
 struct bwt_approx_match {
-    const char *matched_string;
     const char *cigar;
     struct suffix_array *sa;
     size_t L;

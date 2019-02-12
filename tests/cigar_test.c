@@ -83,9 +83,9 @@ int main(int argc, char **argv)
                                          &remap_tbl,
                                          pattern_buf, matched_buf);
 
-    rev_remap_between(rev_mapped_match,
-                      remapped_string, remapped_string + 3,
-                      &remap_tbl);
+    rev_remap_between0(rev_mapped_match,
+                       remapped_string, remapped_string + 3,
+                       &remap_tbl);
     printf("matched: %s\n", rev_mapped_match);
     printf("%s\n%s\n", pattern_buf, matched_buf);
     assert(strcmp(rev_mapped_match, "aca") == 0);
@@ -97,7 +97,7 @@ int main(int argc, char **argv)
                                          remapped_string,
                                          &remap_tbl,
                                          pattern_buf, matched_buf);
-    rev_remap_between(rev_mapped_match,
+    rev_remap_between0(rev_mapped_match,
                       remapped_string, remapped_string + 2,
                       &remap_tbl);
     printf("matched: %s\n", rev_mapped_match);
@@ -111,7 +111,7 @@ int main(int argc, char **argv)
                                          remapped_string + 1,
                                          &remap_tbl,
                                          pattern_buf, matched_buf);
-    rev_remap_between(rev_mapped_match,
+    rev_remap_between0(rev_mapped_match,
                       remapped_string + 1, (remapped_string + 1) + 2,
                       &remap_tbl);
     printf("matched: %s\n", rev_mapped_match);
@@ -126,7 +126,7 @@ int main(int argc, char **argv)
                                          &remap_tbl,
                                          pattern_buf, matched_buf);
     assert(end_match == (remapped_string + 1) + 4);
-    rev_remap_between(rev_mapped_match,
+    rev_remap_between0(rev_mapped_match,
                       remapped_string + 1, end_match,
                       &remap_tbl);
     printf("matched: %s\n", rev_mapped_match);

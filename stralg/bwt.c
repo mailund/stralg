@@ -118,19 +118,18 @@ static void print_stack(struct bwt_approx_frame *sentinel)
 #endif
 
 static void push_frame(struct bwt_approx_match_iter *iter,
-                       char edit_op, unsigned char match_char, int edits,
-                       char *match, char *cigar,
+                       char edit_op, int edits,
+                       char *cigar,
                        size_t L, int i, size_t R)
 {
     struct bwt_approx_frame *frame = malloc(sizeof(struct bwt_approx_frame));
 
     //printf("pushing %p %p %lu %d %lu\n", match, cigar, L, i, R);
     
-    frame->match = match;
+    //frame->match = match;
     frame->cigar = cigar;
     
     frame->edit_op = edit_op;
-    frame->match_char = match_char;
     frame->edits = edits;
     frame->L = L;
     frame->i = i;
@@ -148,7 +147,7 @@ static void push_frame(struct bwt_approx_match_iter *iter,
 }
 
 static void push_edits(struct bwt_approx_match_iter *iter,
-                       char *match, char *cigar,
+                       /*char *match, */ char *cigar,
                        int edits, size_t L, int i, size_t R)
 {
     size_t new_L;
@@ -178,7 +177,7 @@ static void push_edits(struct bwt_approx_match_iter *iter,
                edit_cost);
 #endif
         
-        push_frame(iter, 'M', a, edits - edit_cost, match + 1, cigar + 1, new_L, i - 1, new_R);
+        push_frame(iter, 'M', edits - edit_cost, cigar + 1, new_L, i - 1, new_R);
     }
     
 #if PRINT_STACK
@@ -189,9 +188,8 @@ static void push_edits(struct bwt_approx_match_iter *iter,
 }
 
 static void pop_edits(struct bwt_approx_match_iter *iter,
-                      char *edit_op, unsigned char *match_char, int *edits,
-                      char **match, char **cigar,
-                      size_t *L, int *i, size_t *R)
+                      char *edit_op, int *edits,
+                      char **cigar, size_t *L, int *i, size_t *R)
 {
     // the stack should never be called on an empty stack,
     // but just in case...
@@ -201,9 +199,7 @@ static void pop_edits(struct bwt_approx_match_iter *iter,
     iter->sentinel.next = frame->next;
     
     *edit_op = frame->edit_op;
-    *match_char = frame->match_char;
     *edits = frame->edits;
-    *match = frame->match;
     *cigar = frame->cigar;
     *L = frame->L;
     *i = frame->i;
@@ -241,7 +237,7 @@ void init_bwt_approx_match_iter   (struct bwt_approx_match_iter *iter,
     size_t buf_size = strlen(p) + 4 * edits + 1;
     
     iter->sentinel.next = 0;
-    iter->matched_string = malloc(buf_size + 1); iter->matched_string[0] = '\0';
+    //iter->matched_string = malloc(buf_size + 1); iter->matched_string[0] = '\0';
     iter->full_cigar_buf = malloc(buf_size + 1); iter->full_cigar_buf[0] = '\0';
     iter->cigar_buf = malloc(buf_size + 1);      iter->cigar_buf[0] = '\0';
     
@@ -267,22 +263,21 @@ void init_bwt_approx_match_iter   (struct bwt_approx_match_iter *iter,
     //printf("before push edit with interval [%lu,%d,%lu]\n", L, i, R);
 
     // push the start of the search
-    push_edits(iter, iter->matched_string, iter->full_cigar_buf, edits, L, i, R);
+    push_edits(iter, iter->full_cigar_buf, edits, L, i, R);
 }
 
 bool next_bwt_approx_match_iter   (struct bwt_approx_match_iter *iter,
                                    struct bwt_approx_match      *res)
 {
-    unsigned char match_char;
     char edit_op;
     int edits;
-    char *match, *cigar;
+    char *cigar;
     size_t L;
     int i;
     size_t R;
     
     while (iter->sentinel.next) {
-        pop_edits(iter, &edit_op, &match_char, &edits, &match, &cigar, &L, &i, &R);
+        pop_edits(iter, &edit_op, &edits, &cigar, &L, &i, &R);
 //        printf("popped bwt frame: %c %d %p %p %lu %d %lu\n",
 //               edit_op, edits, match, cigar, L, i, R);
         
@@ -292,7 +287,7 @@ bool next_bwt_approx_match_iter   (struct bwt_approx_match_iter *iter,
 
         
         cigar[-1] = edit_op;
-        match[-1] = match_char;
+        //match[-1] = match_char;
 
         
 
@@ -330,7 +325,7 @@ bool next_bwt_approx_match_iter   (struct bwt_approx_match_iter *iter,
             return true;
         }
         
-        push_edits(iter, match, cigar, edits, L, i, R);
+        push_edits(iter, cigar, edits, L, i, R);
     }
     
     return false;

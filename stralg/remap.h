@@ -16,16 +16,22 @@ void free_remap_table(struct remap_table *table);
 
 // Normally, I would put the table first, but
 // this order is the same as other str-functions.
-void remap    (char *output, const char *input,
-               struct remap_table *table);
-void rev_remap(char *output, const char *input,
-               struct remap_table *table);
+char *remap    (char *output, const char *input,
+                struct remap_table *table);
+char *rev_remap(char *output, const char *input,
+                struct remap_table *table);
 
-void remap_between    (char *output,
-                       const char *from, const char *to,
-                       struct remap_table *table);
-void rev_remap_between(char *output,
-                       const char *from, const char *to,
-                       struct remap_table *table);
+char *remap_between     (char *output,
+                         const char *from, const char *to,
+                         struct remap_table *table);
+char *rev_remap_between (char *output,
+                         const char *from, const char *to,
+                         struct remap_table *table);
+char *remap_between0    (char *output,
+                         const char *from, const char *to,
+                         struct remap_table *table);
+char *rev_remap_between0(char *output,
+                         const char *from, const char *to,
+                         struct remap_table *table);
 
 #endif
