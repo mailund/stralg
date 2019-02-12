@@ -221,13 +221,12 @@ void init_bmh_match_iter(
     iter->j = 0;
     iter->text = text; iter->n = n;
     iter->pattern = pattern; iter->m = m;
-    for (size_t i = 0; i < 256; i++) {
-        iter->jump_table[i] = m;
+    for (size_t k = 0; k < 256; k++) {
+        iter->jump_table[k] = m;
     }
-    for (size_t i = 0; i < m - 1; i++) {
-        iter->jump_table[(unsigned char)pattern[i]] = m - i - 1;
+    for (size_t k = 0; k < m - 1; k++) {
+        iter->jump_table[(unsigned char)pattern[k]] = m - k - 1;
     }
-
 }
 
 bool next_bmh_match(
