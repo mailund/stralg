@@ -54,7 +54,6 @@ static void exact_approach(char *string, char *pattern, const char *alphabet,
     init_edit_iter(&iter, pattern, alphabet, dist);
     while (next_edit_pattern(&iter, &edit_pattern)) {
         size_t m = strlen(edit_pattern.pattern);
-        
         // if the exact matchers work, I can pick any of them.
         struct border_match_iter match_iter;
         init_border_match_iter(&match_iter, string, n, edit_pattern.pattern, m);
@@ -132,7 +131,6 @@ static void aho_corasick_approach(char *string, char *pattern, const char *alpha
     while (next_ac_match(&ac_iter, &ac_match)) {
         size_t pattern_idx = ac_match.string_label;
         const char *pattern = string_vector_get(&patterns, pattern_idx);
-        
         // there might be more than one cigar per pattern
         index_list *pattern_cigars = cigar_table[pattern_idx];
         while (pattern_cigars) {
@@ -146,7 +144,6 @@ static void aho_corasick_approach(char *string, char *pattern, const char *alpha
     }
     dealloc_ac_iter(&ac_iter);
 
-    
     free_strings(&patterns);
     free_strings(&cigars);
     dealloc_string_vector(&patterns);
@@ -199,14 +196,13 @@ static void bwt_match(struct suffix_array *sa,
     struct bwt_exact_match exact_match;
     
     // for debug
-    char orig_string[sa->length];
-    rev_remap(orig_string, sa->string, remap_table);
-    
     // FIXME: make this double loop a single iterator in bwt id:22
 // - <https://github.com/mailund/stralg/issues/72>
 // Thomas Mailund
 // mailund@birc.au.dk
-    init_bwt_approx_match_iter(&approx_iter, bwt_table, sa, remap_table, pattern, edits);
+    init_bwt_approx_match_iter(&approx_iter, bwt_table,
+                               sa, remap_table, pattern, edits);
+    
     while (next_bwt_approx_match_iter(&approx_iter, &approx_match)) {
         init_bwt_exact_match_from_approx_match(&approx_match, &exact_iter);
         while (next_bwt_exact_match_iter(&exact_iter, &exact_match)) {
@@ -215,14 +211,12 @@ static void bwt_match(struct suffix_array *sa,
             // - <https://github.com/mailund/stralg/issues/61>
             // Thomas Mailund
             // mailund@birc.au.dk
-            printf("%lu: %s\n", exact_match.pos, orig_string + exact_match.pos);
             string_vector_append(bwt_results,
                                  match_string(exact_match.pos, "?", approx_match.cigar));
         }
         dealloc_bwt_exact_match_iter(&exact_iter);
     }
     dealloc_bwt_approx_match_iter(&approx_iter);
-    
 }
 
 
@@ -297,7 +291,8 @@ static void test_exact(char *pattern, char *string,
 // mailund@birc.au.dk
     string_vector bwt_results;
     init_string_vector(&bwt_results, 10);
-    bwt_match(sa, remapped_pattern, remappe_string, &remap_table, &bwt_table, 0, &bwt_results);
+    bwt_match(sa, remapped_pattern, remappe_string,
+              &remap_table, &bwt_table, 0, &bwt_results);
     
     dealloc_remap_table(&remap_table);
     dealloc_bwt_table(&bwt_table);
@@ -328,11 +323,24 @@ static void test_approx(char *pattern, char *string, const char *alphabet)
            edits, (edits == 1) ? "edit" : "edits");
     printf("====================================================\n");
 
+    string_vector exact_results;
+    init_string_vector(&exact_results, 10);
+    exact_approach(string, pattern, alphabet, 1, &exact_results);
+    sort_string_vector(&exact_results);
+    printf("Exact results\n");
+    print_matchs(&exact_results);
+    
     string_vector ac_results;
     init_string_vector(&ac_results, 10);
     aho_corasick_approach(string, pattern, alphabet, edits, &ac_results);
     sort_string_vector(&ac_results);
     
+    printf("Naive vs Aho-Corasic.\n");
+    assert(vector_equal(&exact_results, &ac_results));
+    free_strings(&exact_results);
+    dealloc_vector(&exact_results);
+
+    printf("Aho-Corasic vs \"naive suffix\" tree.\n");
     struct suffix_tree *st = naive_suffix_tree(string);
     string_vector st_results;
     init_string_vector(&st_results, 10);
@@ -340,22 +348,14 @@ static void test_approx(char *pattern, char *string, const char *alphabet)
     sort_string_vector(&st_results);
     free_suffix_tree(st);
     
-    printf("Aho-Corasic vs naive suffix tree.\n");
     assert(vector_equal(&ac_results, &st_results));
     free_strings(&st_results);
     dealloc_string_vector(&st_results);
     printf("OK\n");
     printf("----------------------------------------------------\n");
 
-    // FIXME: add lcp test id:12
-// - <https://github.com/mailund/stralg/issues/64>
-// Thomas Mailund
-// mailund@birc.au.dk
-    
-    // FIXME: make all the matches work with the remapped string id:15
-// - <https://github.com/mailund/stralg/issues/62>
-// Thomas Mailund
-// mailund@birc.au.dk
+    printf("Aho-Corasic vs BWT.\n");
+
     size_t n = strlen(string);
     char remappe_string[n + 1];
     size_t m = strlen(pattern);
@@ -372,40 +372,22 @@ static void test_approx(char *pattern, char *string, const char *alphabet)
     init_bwt_table(&bwt_table, sa, &remap_table);
     
 
-    // FIXME: add lower bound search for suffix array id:21
-// - <https://github.com/mailund/stralg/issues/71>
-// Thomas Mailund
-// mailund@birc.au.dk
-    // FIXME: add bwt test id:18
-// - <https://github.com/mailund/stralg/issues/68>
-// Thomas Mailund
-// mailund@birc.au.dk
     string_vector bwt_results;
     init_string_vector(&bwt_results, 10);
     bwt_match(sa, remapped_pattern, remappe_string, &remap_table, &bwt_table, edits, &bwt_results);
     sort_string_vector(&bwt_results);
     
-    printf("AH results\n");
-    print_matchs(&ac_results);
-    printf("BWT results\n");
-    print_matchs(&bwt_results);
-
-    
     free_suffix_array(sa);
+
+    // Can't assert before I get the strings out of bwt.
+    //assert(vector_equal(&ac_results, &bwt_results));
+    print_matchs(&bwt_results);
+    printf("OK\n");
+    printf("----------------------------------------------------\n");
 
     free_strings(&bwt_results);
     dealloc_string_vector(&bwt_results);
     
-    /*
-#ifdef PRINT_RESULTS
-    printf("Aho-Corasick results\n");
-    print_matchs(&ac_results);
-    printf("\n");
-    printf("Naive suffix tree results\n");
-    print_matchs(&st_results);
-    printf("\n");
-#endif
-*/
     
     free_strings(&ac_results);
     dealloc_string_vector(&ac_results);
@@ -429,10 +411,11 @@ static void test_approx(char *pattern, char *string, const char *alphabet)
     printf("SUFFIX TREE\n");
     print_matchs(&st_results);
     printf("\n");
+#if 0
     printf("BWT\n");
     print_matchs(&bwt_results);
     printf("\n");
-
+#endif
     
     free_strings(&ac_results);
     free_strings(&st_results);

@@ -1,5 +1,6 @@
 
 #include <bwt.h>
+#include <cigar.h>
 #include <stdio.h>
 #include <strings.h>
 
@@ -153,10 +154,6 @@ static void push_edits(struct bwt_approx_match_iter *iter,
     size_t new_L;
     size_t new_R;
     
-    // FIXME: these are for debugging id:10
-// - <https://github.com/mailund/stralg/issues/60>
-// Thomas Mailund
-// mailund@birc.au.dk
     char orig_string[iter->sa->length];
     char orig_pattern[iter->sa->length]; // def enough
  
@@ -173,10 +170,14 @@ static void push_edits(struct bwt_approx_match_iter *iter,
         orig_pattern[match_len + 1] = '\0';
         
         int edit_cost = (a == match_a) ? 0 : 1;
+
+#if 0
         printf("%d %s %d [%lu,%lu] (%s:) with edit cost %d\n",
                a, (a == match_a) ? "==" : "!=", match_a,
                new_L, new_R, orig_pattern,
                edit_cost);
+#endif
+        
         push_frame(iter, 'M', a, edits - edit_cost, match + 1, cigar + 1, new_L, i - 1, new_R);
     }
     
@@ -219,8 +220,10 @@ void init_bwt_approx_match_iter   (struct bwt_approx_match_iter *iter,
                                    const char                   *p,
                                    int                           edits)
 {
+#if 0
     printf("init with table:\n");
     print_bwt_table(bwt_table, sa, remap_table);
+#endif
     
     iter->sa = sa;
     iter->bwt_table = bwt_table;
@@ -291,26 +294,22 @@ bool next_bwt_approx_match_iter   (struct bwt_approx_match_iter *iter,
         cigar[-1] = edit_op;
         match[-1] = match_char;
 
-        cigar[0] = '\0';
-        printf("cigar is now: %s\n",
-               iter->full_cigar_buf);
+        
 
         if (i < 0 && L <= R) {
             // for debug
-            char org_string[iter->sa->length];
-            rev_remap(org_string, iter->sa->string, iter->remap_table);
+            //char org_string[iter->sa->length];
+            //rev_remap(org_string, iter->sa->string, iter->remap_table);
+
             // we have a match.
-            // FIXME: reverse cigar and matched string id:13
-// - <https://github.com/mailund/stralg/issues/65>
-// Thomas Mailund
-// mailund@birc.au.dk
-            res->cigar = iter->full_cigar_buf; // FIXME: simplify id:19
-// - <https://github.com/mailund/stralg/issues/69>
-// Thomas Mailund
-// mailund@birc.au.dk
+            *cigar = '\0';
+            simplify_cigar(iter->cigar_buf, iter->full_cigar_buf);
+            res->cigar = iter->cigar_buf;
             res->sa = iter->sa;
             res->L = L;
             res->R = R;
+            
+#if 0
             printf("-----------------------------\n");
             printf("got a match! [%lu,%lu](%d,%s)\n", L, R, edits, res->cigar);
             printf("matched string: ");
@@ -327,6 +326,7 @@ bool next_bwt_approx_match_iter   (struct bwt_approx_match_iter *iter,
                 printf("[sa:%lu:orig:%lu]: %s\n", i, iter->sa->array[i], org_string);
             }
             printf("-----------------------------\n");
+#endif
             return true;
         }
         
