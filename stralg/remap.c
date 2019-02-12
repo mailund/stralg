@@ -47,25 +47,47 @@ void free_remap_table(struct remap_table *table)
     free(table);
 }
 
-void remap(const char *output, const char *input,
-           struct remap_table *table)
+
+void remap_between(char *output,
+                   const char *from,
+                   const char *to,
+                   struct remap_table *table)
 {
-    unsigned char *x = (unsigned char*)output;
-    unsigned char *y = (unsigned char*)input;
-    for (; *y; ++y, ++x) {
-        *x = table->table[*y];
+    char *x = output;
+    const char *y = from;
+    for (; y != to; ++y, ++x) {
+        *x = table->table[(unsigned char)*y];
     }
     *x = '\0'; // last index should still be the sentinel
 }
 
-void rev_remap(const char *output, const char *input,
+
+void remap(char *output, const char *input,
            struct remap_table *table)
 {
-    unsigned char *x = (unsigned char*)output;
-    unsigned char *y = (unsigned char*)input;
-    for (; *y; ++y, ++x) {
-        *x = table->rev_table[*y];
+    remap_between(output,
+                  input, input + strlen(input) + 1,
+                  table);
+}
+
+void rev_remap_between(char *output,
+                       const char *from, const char *to,
+                       struct remap_table *table)
+{
+    char *x = output;
+    const char *y = from;
+    for (; y != to; ++y, ++x) {
+        *x = table->rev_table[(unsigned int)*y];
     }
     *x = '\0'; // last index should still be the sentinel
+
+}
+
+void rev_remap(char *output, const char *input,
+               struct remap_table *table)
+{
+    rev_remap_between(output,
+                      input, input + strlen(input) + 1,
+                      table);
 }
 

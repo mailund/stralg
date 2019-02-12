@@ -46,6 +46,20 @@ add_test(
 )
 
 add_executable(
+    cigar_test
+    cigar_test.c
+)
+target_link_libraries(
+    cigar_test
+    stralg
+)
+add_test(
+    CIGAR
+    cigar_test
+)
+
+
+add_executable(
     edit_distance_generator_test
     edit_distance_generator_test.c
 )
