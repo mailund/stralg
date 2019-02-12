@@ -154,8 +154,8 @@ static void push_edits(struct bwt_approx_match_iter *iter,
     size_t new_L;
     size_t new_R;
     
-    char orig_string[iter->sa->length];
-    char orig_pattern[iter->sa->length]; // def enough
+    //char orig_string[iter->sa->length];
+    //char orig_pattern[iter->sa->length]; // def enough
  
     unsigned char match_a = iter->remapped_pattern[i];
     for (unsigned char a = 0; a < iter->remap_table->alphabet_size; ++a) {
@@ -163,15 +163,15 @@ static void push_edits(struct bwt_approx_match_iter *iter,
         iter->bwt_table->c_table[a] : iter->bwt_table->c_table[a] + iter->bwt_table->o_table[o_index(a, L - 1, iter->sa)] + 1;
         new_R = iter->bwt_table->c_table[a] + iter->bwt_table->o_table[o_index(a, R, iter->sa)];
 
+        int edit_cost = (a == match_a) ? 0 : 1;
+
+#if 0
         size_t match_len = match - iter->matched_string + 1;
         for (size_t i = 0; i < match_len; ++i)
             orig_pattern[i] = iter->remap_table->rev_table[(int)iter->matched_string[i]];
         orig_pattern[match_len] = *match;
         orig_pattern[match_len + 1] = '\0';
-        
-        int edit_cost = (a == match_a) ? 0 : 1;
 
-#if 0
         printf("%d %s %d [%lu,%lu] (%s:) with edit cost %d\n",
                a, (a == match_a) ? "==" : "!=", match_a,
                new_L, new_R, orig_pattern,
