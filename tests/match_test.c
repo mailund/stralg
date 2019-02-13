@@ -158,6 +158,7 @@ static void match_test(const char *pattern, char *string) {
     
     struct bwt_table bwt_table;
     init_bwt_table(&bwt_table, sa, &remap_table);
+    print_bwt_table(&bwt_table, sa, &remap_table);
     
     struct bwt_exact_match_iter bwt_iter;
     struct bwt_exact_match bwt_match;
@@ -208,6 +209,12 @@ int main(int argc, char * argv[])
         match_test("a", "acacacg");
         printf("testing c acacacg\n");
         match_test("c", "acacacg");
+        printf("testing acg acacacg\n");
+        match_test("acg", "acacacg");
+        printf("testing cg acacacg\n");
+        match_test("cg", "acacacg");
+        printf("testing g acacacg\n");
+        match_test("g", "acacacg");
     }
     
     

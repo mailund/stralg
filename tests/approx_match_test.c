@@ -47,12 +47,11 @@ static void exact_approach(char *string, char *pattern, const char *alphabet,
     init_edit_iter(&iter, pattern, alphabet, dist);
     while (next_edit_pattern(&iter, &edit_pattern)) {
         size_t m = strlen(edit_pattern.pattern);
-        // if the exact matchers work, I can pick any of them.
-        printf("searching for patter %s\n", edit_pattern.pattern);
+        // If the exact matchers work, I can pick any of them.
+        // I use the border array search.
         struct border_match_iter match_iter;
         init_border_match_iter(&match_iter, string, n, edit_pattern.pattern, m);
         while (next_border_match(&match_iter, &match)) {
-            printf("at position %lu\n", match.pos);
             string_vector_append(results,
                                  match_string(match.pos,
                                               edit_pattern.pattern,
@@ -270,9 +269,9 @@ static void test_exact(char *pattern, char *string,
     
     // FIXME: add lower bound sa search
 
+    printf("BWT\t");
     struct bwt_table bwt_table;
     init_bwt_table(&bwt_table, sa, &remap_table);
-    
     
     string_vector bwt_results;
     init_string_vector(&bwt_results, 10);
@@ -283,15 +282,13 @@ static void test_exact(char *pattern, char *string,
     dealloc_bwt_table(&bwt_table);
 
     sort_string_vector(&bwt_results);
-    printf("FIXME: TEST\n");
-    //assert(string_vector_equal(&exact_results, &bwt_results));
+    assert(string_vector_equal(&exact_results, &bwt_results));
     free_strings(&bwt_results);
     dealloc_string_vector(&bwt_results);
-
-    free_suffix_array(sa);
-
     printf("OK\n");
     //printf("----------------------------------------------------\n");
+
+    free_suffix_array(sa);
     printf("====================================================\n\n");
     
     free_strings(&exact_results);
@@ -313,9 +310,6 @@ static void test_approx(char *pattern, char *string, const char *alphabet)
     init_string_vector(&exact_results, 10);
     exact_approach(string, pattern, alphabet, 1, &exact_results);
     sort_string_vector(&exact_results);
-    
-    print_matchs(&exact_results);
-    return;
     
     string_vector ac_results;
     init_string_vector(&ac_results, 10);
@@ -386,37 +380,6 @@ static void test_approx(char *pattern, char *string, const char *alphabet)
     dealloc_string_vector(&ac_results);
     
 
-#if 0
-    string_vector bwt_results;
-    init_string_vector(&bwt_results, 10);
-    //bwt_match(pattern, string, &bwt_results);
-    sort_string_vector(&bwt_results);
-
-    printf("Testing naive vs suffix tree.\n");
-    assert(string_vector_equal(&exact_results, &st_results));
-
-    printf("EXACT\n");
-    print_matchs(&exact_results);
-    printf("\n");
-    printf("AHO-CORASICK\n");
-    print_matchs(&ac_results);
-    printf("\n");
-    printf("SUFFIX TREE\n");
-    print_matchs(&st_results);
-    printf("\n");
-#if 0
-    printf("BWT\n");
-    print_matchs(&bwt_results);
-    printf("\n");
-#endif
-    
-    free_strings(&ac_results);
-    free_strings(&st_results);
-    dealloc_string_vector(&exact_results);
-    dealloc_string_vector(&ac_results);
-    dealloc_string_vector(&st_results);
-    dealloc_string_vector(&bwt_results);
-#endif
 }
 
 

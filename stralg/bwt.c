@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include <strings.h>
 
-#define PRINT_STACK 1
+#define PRINT_STACK 0
 
 static inline unsigned char bwt(struct suffix_array *sa, size_t i)
 {
@@ -62,19 +62,17 @@ void init_bwt_exact_match_iter(struct bwt_exact_match_iter *iter,
     
     size_t n = sa->length;
     size_t m = strlen(remapped_pattern);
-    size_t L = 1; // FIXME: not including the sentinel?
+    size_t L = 0;
     size_t R = n - 1;
     int i = m - 1;
     
     while (i >= 0 && L <= R) {
         unsigned char a = remapped_pattern[i];
-        L = (L == 0) ?
-            bwt_table->c_table[a] :
-            bwt_table->c_table[a] + bwt_table->o_table[o_index(a, L - 1, sa)] + 1;
+        size_t o_contrib = (L == 0) ? 0 : bwt_table->o_table[o_index(a, L - 1, sa)];
+        L = bwt_table->c_table[a] + o_contrib + 1;
         R = bwt_table->c_table[a] + bwt_table->o_table[o_index(a, R, sa)];
         i--;
     }
-    
     iter->L = L;
     iter->R = R;
     iter->i = L;
@@ -153,47 +151,48 @@ static void push_edits(struct bwt_approx_match_iter *iter,
                        char *cigar, size_t match_length,
                        int edits, size_t L, size_t R, int i)
 {
+    // aliasing to make the code easier to read.
+    struct bwt_table *bwt_table = iter->bwt_table;
+    size_t *c_table = bwt_table->c_table;
+    size_t *o_table = bwt_table->o_table;
+    struct suffix_array *sa = iter->sa;
+    
     size_t new_L;
     size_t new_R;
     
     // M-operations
     unsigned char match_a = iter->remapped_pattern[i];
     for (unsigned char a = 0; a < iter->remap_table->alphabet_size; ++a) {
-        new_L = (L == 0) ?
-        iter->bwt_table->c_table[a] : iter->bwt_table->c_table[a] + iter->bwt_table->o_table[o_index(a, L - 1, iter->sa)] + 1;
-        new_R = iter->bwt_table->c_table[a] + iter->bwt_table->o_table[o_index(a, R, iter->sa)];
+        size_t o_contrib = (L == 0) ? 0 : o_table[o_index(a, L - 1, sa)];
+        new_L = c_table[a] + o_contrib + 1;
+        new_R = c_table[a] + o_table[o_index(a, R, sa)];
 
         int edit_cost = (a == match_a) ? 0 : 1;
-        // FIXME: for debugging
-        edit_cost = 0;
         if (edits - edit_cost < 0) continue;
 
         push_frame(iter, 'M', edits - edit_cost,
                    cigar + 1, match_length + 1,
                    new_L, new_R, i - 1);
     }
-    if (edits > 0) {
-#if 0
-        // I-operation
-        push_frame(iter, 'I', edits - 1,
-                   cigar + 1, match_length,
-                   L, R, i - 1);
-        // D-operation
-        for (unsigned char a = 0; a < iter->remap_table->alphabet_size; ++a) {
-            new_L = (L == 0) ?
-                iter->bwt_table->c_table[a] :
-                iter->bwt_table->c_table[a] +
-                    iter->bwt_table->o_table[o_index(a, L - 1, iter->sa)] + 1;
-            new_R = iter->bwt_table->c_table[a] +
-                iter->bwt_table->o_table[o_index(a, R, iter->sa)];
-            push_frame(iter, 'D', edits - 1,
-                       cigar + 1, match_length + 1,
-                       new_L, new_R, i);
-
-        }
-#endif
-    }
     
+    // The insertion and deletion operations
+    // are only possible if we have more edits left.
+    if (edits <= 0) return;
+
+    // I-operation
+    push_frame(iter, 'I', edits - 1,
+               cigar + 1, match_length,
+               L, R, i - 1);
+
+    // D-operation
+    for (unsigned char a = 0; a < iter->remap_table->alphabet_size; ++a) {
+        size_t o_contrib = (L == 0) ? 0 : o_table[o_index(a, L - 1, sa)];
+        new_L = c_table[a] + o_contrib + 1;
+        new_R = c_table[a] + o_table[o_index(a, R, sa)];
+        push_frame(iter, 'D', edits - 1,
+                   cigar + 1, match_length + 1,
+                   new_L, new_R, i);
+    }
     
 #if PRINT_STACK
     printf("stack after push edits:\n");
@@ -254,7 +253,7 @@ void init_bwt_approx_match_iter   (struct bwt_approx_match_iter *iter,
     size_t n = iter->sa->length;
     size_t m = strlen(p);
 
-    size_t L = 1; // FIXME: not including the sentinel?
+    size_t L = 0;
     size_t R = n - 1;
     int i = m - 1;
     
