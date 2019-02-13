@@ -1,10 +1,12 @@
 
-#include <bwt.h>
+#include <string_utils.h>
 #include <cigar.h>
+#include <bwt.h>
+
 #include <stdio.h>
 #include <strings.h>
 
-#define PRINT_STACK 0
+#define PRINT_STACK 1
 
 static inline unsigned char bwt(struct suffix_array *sa, size_t i)
 {
@@ -65,7 +67,6 @@ void init_bwt_exact_match_iter(struct bwt_exact_match_iter *iter,
     int i = m - 1;
     
     while (i >= 0 && L <= R) {
-        printf("BWT exact, [%lu,%lu] %d\n", L, R, i);
         unsigned char a = remapped_pattern[i];
         L = (L == 0) ?
             bwt_table->c_table[a] :
@@ -73,8 +74,6 @@ void init_bwt_exact_match_iter(struct bwt_exact_match_iter *iter,
         R = bwt_table->c_table[a] + bwt_table->o_table[o_index(a, R, sa)];
         i--;
     }
-    
-    printf("BWT exact done: [%lu,%lu] %d\n", L, R, i);
     
     iter->L = L;
     iter->R = R;
@@ -157,8 +156,6 @@ static void push_edits(struct bwt_approx_match_iter *iter,
     size_t new_L;
     size_t new_R;
     
-    printf("pushing edits [%lu,%lu] %d\n", L, R, i);
-    
     // M-operations
     unsigned char match_a = iter->remapped_pattern[i];
     for (unsigned char a = 0; a < iter->remap_table->alphabet_size; ++a) {
@@ -167,25 +164,20 @@ static void push_edits(struct bwt_approx_match_iter *iter,
         new_R = iter->bwt_table->c_table[a] + iter->bwt_table->o_table[o_index(a, R, iter->sa)];
 
         int edit_cost = (a == match_a) ? 0 : 1;
+        // FIXME: for debugging
+        edit_cost = 0;
         if (edits - edit_cost < 0) continue;
 
-#if 1
-        printf("%d %s %d [%lu,%lu] (length %lu) with edit cost %d\n",
-               a, (a == match_a) ? "==" : "!=", match_a,
-               new_L, new_R, match_length,
-               edit_cost);
-#endif
-        
         push_frame(iter, 'M', edits - edit_cost,
                    cigar + 1, match_length + 1,
                    new_L, new_R, i - 1);
     }
     if (edits > 0) {
+#if 0
         // I-operation
         push_frame(iter, 'I', edits - 1,
                    cigar + 1, match_length,
                    L, R, i - 1);
-        
         // D-operation
         for (unsigned char a = 0; a < iter->remap_table->alphabet_size; ++a) {
             new_L = (L == 0) ?
@@ -199,6 +191,7 @@ static void push_edits(struct bwt_approx_match_iter *iter,
                        new_L, new_R, i);
 
         }
+#endif
     }
     
     
@@ -240,36 +233,17 @@ void init_bwt_approx_match_iter   (struct bwt_approx_match_iter *iter,
                                    const char                   *p,
                                    int                           edits)
 {
-#if 1
-    printf("init with table:\n");
-    print_bwt_table(bwt_table, sa, remap_table);
-#endif
-    
     iter->sa = sa;
     iter->bwt_table = bwt_table;
     iter->remap_table = remap_table;
     iter->remapped_pattern = p;
     
-//    printf("init with pattern: ");
-//    size_t mm = strlen(p) + 1;
-//    for (size_t i = 0; i < mm; ++i) {
-//        printf("%d", p[i]);
-//    }
-//    printf("\n");
-    
      // one edit can max cost four characters
     size_t buf_size = strlen(p) + 4 * edits + 1;
     
     iter->sentinel.next = 0;
-    //iter->matched_string = malloc(buf_size + 1); iter->matched_string[0] = '\0';
     iter->full_cigar_buf = malloc(buf_size + 1); iter->full_cigar_buf[0] = '\0';
     iter->cigar_buf = malloc(buf_size + 1);      iter->cigar_buf[0] = '\0';
-    
-//    printf("after init: %lu [%p]%s [%p]%s [%p]%s\n",
-//           buf_size,
-//           iter->matched_string, iter->matched_string,
-//           iter->full_cigar_buf, iter->full_cigar_buf,
-//           iter->cigar_buf, iter->cigar_buf);
     
 #if PRINT_STACK
     printf("stack after setup:\n");
@@ -284,8 +258,6 @@ void init_bwt_approx_match_iter   (struct bwt_approx_match_iter *iter,
     size_t R = n - 1;
     int i = m - 1;
     
-    //printf("before push edit with interval [%lu,%d,%lu]\n", L, i, R);
-
     // push the start of the search
     push_edits(iter, iter->full_cigar_buf, 0, edits, L, R, i);
 }
@@ -303,50 +275,32 @@ bool next_bwt_approx_match_iter   (struct bwt_approx_match_iter *iter,
     
     while (iter->sentinel.next) {
         pop_edits(iter, &edit_op, &edits, &cigar, &match_length, &L, &R, &i);
-        printf("popped bwt frame: [%lu,%lu] %d\n", L, R, i);
         
         // in these cases we will never find a match
         if (edits < 0) continue;
         if (L > R) continue;
 
-        
         cigar[-1] = edit_op;
-        //match[-1] = match_char;
-
-        
 
         if (i < 0 && L <= R) {
-            // for debug
-            //char org_string[iter->sa->length];
-            //rev_remap(org_string, iter->sa->string, iter->remap_table);
-
-            // we have a match.
+            // We have a match!
+            
+            // To get the right cigar, we must reverse and simplify.
+            // We need to revese a copy because the full_cigar_buf
+            // contains state that will be reused elsewhere in
+            // the recursive exploration.
             *cigar = '\0';
-            simplify_cigar(iter->cigar_buf, iter->full_cigar_buf);
+            char buf[strlen(iter->full_cigar_buf) + 1];
+            strcpy(buf, iter->full_cigar_buf);
+            str_inplace_rev(buf);
+            simplify_cigar(iter->cigar_buf, buf);
+            
             res->cigar = iter->cigar_buf;
             res->match_length = match_length;
             res->sa = iter->sa;
             res->L = L;
             res->R = R;
             
-            printf("-----------------------------\n");
-            printf("got a match! [%lu,%lu](%d,%s)\n", L, R, edits, res->cigar);
-#if 0
-            printf("matched string: ");
-            size_t match_length = match - iter->matched_string;
-            for (size_t i = 0; i < match_length; ++i) {
-                printf("%d", iter->matched_string[i]);
-            }
-            printf(" ");
-            for (size_t i = 0; i < match_length; ++i) {
-                printf("%c", iter->remap_table->rev_table[(int)iter->matched_string[i]]);
-            }
-            printf("\n");
-            for (size_t i = L; i <= R; ++i) {
-                printf("[sa:%lu:orig:%lu]: %s\n", i, iter->sa->array[i], org_string);
-            }
-            printf("-----------------------------\n");
-#endif
             return true;
         }
         

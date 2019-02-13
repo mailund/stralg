@@ -2,17 +2,18 @@
 set(CMAKE_MACOSX_RPATH 1)
 add_library(stralg SHARED
 	stralg.h
-	match.h match.c
-	trie.h trie.c
-	generic_data_structures.h generic_data_structures.c
 	aho_corasick.h aho_corasick.c
-	edit_distance_generator.h edit_distance_generator.c
-	cigar.h cigar.c
-	remap.h remap.c
-	suffix_array.h suffix_array.c
 	bwt.h bwt.c
-	suffix_tree.h suffix_tree.c
+	match.h match.c
+	cigar.h cigar.c
+	edit_distance_generator.h edit_distance_generator.c
+	generic_data_structures.h generic_data_structures.c
 	io.h io.c
+	remap.h remap.c
+	string_utils.h string_utils.c
+	suffix_array.h suffix_array.c
+	suffix_tree.h suffix_tree.c
+	trie.h trie.c
 )
 
 target_include_directories(stralg

@@ -58,6 +58,18 @@ add_test(
     cigar_test
 )
 
+add_executable(
+    string_utils_test
+    string_utils_test.c
+)
+target_link_libraries(
+    string_utils_test
+    stralg
+)
+add_test(
+    "String-utils"
+    string_utils_test
+)
 
 add_executable(
     edit_distance_generator_test

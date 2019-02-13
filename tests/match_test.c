@@ -64,68 +64,52 @@ static void test_suffix_tree_match(index_vector *naive_matches,
     free_index_vector(st_matches);
 }
 
-int main(int argc, char * argv[])
-{
-    char *string;
-    const char *pattern;
-    const char *fname;
-    
-    if (argc == 3) {
-        pattern = argv[1];
-        fname = argv[2];
-        // LCOV_EXCL_START
-        string = load_file(fname);
-        if (!string) {
-            printf("Couldn't read file %s\n", fname);
-            return EXIT_FAILURE;
-        }
-    } else {
-        string = "acacacg";
-        pattern = "aca";
-    }
-    
-    
+static void match_test(const char *pattern, char *string) {
     index_vector naive;  init_index_vector(&naive, 10);
     index_vector border; init_index_vector(&border, 10);
     index_vector kmp;    init_index_vector(&kmp, 10);
     index_vector bmh;    init_index_vector(&bmh, 10);
     
+    printf("naive algorithm.\n");
     struct naive_match_iter naive_iter;
     iter_test(
-        string, pattern,
-        &naive_iter,
-        (iter_init_func)init_naive_match_iter,
-        (iteration_func)next_naive_match,
-        (iter_dealloc_func)dealloc_naive_match_iter,
-        &naive
-    );
+              string, pattern,
+              &naive_iter,
+              (iter_init_func)init_naive_match_iter,
+              (iteration_func)next_naive_match,
+              (iter_dealloc_func)dealloc_naive_match_iter,
+              &naive
+              );
+    printf("border algorithm.\n");
     struct border_match_iter border_iter;
     iter_test(
-        string, pattern,
-        &border_iter,
-        (iter_init_func)init_border_match_iter,
-        (iteration_func)next_border_match,
-        (iter_dealloc_func)dealloc_border_match_iter,
-        &border
-    );
+              string, pattern,
+              &border_iter,
+              (iter_init_func)init_border_match_iter,
+              (iteration_func)next_border_match,
+              (iter_dealloc_func)dealloc_border_match_iter,
+              &border
+              );
+    printf("KMP algorithm.\n");
     struct kmp_match_iter kmp_iter;
     iter_test(
-        string, pattern,
-        &kmp_iter,
-        (iter_init_func)init_kmp_match_iter,
-        (iteration_func)next_kmp_match,
-        (iter_dealloc_func)dealloc_kmp_match_iter,
-        &kmp
-    );
+              string, pattern,
+              &kmp_iter,
+              (iter_init_func)init_kmp_match_iter,
+              (iteration_func)next_kmp_match,
+              (iter_dealloc_func)dealloc_kmp_match_iter,
+              &kmp
+              );
+    printf("BMH algorithm.\n");
     struct bmh_match_iter bmh_iter;
     iter_test(
-        string, pattern,
-        &bmh_iter,
-        (iter_init_func)init_bmh_match_iter,
-        (iteration_func)next_bmh_match,
-        (iter_dealloc_func)dealloc_bmh_match_iter,
-        &bmh
-    );
+              string, pattern,
+              &bmh_iter,
+              (iter_init_func)init_bmh_match_iter,
+              (iteration_func)next_bmh_match,
+              (iter_dealloc_func)dealloc_bmh_match_iter,
+              &bmh
+              );
     
     assert(vector_equal(&naive, &border));
     assert(vector_equal(&naive, &kmp));
@@ -135,7 +119,7 @@ int main(int argc, char * argv[])
     dealloc_index_vector(&kmp);
     dealloc_index_vector(&bmh);
     // do not release naive yet. I need to test it below
-
+    
     // ------------- SUFFIX TREE ----------------
     struct suffix_tree *st = naive_suffix_tree(string);
     st_print_dot_name(st, st->root, "tree.dot");
@@ -149,7 +133,7 @@ int main(int argc, char * argv[])
     st = lcp_suffix_tree(string, sorted_suffixes, lcp);
     test_suffix_tree_match(&naive, pattern, st, string);
     free_suffix_tree(st);
-
+    
     
     // --------------- BWT ----------------------
     // setup for bwt tests.
@@ -163,7 +147,7 @@ int main(int argc, char * argv[])
     char remappe_string[n + 1];
     size_t m = strlen(pattern);
     char remapped_pattern[m + 1];
-
+    
     struct remap_table remap_table;
     init_remap_table(&remap_table, string);
     
@@ -171,7 +155,7 @@ int main(int argc, char * argv[])
     remap(remapped_pattern, pattern, &remap_table);
     
     struct suffix_array *sa = qsort_sa_construction(remappe_string);
-
+    
     struct bwt_table bwt_table;
     init_bwt_table(&bwt_table, sa, &remap_table);
     
@@ -193,9 +177,44 @@ int main(int argc, char * argv[])
     dealloc_index_vector(&bwt);
     
     dealloc_index_vector(&naive);
+}
+
+int main(int argc, char * argv[])
+{
+    char *string;
+    const char *pattern;
+    const char *fname;
+    
+    if (argc == 3) {
+        pattern = argv[1];
+        fname = argv[2];
+        string = load_file(fname);
+        if (!string) {
+            printf("Couldn't read file %s\n", fname);
+            return EXIT_FAILURE;
+        }
+        
+        match_test(pattern, string);
+        free(string);
+        
+    } else {
+        printf("testing aca acacacg\n");
+        match_test("aca", "acacacg");
+        //printf("testing ac acacacg\n");
+        //match_test("ac", "acacacg");
+//        printf("testing ca acacacg\n");
+//        match_test("ca", "acacacg");
+//        printf("testing a acacacg\n");
+//        match_test("a", "acacacg");
+//        printf("testing c acacacg\n");
+//        match_test("c", "acacacg");
+    }
+    
+    
+    
 
     if (argc == 3)
-        free(string); // it was loaded from a file in this setup
+        
     
     return EXIT_SUCCESS;
 }

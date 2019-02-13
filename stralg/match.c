@@ -63,18 +63,23 @@ void init_border_match_iter(
     size_t *ba = malloc(m * sizeof(size_t));
     ba[0] = 0;
     for (int i = 1; i < m; ++i) {
-        int b = ba[i-1];
+        int b = ba[i - 1];
         while (b > 0 && pattern[i] != pattern[b])
             b = ba[b-1];
         ba[i] = (pattern[i] == pattern[b]) ? b + 1 : 0;
     }
     iter->border_array = ba;
+    
+    for (size_t i = 0; i < m; ++i) {
+        printf("B[%lu] = %lu\n", i, ba[i]);
+    }
 }
 
 bool next_border_match(
     struct border_match_iter *iter,
     struct match *match
 ) {
+    
     const char *text = iter->text;
     const char *pattern = iter->pattern;
     size_t *ba = iter->border_array;
@@ -85,7 +90,9 @@ bool next_border_match(
         while (b > 0 && text[i] != pattern[b])
             b = ba[b - 1];
         b = (text[i] == pattern[b]) ? b + 1 : 0;
+        printf("b is %lu (m == %lu) and i is %lu\n", b, m, i);
         if (b == m) {
+            printf("hit!\n");
             iter->i = i;
             iter->b = b;
             match->pos = i - m + 1;
