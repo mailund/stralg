@@ -154,7 +154,7 @@ static void st_match(struct suffix_tree *st,
     struct st_approx_match match;
     struct st_leaf_iter leaf_iter;
     struct st_leaf_iter_result st_match;
-    char path_buffer[st->length];
+    char path_buffer[st->length + 1];
     
     init_st_approx_iter(&iter, st, pattern, edit);
     // FIXME: implement this double loop as a single
@@ -325,6 +325,8 @@ static void test_approx(char *pattern, char *string, const char *alphabet)
 
     printf("Aho-Corasic vs \"naive suffix\" tree\t");
     struct suffix_tree *st = naive_suffix_tree(string);
+    st_print_dot_name(st, st->root, "naive-tree.dot");
+    
     string_vector st_results;
     init_string_vector(&st_results, 10);
     st_match(st, pattern, string, edits, &st_results);
@@ -336,6 +338,7 @@ static void test_approx(char *pattern, char *string, const char *alphabet)
     dealloc_string_vector(&st_results);
     printf("OK\n");
     printf("----------------------------------------------------\n");
+
 
     printf("Aho-Corasic vs BWT.\n");
 
@@ -387,9 +390,8 @@ static void test_approx(char *pattern, char *string, const char *alphabet)
 int main(int argc, char **argv)
 {
     char *alphabet = "acgt";
-    char *string = "acacacg";
-    char *pattern = "aca";
-    //This will fail: char *pattern = "ac";
+    char *string = "gacacacag";
+    char *pattern = "acg";
     
     // FIXME: there is no reason to rebuild the suffix tree
     // suffix array, remapped strings and the bwt_tables.

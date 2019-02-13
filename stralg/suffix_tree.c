@@ -619,7 +619,7 @@ void st_print_dot(struct suffix_tree *st,
                   FILE *file)
 {
     struct suffix_tree_node *root = n ? n : st->root;
-    char buffer[strlen(st->string) + 1];
+    char buffer[strlen(st->string) + 2]; // + 1 for the sentinel and +1 for '\0' I think
     
     fprintf(file, "digraph {\n");
     fprintf(file, "node[shape=circle];\n");
