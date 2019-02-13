@@ -69,10 +69,6 @@ void init_border_match_iter(
         ba[i] = (pattern[i] == pattern[b]) ? b + 1 : 0;
     }
     iter->border_array = ba;
-    
-    for (size_t i = 0; i < m; ++i) {
-        printf("B[%lu] = %lu\n", i, ba[i]);
-    }
 }
 
 bool next_border_match(
@@ -90,10 +86,8 @@ bool next_border_match(
         while (b > 0 && text[i] != pattern[b])
             b = ba[b - 1];
         b = (text[i] == pattern[b]) ? b + 1 : 0;
-        printf("b is %lu (m == %lu) and i is %lu\n", b, m, i);
         if (b == m) {
-            printf("hit!\n");
-            iter->i = i;
+            iter->i = i + 1;
             iter->b = b;
             match->pos = i - m + 1;
             return true;

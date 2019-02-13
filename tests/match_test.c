@@ -200,21 +200,16 @@ int main(int argc, char * argv[])
     } else {
         printf("testing aca acacacg\n");
         match_test("aca", "acacacg");
-        //printf("testing ac acacacg\n");
-        //match_test("ac", "acacacg");
-//        printf("testing ca acacacg\n");
-//        match_test("ca", "acacacg");
-//        printf("testing a acacacg\n");
-//        match_test("a", "acacacg");
-//        printf("testing c acacacg\n");
-//        match_test("c", "acacacg");
+        printf("testing ac acacacg\n");
+        match_test("ac", "acacacg");
+        printf("testing ca acacacg\n");
+        match_test("ca", "acacacg");
+        printf("testing a acacacg\n");
+        match_test("a", "acacacg");
+        printf("testing c acacacg\n");
+        match_test("c", "acacacg");
     }
     
-    
-    
-
-    if (argc == 3)
-        
     
     return EXIT_SUCCESS;
 }

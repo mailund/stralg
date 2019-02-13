@@ -59,3 +59,4 @@ tests/tree.dot
 tests/remap_test
 tests/bwt_test
 tests/cigar_test
+tests/string_utils_test
