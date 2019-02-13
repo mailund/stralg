@@ -50,6 +50,7 @@ struct bwt_approx_frame {
     int edits;
     char edit_op;
     char *cigar;
+    size_t match_length;
     
     size_t L;
     int i;
@@ -64,12 +65,12 @@ struct bwt_approx_match_iter {
     struct bwt_approx_frame sentinel;
     
     const char *remapped_pattern;
-    //char *matched_string; // string with edits.
     char *full_cigar_buf;
     char *cigar_buf;
 };
 struct bwt_approx_match {
     const char *cigar;
+    size_t match_length;
     struct suffix_array *sa;
     size_t L;
     size_t R;

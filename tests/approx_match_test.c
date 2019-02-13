@@ -193,11 +193,9 @@ static void bwt_match(struct suffix_array *sa,
     struct bwt_exact_match exact_match;
     
     size_t n = 3 * strlen(pattern) + 1;
-    // for alignment (not that we use it, but we need
-    // it for the function call).
-    char align_match_buf[n];
-    char allign_pat_buf[n];
-    
+
+    // we need this to get the string we actually matched
+    // from the remapped stuff.
     char rev_mapped_match[n];
     
     // FIXME: make this double loop a single iterator in bwt id:22
@@ -206,17 +204,16 @@ static void bwt_match(struct suffix_array *sa,
     
     while (next_bwt_approx_match_iter(&approx_iter, &approx_match)) {
         init_bwt_exact_match_from_approx_match(&approx_match, &exact_iter);
-        //rev_remap_between0(rev_mapped_match, string + approx_match.L,
-         //                  approx_match.
-        //printf("match!! %s\n", approx_match.matched_string);
-        
-        //rev_remap(rev_mapped_match, approx_match.matched_string, remap_table);
-        // FIXME: get the missing strings from the iterators...
-        
         while (next_bwt_exact_match_iter(&exact_iter, &exact_match)) {
-            
+            printf("match cigar %s matches string of length %lu\n", approx_match.cigar, approx_match.match_length);
+            printf("from pos %lu to %lu\n", exact_match.pos,
+                   exact_match.pos + approx_match.match_length);
+            rev_remap_between0(rev_mapped_match,
+                               string + exact_match.pos,
+                               string + exact_match.pos + approx_match.match_length,
+                               remap_table);
             string_vector_append(bwt_results,
-                                 match_string(exact_match.pos, "?", approx_match.cigar));
+                                 match_string(exact_match.pos, rev_mapped_match, approx_match.cigar));
         }
         dealloc_bwt_exact_match_iter(&exact_iter);
     }
@@ -260,11 +257,10 @@ static void test_exact(char *pattern, char *string,
     printf("OK\n");
     printf("----------------------------------------------------\n");
 
-    // FIXME: add searches using the lcp construction id:14
-    // FIXME: make all the matches work with the remapped string id:20
+    // FIXME: add searches using the lcp construction
+    // FIXME: make all the matches work with the remapped string
 
     size_t n = strlen(string);
-    printf("allocated size %lu\n", n + 1);
     char remapped_string[n + 1];
     size_t m = strlen(pattern);
     char remapped_pattern[m + 1];
@@ -274,14 +270,15 @@ static void test_exact(char *pattern, char *string,
     remap(remapped_string, string, &remap_table);
     remap(remapped_pattern, pattern, &remap_table);
     
+    
     struct suffix_array *sa = qsort_sa_construction(remapped_string);
     
+    // FIXME: add lower bound sa search
+
     struct bwt_table bwt_table;
     init_bwt_table(&bwt_table, sa, &remap_table);
-
-    // FIXME: add lower bound sa search id:17
-    // FIXME: add bwt test id:23
-
+    
+    
     string_vector bwt_results;
     init_string_vector(&bwt_results, 10);
     bwt_match(sa, remapped_pattern, remapped_string,
@@ -290,15 +287,15 @@ static void test_exact(char *pattern, char *string,
     dealloc_remap_table(&remap_table);
     dealloc_bwt_table(&bwt_table);
 
-    printf("Exact results\n");
-    print_matchs(&exact_results);
-    printf("BWT results\n");
-    print_matchs(&bwt_results);
-    
+    sort_string_vector(&bwt_results);
+    assert(string_vector_equal(&exact_results, &bwt_results));
     free_strings(&bwt_results);
     dealloc_string_vector(&bwt_results);
+
     free_suffix_array(sa);
 
+    printf("OK\n");
+    //printf("----------------------------------------------------\n");
     printf("====================================================\n\n");
     
     free_strings(&exact_results);
@@ -332,6 +329,8 @@ static void test_approx(char *pattern, char *string, const char *alphabet)
     assert(vector_equal(&exact_results, &ac_results));
     free_strings(&exact_results);
     dealloc_vector(&exact_results);
+    printf("OK\n");
+    printf("----------------------------------------------------\n");
 
     printf("Aho-Corasic vs \"naive suffix\" tree.\n");
     struct suffix_tree *st = naive_suffix_tree(string);
@@ -340,6 +339,8 @@ static void test_approx(char *pattern, char *string, const char *alphabet)
     st_match(st, pattern, string, edits, &st_results);
     sort_string_vector(&st_results);
     free_suffix_tree(st);
+    
+    print_matchs(&ac_results);
     
     assert(vector_equal(&ac_results, &st_results));
     free_strings(&st_results);
@@ -375,6 +376,8 @@ static void test_approx(char *pattern, char *string, const char *alphabet)
 
     // Can't assert before I get the strings out of bwt.
     //assert(vector_equal(&ac_results, &bwt_results));
+    print_matchs(&ac_results);
+    printf("===\n");
     print_matchs(&bwt_results);
     printf("OK\n");
     printf("----------------------------------------------------\n");
@@ -433,9 +436,7 @@ int main(int argc, char **argv)
     // Build them here and pass them on as parameters
     // to the tests.
     test_exact(pattern, string, alphabet);
-    //test_approx(pattern, string, alphabet);
-    
-    printf("experimenting...\n");
+    test_approx(pattern, string, alphabet);
 
     return EXIT_SUCCESS;
 }

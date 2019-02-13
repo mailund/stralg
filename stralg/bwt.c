@@ -60,10 +60,12 @@ void init_bwt_exact_match_iter(struct bwt_exact_match_iter *iter,
     
     size_t n = sa->length;
     size_t m = strlen(remapped_pattern);
-    size_t L = 0;
+    size_t L = 1; // FIXME: not including the sentinel?
     size_t R = n - 1;
     int i = m - 1;
+    
     while (i >= 0 && L <= R) {
+        printf("BWT exact, [%lu,%lu] %d\n", L, R, i);
         unsigned char a = remapped_pattern[i];
         L = (L == 0) ?
             bwt_table->c_table[a] :
@@ -72,9 +74,11 @@ void init_bwt_exact_match_iter(struct bwt_exact_match_iter *iter,
         i--;
     }
     
+    printf("BWT exact done: [%lu,%lu] %d\n", L, R, i);
+    
     iter->L = L;
-    iter->i = L;
     iter->R = R;
+    iter->i = L;
 }
 
 bool next_bwt_exact_match_iter(struct bwt_exact_match_iter *iter,
@@ -102,7 +106,9 @@ void dealloc_bwt_exact_match_iter(struct bwt_exact_match_iter *iter)
 #if PRINT_STACK
 static void print_frame(struct bwt_approx_frame *frame)
 {
-    printf("[%lu,%d,%lu(%c:%d)]->", frame->L, frame->i, frame->R, frame->edit_op, frame->edits);
+    printf("{ [%lu:%lu] %d (%c:%d) }->",
+           frame->L, frame->R, frame->i,
+           frame->edit_op, frame->edits);
 }
 
 static void print_stack(struct bwt_approx_frame *sentinel)
@@ -119,21 +125,19 @@ static void print_stack(struct bwt_approx_frame *sentinel)
 
 static void push_frame(struct bwt_approx_match_iter *iter,
                        char edit_op, int edits,
-                       char *cigar,
-                       size_t L, int i, size_t R)
+                       char *cigar, size_t match_length,
+                       size_t L, size_t R, int i)
 {
     struct bwt_approx_frame *frame = malloc(sizeof(struct bwt_approx_frame));
 
-    //printf("pushing %p %p %lu %d %lu\n", match, cigar, L, i, R);
-    
-    //frame->match = match;
-    frame->cigar = cigar;
-    
     frame->edit_op = edit_op;
     frame->edits = edits;
+    frame->cigar = cigar;
+    frame->match_length = match_length;
+    
     frame->L = L;
-    frame->i = i;
     frame->R = R;
+    frame->i = i;
     
     frame->next = iter->sentinel.next;
     iter->sentinel.next = frame;
@@ -147,15 +151,15 @@ static void push_frame(struct bwt_approx_match_iter *iter,
 }
 
 static void push_edits(struct bwt_approx_match_iter *iter,
-                       /*char *match, */ char *cigar,
-                       int edits, size_t L, int i, size_t R)
+                       char *cigar, size_t match_length,
+                       int edits, size_t L, size_t R, int i)
 {
     size_t new_L;
     size_t new_R;
     
-    //char orig_string[iter->sa->length];
-    //char orig_pattern[iter->sa->length]; // def enough
- 
+    printf("pushing edits [%lu,%lu] %d\n", L, R, i);
+    
+    // M-operations
     unsigned char match_a = iter->remapped_pattern[i];
     for (unsigned char a = 0; a < iter->remap_table->alphabet_size; ++a) {
         new_L = (L == 0) ?
@@ -163,22 +167,40 @@ static void push_edits(struct bwt_approx_match_iter *iter,
         new_R = iter->bwt_table->c_table[a] + iter->bwt_table->o_table[o_index(a, R, iter->sa)];
 
         int edit_cost = (a == match_a) ? 0 : 1;
+        if (edits - edit_cost < 0) continue;
 
-#if 0
-        size_t match_len = match - iter->matched_string + 1;
-        for (size_t i = 0; i < match_len; ++i)
-            orig_pattern[i] = iter->remap_table->rev_table[(int)iter->matched_string[i]];
-        orig_pattern[match_len] = *match;
-        orig_pattern[match_len + 1] = '\0';
-
-        printf("%d %s %d [%lu,%lu] (%s:) with edit cost %d\n",
+#if 1
+        printf("%d %s %d [%lu,%lu] (length %lu) with edit cost %d\n",
                a, (a == match_a) ? "==" : "!=", match_a,
-               new_L, new_R, orig_pattern,
+               new_L, new_R, match_length,
                edit_cost);
 #endif
         
-        push_frame(iter, 'M', edits - edit_cost, cigar + 1, new_L, i - 1, new_R);
+        push_frame(iter, 'M', edits - edit_cost,
+                   cigar + 1, match_length + 1,
+                   new_L, new_R, i - 1);
     }
+    if (edits > 0) {
+        // I-operation
+        push_frame(iter, 'I', edits - 1,
+                   cigar + 1, match_length,
+                   L, R, i - 1);
+        
+        // D-operation
+        for (unsigned char a = 0; a < iter->remap_table->alphabet_size; ++a) {
+            new_L = (L == 0) ?
+                iter->bwt_table->c_table[a] :
+                iter->bwt_table->c_table[a] +
+                    iter->bwt_table->o_table[o_index(a, L - 1, iter->sa)] + 1;
+            new_R = iter->bwt_table->c_table[a] +
+                iter->bwt_table->o_table[o_index(a, R, iter->sa)];
+            push_frame(iter, 'D', edits - 1,
+                       cigar + 1, match_length + 1,
+                       new_L, new_R, i);
+
+        }
+    }
+    
     
 #if PRINT_STACK
     printf("stack after push edits:\n");
@@ -189,7 +211,8 @@ static void push_edits(struct bwt_approx_match_iter *iter,
 
 static void pop_edits(struct bwt_approx_match_iter *iter,
                       char *edit_op, int *edits,
-                      char **cigar, size_t *L, int *i, size_t *R)
+                      char **cigar, size_t *match_length,
+                      size_t *L, size_t *R, int *i)
 {
     // the stack should never be called on an empty stack,
     // but just in case...
@@ -201,9 +224,10 @@ static void pop_edits(struct bwt_approx_match_iter *iter,
     *edit_op = frame->edit_op;
     *edits = frame->edits;
     *cigar = frame->cigar;
+    *match_length = frame->match_length;
     *L = frame->L;
-    *i = frame->i;
     *R = frame->R;
+    *i = frame->i;
     
     free(frame);
 }
@@ -216,7 +240,7 @@ void init_bwt_approx_match_iter   (struct bwt_approx_match_iter *iter,
                                    const char                   *p,
                                    int                           edits)
 {
-#if 0
+#if 1
     printf("init with table:\n");
     print_bwt_table(bwt_table, sa, remap_table);
 #endif
@@ -256,14 +280,14 @@ void init_bwt_approx_match_iter   (struct bwt_approx_match_iter *iter,
     size_t n = iter->sa->length;
     size_t m = strlen(p);
 
-    size_t L = 0;
+    size_t L = 1; // FIXME: not including the sentinel?
     size_t R = n - 1;
     int i = m - 1;
     
     //printf("before push edit with interval [%lu,%d,%lu]\n", L, i, R);
 
     // push the start of the search
-    push_edits(iter, iter->full_cigar_buf, edits, L, i, R);
+    push_edits(iter, iter->full_cigar_buf, 0, edits, L, R, i);
 }
 
 bool next_bwt_approx_match_iter   (struct bwt_approx_match_iter *iter,
@@ -272,14 +296,14 @@ bool next_bwt_approx_match_iter   (struct bwt_approx_match_iter *iter,
     char edit_op;
     int edits;
     char *cigar;
+    size_t match_length;
     size_t L;
     int i;
     size_t R;
     
     while (iter->sentinel.next) {
-        pop_edits(iter, &edit_op, &edits, &cigar, &L, &i, &R);
-//        printf("popped bwt frame: %c %d %p %p %lu %d %lu\n",
-//               edit_op, edits, match, cigar, L, i, R);
+        pop_edits(iter, &edit_op, &edits, &cigar, &match_length, &L, &R, &i);
+        printf("popped bwt frame: [%lu,%lu] %d\n", L, R, i);
         
         // in these cases we will never find a match
         if (edits < 0) continue;
@@ -300,13 +324,14 @@ bool next_bwt_approx_match_iter   (struct bwt_approx_match_iter *iter,
             *cigar = '\0';
             simplify_cigar(iter->cigar_buf, iter->full_cigar_buf);
             res->cigar = iter->cigar_buf;
+            res->match_length = match_length;
             res->sa = iter->sa;
             res->L = L;
             res->R = R;
             
-#if 0
             printf("-----------------------------\n");
             printf("got a match! [%lu,%lu](%d,%s)\n", L, R, edits, res->cigar);
+#if 0
             printf("matched string: ");
             size_t match_length = match - iter->matched_string;
             for (size_t i = 0; i < match_length; ++i) {
@@ -325,7 +350,7 @@ bool next_bwt_approx_match_iter   (struct bwt_approx_match_iter *iter,
             return true;
         }
         
-        push_edits(iter, cigar, edits, L, i, R);
+        push_edits(iter, cigar, match_length, edits, L, R, i);
     }
     
     return false;

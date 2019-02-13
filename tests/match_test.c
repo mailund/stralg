@@ -80,8 +80,8 @@ int main(int argc, char * argv[])
             return EXIT_FAILURE;
         }
     } else {
-        string = "mississipi";
-        pattern = "ssi";
+        string = "acacacg";
+        pattern = "aca";
     }
     
     
