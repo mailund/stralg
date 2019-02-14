@@ -45,7 +45,7 @@ static void iter_test(
 static void test_suffix_tree_match(index_vector *naive_matches,
                                    const char *pattern,
                                    struct suffix_tree *st,
-                                   char *string)
+                                   const char *string)
 {
     struct st_leaf_iter st_iter;
     struct st_leaf_iter_result res;
@@ -65,7 +65,8 @@ static void test_suffix_tree_match(index_vector *naive_matches,
 }
 
 static void simple_exact_matchers(index_vector *naive,
-                                  const char *pattern, char *string)
+                                  const char *pattern,
+                                  const char *string)
 {
     index_vector border; init_index_vector(&border, 10);
     index_vector kmp;    init_index_vector(&kmp, 10);
@@ -113,11 +114,8 @@ static void simple_exact_matchers(index_vector *naive,
 
 static void general_suffix_test(index_vector *naive,
                                 const char *pattern,
-                                char *string)
+                                const char *string)
 {
-    
-    // do not release naive yet. I need to test it below
-    
     // ------------- SUFFIX TREE ----------------
     struct suffix_tree *st = naive_suffix_tree(string);
     //st_print_dot_name(st, st->root, "tree.dot");
@@ -140,7 +138,7 @@ static void general_suffix_test(index_vector *naive,
 }
 
 static void general_match_test(const char *pattern,
-                               char *string)
+                               const char *string)
 {
     index_vector naive;  init_index_vector(&naive, 10);
     printf("naive algorithm.\n");
@@ -161,7 +159,7 @@ static void general_match_test(const char *pattern,
 static void bwt_match(index_vector *naive,
                       // the original pattern and string parameters
                       // are here for debugging.
-                      const char *pattern, char *string,
+                      const char *pattern, const char *string,
                       struct remap_table *remap_table,
                       char *remapped_pattern, char *remapped_string)
 {
@@ -196,7 +194,8 @@ static void bwt_match(index_vector *naive,
     free_suffix_array(sa);
 }
 
-static void remap_match_test(const char *pattern, char *string)
+static void remap_match_test(const char *pattern,
+                             const char *string)
 {
     size_t n = strlen(string);
     char remapped_string[n + 1];
@@ -234,7 +233,7 @@ static void remap_match_test(const char *pattern, char *string)
     dealloc_index_vector(&naive);
 }
 
-static void match_test(const char *pattern, char *string)
+static void match_test(const char *pattern, const char *string)
 {
     general_match_test(pattern, string);
     remap_match_test(pattern, string);
@@ -262,51 +261,25 @@ int main(int argc, char * argv[])
         free(string);
         
     } else {
-        printf("testing aca acacacg\n");
-        match_test("aca", "acacacg");
-        printf("testing ac acacacg\n");
-        match_test("ac", "acacacg");
-        printf("testing ca acacacg\n");
-        match_test("ca", "acacacg");
-        printf("testing a acacacg\n");
-        match_test("a", "acacacg");
-        printf("testing c acacacg\n");
-        match_test("c", "acacacg");
-        printf("testing acg acacacg\n");
-        match_test("acg", "acacacg");
-        printf("testing cg acacacg\n");
-        match_test("cg", "acacacg");
-        printf("testing g acacacg\n");
-        match_test("g", "acacacg");
+        const char *strings[] = {
+            "acacacg",
+            "gacacacag",
+            "acacacag",
+            "acacaca",
+            "acataca",
+        };
+        size_t no_strings = sizeof(strings) / sizeof(const char *);
+        const char *patterns[] = {
+            "aca", "ac", "ca", "a", "c", "acg", "cg", "g",
+        };
+        size_t no_patterns = sizeof(patterns) / sizeof(const char *);
         
-        
-        match_test("acg", "gacacacag");
-        match_test("cg", "gacacacag");
-        match_test("aca", "gacacacag");
-        match_test("ac", "gacacacag");
-        match_test("a", "gacacacag");
-        match_test("c", "gacacacag");
-        
-        match_test("acg", "acacacag");
-        match_test("aca", "acacacag");
-        match_test("cg", "acacacag");
-        match_test("ac", "acacacag");
-        match_test("a", "acacacag");
-        match_test("c", "acacacag");
-        
-        match_test("acg", "acacaca");
-        match_test("aca", "acacaca");
-        match_test("cg", "acacaca");
-        match_test("ac", "acacaca");
-        match_test("a", "acacaca");
-        match_test("c", "acacaca");
-        
-        match_test("acg", "acataca");
-        match_test("aca", "acataca");
-        match_test("cg", "acactca");
-        match_test("ac", "acactca");
-        match_test("a", "acacata");
-        match_test("c", "acactca");
+        for (size_t i = 0; i < no_patterns; ++i) {
+            for (size_t j = 0; j < no_strings; ++j) {
+                printf("%s in %s\n", patterns[i], strings[j]);
+                match_test(patterns[i], strings[j]);
+            }
+        }
 
     }
     
