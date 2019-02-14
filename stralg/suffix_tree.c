@@ -519,7 +519,7 @@ bool next_st_approx_match(struct st_approx_iter *iter,
     
     // we need to know this one so we never move past the end
     // of the string (and access memory we shouldn't)
-    char *string_end = iter->st->string + iter->st->length;
+    const char *string_end = iter->st->string + iter->st->length;
     
     while (iter->sentinel.next) {
         pop_frame(&iter->sentinel, &v, &x, &end,

@@ -252,11 +252,12 @@ int main(int argc, char * argv[])
         pattern = argv[1];
         fname = argv[2];
         string = load_file(fname);
+        // LCOV_EXCL_START
         if (!string) {
             printf("Couldn't read file %s\n", fname);
             return EXIT_FAILURE;
         }
-        
+        // LCOV_EXCL_STOP
         match_test(pattern, string);
         free(string);
         
