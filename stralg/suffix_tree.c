@@ -417,6 +417,12 @@ static void push_frame(struct st_approx_frame *sentinel,
                        char cigar_op, char *cigar,
                        int edit)
 {
+    if (x != end)
+        printf("push frame(%p, %p, %lu, %s, %c, %d)\n",
+               x, end, match_depth, p, cigar_op, edit);
+    else
+        printf("push with x == end\n");
+    
     struct st_approx_frame *frame = malloc(sizeof(struct st_approx_frame));
     frame->v = v;
     frame->x = x;
@@ -447,7 +453,14 @@ static void pop_frame(struct st_approx_frame *sentinel,
     *cigar_op = frame->cigar_op;
     *cigar = frame->cigar;
     *edit = frame->edit;
-    
+
+    if (frame->x != frame->end)
+        printf("pop frame(%p, %p, %lu, %s, %c, %d)\n",
+               frame->x, frame->end, frame->match_depth,
+               frame->p, frame->cigar_op, frame->edit);
+    else
+        printf("pop with x == end\n");
+
     free(frame);
 }
 
@@ -461,6 +474,7 @@ static void push_children(struct st_approx_iter *iter,
 {
     struct suffix_tree_node *child = v->child;
     while (child) {
+        printf("range: [%lu,%lu]\n", child->range.from, child->range.to);
         const char *x = st->string + child->range.from;
         const char *end = st->string + child->range.to;
         push_frame(&iter->sentinel, child,
@@ -494,7 +508,7 @@ void dealloc_st_approx_iter(struct st_approx_iter *iter)
 
 
 bool next_st_approx_match(struct st_approx_iter *iter,
-                       struct st_approx_match *match)
+                          struct st_approx_match *match)
 {
     struct suffix_tree_node *v;
     const char *x; const char *end;
@@ -503,9 +517,16 @@ bool next_st_approx_match(struct st_approx_iter *iter,
     size_t match_depth;
     char cigar_op;
     
+    // we need to know this one so we never move past the end
+    // of the string (and access memory we shouldn't)
+    char *string_end = iter->st->string + iter->st->length;
     
     while (iter->sentinel.next) {
-        pop_frame(&iter->sentinel, &v, &x, &end, &match_depth, &p, &cigar_op, &cigar, &edit);
+        pop_frame(&iter->sentinel, &v, &x, &end,
+                  &match_depth, &p, &cigar_op, &cigar, &edit);
+        
+        if (x == string_end)
+            continue; // do not move past the end of the buffer (overflow)
         
         if (cigar_op) // remember the step we took to get here
             cigar[-1] = cigar_op;
@@ -520,10 +541,13 @@ bool next_st_approx_match(struct st_approx_iter *iter,
             match->cigar = iter->cigar_buf;
             match->match_root = v;
             match->match_depth = match_depth;
+            printf("hit at depth %lu (cigar = %s)\n", match_depth, match->cigar);
+            printf("root has range [%lu:%lu]\n", v->range.from, v->range.to);
             return true;
         }
+        
         if (x == end) {
-            // we ran out of text..
+            // we ran out of edge
             push_children(iter, iter->st, v, match_depth, cigar, p, edit);
             continue;
         }

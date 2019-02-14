@@ -226,14 +226,7 @@ static void remap_match_test(const char *pattern, char *string)
 
     simple_exact_matchers(&naive, remapped_pattern, remapped_string);
     general_suffix_test(&naive, remapped_pattern, remapped_string);
-
     
-    // --------------- BWT ----------------------
-    // setup for bwt tests.
-    // it is quite involved because we need to
-    // remap both the string and the patter and
-    // build the suffix array and the bwt tables
-    // before we can search.
     bwt_match(&naive, pattern, string, &remap_table,
               remapped_pattern, remapped_string);
 
