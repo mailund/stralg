@@ -32,6 +32,11 @@ target_link_libraries(
     match_test
     stralg
 )
+
+add_test(
+    Match[buildin]
+    match_test
+)
 add_test(
     NAME Match[modest-proposal]
     COMMAND
