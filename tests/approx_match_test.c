@@ -77,6 +77,10 @@ static void exact_approach(const char *string, const char *pattern,
     struct edit_iter iter;
     init_edit_iter(&iter, pattern, alphabet, dist);
     while (next_edit_pattern(&iter, &edit_pattern)) {
+        // skip those cigars that start with deletions
+        if (sscanf(edit_pattern.cigar, "%*dD") == 0)
+            continue;
+        
         size_t m = strlen(edit_pattern.pattern);
         // If the exact matchers work, I can pick any of them.
         // I use the border array search.
@@ -118,6 +122,10 @@ static void aho_corasick_approach(const char *string,
     // get pattern cloud
     init_edit_iter(&pattern_iter, pattern, alphabet, dist);
     while (next_edit_pattern(&pattern_iter, &edit_pattern)) {
+        // skip those cigars that start with deletions
+        if (sscanf(edit_pattern.cigar, "%*dD") == 0)
+            continue;
+        
         string_vector_append(&patterns, str_copy(edit_pattern.pattern));
         string_vector_append(&cigars, str_copy(edit_pattern.cigar));
     }
