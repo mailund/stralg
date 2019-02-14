@@ -78,8 +78,15 @@ static void exact_approach(const char *string, const char *pattern,
     init_edit_iter(&iter, pattern, alphabet, dist);
     while (next_edit_pattern(&iter, &edit_pattern)) {
         // skip those cigars that start with deletions
-        if (sscanf(edit_pattern.cigar, "%*dD") == 0)
+        //if (sscanf(edit_pattern.cigar, "%*dD") == 0) continue;
+#if 0
+        int dummy;
+        sscanf(edit_pattern.cigar, "%dD", &dummy);
+        if (sscanf(edit_pattern.cigar, "%d[D]", &dummy)) {
+            printf("skipping cigar %s\n", edit_pattern.cigar);
             continue;
+        }
+#endif
         
         size_t m = strlen(edit_pattern.pattern);
         // If the exact matchers work, I can pick any of them.
@@ -123,8 +130,16 @@ static void aho_corasick_approach(const char *string,
     init_edit_iter(&pattern_iter, pattern, alphabet, dist);
     while (next_edit_pattern(&pattern_iter, &edit_pattern)) {
         // skip those cigars that start with deletions
-        if (sscanf(edit_pattern.cigar, "%*dD") == 0)
+#if 0
+        int dummy;
+        sscanf(edit_pattern.cigar, "%dD", &dummy);
+        printf("%s %d\n", edit_pattern.cigar, dummy);
+        if (sscanf(edit_pattern.cigar, "%dD", &dummy)) {
+            printf("dummy\n");
+            printf("skipping on cigar %s\n", edit_pattern.cigar);
             continue;
+        }
+#endif
         
         string_vector_append(&patterns, str_copy(edit_pattern.pattern));
         string_vector_append(&cigars, str_copy(edit_pattern.cigar));
@@ -371,11 +386,11 @@ static void test_approx(const char *pattern, const char *string,
     sort_string_vector(&ac_results);
     
     printf("Naive vs Aho-Corasic\t");
-#if 0
+#if 1
     printf("\n---\n");
-    print_matchs(&exact_results);
+    print_string_vector(&exact_results);
     printf("\n");
-    print_matchs(&ac_results);
+    print_string_vector(&ac_results);
     printf("\n");
 #endif
     
@@ -394,6 +409,12 @@ static void test_approx(const char *pattern, const char *string,
     st_match(st, pattern, string, edits, &st_results);
     sort_string_vector(&st_results);
     free_suffix_tree(st);
+    
+    printf("AC:\n");
+    print_string_vector(&ac_results);
+    printf("ST:\n");
+    print_string_vector(&st_results);
+    
     
     assert(vector_equal(&ac_results, &st_results));
     free_strings(&st_results);
