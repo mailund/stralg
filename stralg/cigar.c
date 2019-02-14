@@ -25,7 +25,7 @@ void simplify_cigar(char *buffer, const char *cigar)
 static char *cigar_alignment_internal(const char *cigar,
                                       const char *pattern,
                                       const char *matched_seq,
-                                      unsigned const char *tbl,
+                                      const signed char *tbl,
                                       char *pattern_buffer,
                                       char *match_buffer)
 {

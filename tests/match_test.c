@@ -64,22 +64,13 @@ static void test_suffix_tree_match(index_vector *naive_matches,
     free_index_vector(st_matches);
 }
 
-static void match_test(const char *pattern, char *string) {
-    index_vector naive;  init_index_vector(&naive, 10);
+static void simple_exact_matchers(index_vector *naive,
+                                  const char *pattern, char *string)
+{
     index_vector border; init_index_vector(&border, 10);
     index_vector kmp;    init_index_vector(&kmp, 10);
     index_vector bmh;    init_index_vector(&bmh, 10);
-    
-    printf("naive algorithm.\n");
-    struct naive_match_iter naive_iter;
-    iter_test(
-              string, pattern,
-              &naive_iter,
-              (iter_init_func)init_naive_match_iter,
-              (iteration_func)next_naive_match,
-              (iter_dealloc_func)dealloc_naive_match_iter,
-              &naive
-              );
+
     printf("border algorithm.\n");
     struct border_match_iter border_iter;
     iter_test(
@@ -111,19 +102,26 @@ static void match_test(const char *pattern, char *string) {
               &bmh
               );
     
-    assert(vector_equal(&naive, &border));
-    assert(vector_equal(&naive, &kmp));
-    assert(vector_equal(&naive, &bmh));
+    assert(vector_equal(naive, &border));
+    assert(vector_equal(naive, &kmp));
+    assert(vector_equal(naive, &bmh));
     
     dealloc_index_vector(&border);
     dealloc_index_vector(&kmp);
     dealloc_index_vector(&bmh);
+}
+
+static void general_suffix_test(index_vector *naive,
+                                const char *pattern,
+                                char *string)
+{
+    
     // do not release naive yet. I need to test it below
     
     // ------------- SUFFIX TREE ----------------
     struct suffix_tree *st = naive_suffix_tree(string);
-    st_print_dot_name(st, st->root, "tree.dot");
-    test_suffix_tree_match(&naive, pattern, st, string);
+    //st_print_dot_name(st, st->root, "tree.dot");
+    test_suffix_tree_match(naive, pattern, st, string);
     
     size_t sorted_suffixes[st->length];
     size_t lcp[st->length];
@@ -131,39 +129,49 @@ static void match_test(const char *pattern, char *string) {
     free_suffix_tree(st);
     
     st = lcp_suffix_tree(string, sorted_suffixes, lcp);
-    test_suffix_tree_match(&naive, pattern, st, string);
+    test_suffix_tree_match(naive, pattern, st, string);
     free_suffix_tree(st);
 
 
     // ---------- suffix arrays ---------------------
-    // I am doing the remapping of the string and pattern here
-    // so I can reuse the suffix array in the BWT search
-    // below.
-    size_t n = strlen(string);
-    char remappe_string[n + 1];
-    size_t m = strlen(pattern);
-    char remapped_pattern[m + 1];
-    
-    struct remap_table remap_table;
-    init_remap_table(&remap_table, string);
-    
-    remap(remappe_string, string, &remap_table);
-    remap(remapped_pattern, pattern, &remap_table);
-    
-    struct suffix_array *sa = qsort_sa_construction(remappe_string);
+    // FIXME: test without remapping...
+    struct suffix_array *sa = qsort_sa_construction(string);
+    free_suffix_array(sa);
+}
 
+static void general_match_test(const char *pattern,
+                               char *string)
+{
+    index_vector naive;  init_index_vector(&naive, 10);
+    printf("naive algorithm.\n");
+    struct naive_match_iter naive_iter;
+    iter_test(
+              string, pattern,
+              &naive_iter,
+              (iter_init_func)init_naive_match_iter,
+              (iteration_func)next_naive_match,
+              (iter_dealloc_func)dealloc_naive_match_iter,
+              &naive
+              );
+    simple_exact_matchers(&naive, pattern, string);
+    general_suffix_test(&naive, pattern, string);
+    dealloc_index_vector(&naive);
+}
+
+static void bwt_match(index_vector *naive,
+                      // the original pattern and string parameters
+                      // are here for debugging.
+                      const char *pattern, char *string,
+                      struct remap_table *remap_table,
+                      char *remapped_pattern, char *remapped_string)
+{
+    struct suffix_array *sa = qsort_sa_construction(remapped_string);
     
-    // --------------- BWT ----------------------
-    // setup for bwt tests.
-    // it is quite involved because we need to
-    // remap both the string and the patter and
-    // build the suffix array and the bwt tables
-    // before we can search.
     index_vector bwt; init_index_vector(&bwt, 10);
     
     struct bwt_table bwt_table;
-    init_bwt_table(&bwt_table, sa, &remap_table);
-    print_bwt_table(&bwt_table, sa, &remap_table);
+    init_bwt_table(&bwt_table, sa, remap_table);
+    print_bwt_table(&bwt_table, sa, remap_table);
     
     struct bwt_exact_match_iter bwt_iter;
     struct bwt_exact_match bwt_match;
@@ -174,25 +182,65 @@ static void match_test(const char *pattern, char *string) {
     }
     dealloc_bwt_exact_match_iter(&bwt_iter);
     
-    dealloc_remap_table(&remap_table);
+    dealloc_remap_table(remap_table);
     dealloc_bwt_table(&bwt_table);
     
     sort_index_vector(&bwt);
     
-    printf("string: %s\n", string);
-    printf("pattern: %s\n", pattern);
-    printf("naive:\n");
-    print_index_vector(&naive);
-    printf("bwt:\n");
+    print_index_vector(naive);
     print_index_vector(&bwt);
     
-    assert(vector_equal(&naive, &bwt));
+    assert(vector_equal(naive, &bwt));
     dealloc_index_vector(&bwt);
-
     
     free_suffix_array(sa);
+}
+
+static void remap_match_test(const char *pattern, char *string)
+{
+    size_t n = strlen(string);
+    char remapped_string[n + 1];
+    size_t m = strlen(pattern);
+    char remapped_pattern[m + 1];
+    
+    struct remap_table remap_table;
+    init_remap_table(&remap_table, string);
+    
+    remap(remapped_string, string, &remap_table);
+    // I check the result of remap here so I do not search
+    // for patterns that contain letters not found in
+    // the text.
+    if (!remap(remapped_pattern, pattern, &remap_table)) return;
+    
+    index_vector naive;  init_index_vector(&naive, 10);
+    printf("naive algorithm.\n");
+    struct naive_match_iter naive_iter;
+    iter_test(
+              remapped_string, remapped_pattern,
+              &naive_iter,
+              (iter_init_func)init_naive_match_iter,
+              (iteration_func)next_naive_match,
+              (iter_dealloc_func)dealloc_naive_match_iter,
+              &naive
+              );
+
+    simple_exact_matchers(&naive, remapped_pattern, remapped_string);
+    general_suffix_test(&naive, remapped_pattern, remapped_string);
+    
+    bwt_match(&naive, pattern, string, &remap_table,
+              remapped_pattern, remapped_string);
+
+    dealloc_remap_table(&remap_table);
     dealloc_index_vector(&naive);
 }
+
+static void match_test(const char *pattern, char *string)
+{
+    general_match_test(pattern, string);
+    remap_match_test(pattern, string);
+}
+
+
 
 int main(int argc, char * argv[])
 {
@@ -204,11 +252,12 @@ int main(int argc, char * argv[])
         pattern = argv[1];
         fname = argv[2];
         string = load_file(fname);
+        // LCOV_EXCL_START
         if (!string) {
             printf("Couldn't read file %s\n", fname);
             return EXIT_FAILURE;
         }
-        
+        // LCOV_EXCL_STOP
         match_test(pattern, string);
         free(string);
         
@@ -245,20 +294,16 @@ int main(int argc, char * argv[])
         match_test("a", "acacacag");
         match_test("c", "acacacag");
         
-        // FIXME: add the commented tests.
-        // I need them left out now to fix the
-        // remapping issue in BWT.
-        
-        //match_test("acg", "acacaca");
+        match_test("acg", "acacaca");
         match_test("aca", "acacaca");
-        //match_test("cg", "acacaca");
+        match_test("cg", "acacaca");
         match_test("ac", "acacaca");
         match_test("a", "acacaca");
         match_test("c", "acacaca");
         
-        //match_test("acg", "acataca");
+        match_test("acg", "acataca");
         match_test("aca", "acataca");
-        //match_test("cg", "acactca");
+        match_test("cg", "acactca");
         match_test("ac", "acactca");
         match_test("a", "acacata");
         match_test("c", "acactca");
