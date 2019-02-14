@@ -272,18 +272,7 @@ static void exact_bwt_test(string_vector *exact_results,
     
     sort_string_vector(&bwt_results);
     
-#if 1
-    printf("\n---\n");
-    printf("exact:\n");
-    print_string_vector(exact_results);
-    printf("\nbwt\n");
-    print_string_vector(&bwt_results);
-    printf("\n");
-#endif
-    
-    // FIXME: add this test again when I have fixed
-    // BWT.
-    //assert(string_vector_equal(&exact_results, &bwt_results));
+    assert(string_vector_equal(exact_results, &bwt_results));
     free_strings(&bwt_results);
     dealloc_string_vector(&bwt_results);
     printf("OK\n");
@@ -347,9 +336,6 @@ static void test_exact(const char *pattern, const char *string,
         exact_bwt_test(&exact_results, &remap_table, remapped_pattern, remapped_string);
     }
     
-    
-    
-    
     free_strings(&exact_results);
     dealloc_string_vector(&exact_results);
 }
@@ -401,37 +387,12 @@ static void test_approx(const char *pattern, const char *string,
     sort_string_vector(&st_results);
     free_suffix_tree(st);
     
-#if 1
-    printf("===\n");
-    print_string_vector(&ac_results);
-    printf("---\n");
-    print_string_vector(&st_results);
-    printf("===\n");
-    
-    string_vector uniq_ac, uniq_st;
-    init_string_vector(&uniq_ac, 10);
-    init_string_vector(&uniq_st, 10);
-    
-    split_vectors(&ac_results, &st_results, &uniq_ac, &uniq_st);
-
-    printf("===\n");
-    print_string_vector(&uniq_ac);
-    printf("\n---\n");
-    print_string_vector(&uniq_st);
-    printf("===\n");
-    
-    dealloc_string_vector(&uniq_ac);
-    dealloc_string_vector(&uniq_st);
-
-#endif
-#if 1
     assert(vector_equal(&ac_results, &st_results));
-#endif
     free_strings(&st_results);
     dealloc_string_vector(&st_results);
+
     printf("OK\n");
     printf("----------------------------------------------------\n");
-
 
     printf("Aho-Corasic vs BWT.\n");
 
@@ -460,18 +421,33 @@ static void test_approx(const char *pattern, const char *string,
     
     free_suffix_array(sa);
 
-    // Can't assert before I get the strings out of bwt.
-    //assert(vector_equal(&ac_results, &bwt_results));
     print_string_vector(&ac_results);
     printf("===\n");
     print_string_vector(&bwt_results);
+    
+    printf("\n\n");
+    string_vector ac_only;  init_string_vector(&ac_only, 10);
+    string_vector bwt_only; init_string_vector(&bwt_only, 10);
+    
+    
+    split_vectors(&ac_results, &bwt_results, &ac_only, &bwt_only);
+    printf("only in AC\n");
+    print_string_vector(&ac_only);
+    printf("\n");
+    printf("only in BWT\n");
+    print_string_vector(&bwt_only);
+    printf("\n");
+    
+    dealloc_string_vector(&ac_only);
+    dealloc_string_vector(&bwt_only);
+    
+    // Can't assert before I get the strings out of bwt.
+    //assert(vector_equal(&ac_results, &bwt_results));
     printf("OK\n");
     printf("----------------------------------------------------\n");
 
     free_strings(&bwt_results);
     dealloc_string_vector(&bwt_results);
-    
-    
     free_strings(&ac_results);
     dealloc_string_vector(&ac_results);
 }
