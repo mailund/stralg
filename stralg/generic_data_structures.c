@@ -192,6 +192,14 @@ void sort_index_vector(index_vector *vec)
 {
     qsort(vec->data, vec->used, sizeof(struct boxed_data), index_cmpfunc);
 }
+void print_index_vector(index_vector *vec)
+{
+    for (size_t i = 0; i < vec->used; ++i) {
+        printf("%lu\n", index_vector_get(vec, i));
+    }
+}
+
+
 
 bool string_vector_equal(string_vector *v1, string_vector *v2)
 {
@@ -216,3 +224,11 @@ void sort_string_vector(index_vector *vec)
 {
     qsort(vec->data, vec->used, sizeof(struct boxed_data), string_cmpfunc);
 }
+
+void print_string_vector(string_vector *vec)
+{
+    for (size_t i = 0; i < vec->used; ++i) {
+        printf("%s\n", string_vector_get(vec, i));
+    }
+}
+

@@ -315,6 +315,9 @@ void init_st_leaf_iter(struct st_leaf_iter *iter,
                        struct suffix_tree *st,
                        struct suffix_tree_node *node)
 {
+    if (node == 0) iter->empty_tree = true;
+    else           iter->empty_tree = false;
+    
     iter->stack = new_frame(node);
 }
 
@@ -330,6 +333,8 @@ static void reverse_push(struct st_leaf_iter *iter,
 bool next_st_leaf(struct st_leaf_iter *iter,
                   struct st_leaf_iter_result *res)
 {
+    if (iter->empty_tree) return false;
+    
     struct st_leaf_iter_frame *frame = iter->stack;
     while (frame) {
         // pop the frame

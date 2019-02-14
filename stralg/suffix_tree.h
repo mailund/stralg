@@ -43,6 +43,10 @@ void st_compute_sa_and_lcp(struct suffix_tree *st,
 
 // Iteration
 struct st_leaf_iter {
+    // This is only used if iterator called with null.
+    // It makes it easier to combine the search
+    // with the leaf iterator.
+    bool empty_tree;
     struct st_leaf_iter_frame *stack;
 };
 struct st_leaf_iter_result {
@@ -97,6 +101,9 @@ void dealloc_st_approx_iter(struct st_approx_iter *iter);
 
 //  Searching
 struct suffix_tree_node *st_search(struct suffix_tree *st, const char *pattern);
+// FIXME: make an iterator for a search; or rather
+// make a function that initialises a leaf iterator
+// from a search.
 
 size_t get_string_depth(struct suffix_tree *st,
                         struct suffix_tree_node *v);

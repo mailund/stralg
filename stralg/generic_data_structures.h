@@ -167,6 +167,7 @@ static inline void index_vector_append(index_vector *vec, size_t index) {
 }
 void sort_index_vector(index_vector *vec);
 #define index_vector_equal vector_equal
+void print_index_vector(index_vector *vec);
 
 typedef struct vector string_vector;
 #define init_string_vector    init_vector
@@ -185,5 +186,6 @@ static inline void string_vector_append(string_vector *vec, char *string) {
 }
 void sort_string_vector(string_vector *vec);
 bool string_vector_equal(string_vector *v1, string_vector *v2);
+void print_string_vector(string_vector *vec);
 
 #endif

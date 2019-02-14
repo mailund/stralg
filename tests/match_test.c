@@ -133,16 +133,12 @@ static void match_test(const char *pattern, char *string) {
     st = lcp_suffix_tree(string, sorted_suffixes, lcp);
     test_suffix_tree_match(&naive, pattern, st, string);
     free_suffix_tree(st);
-    
-    
-    // --------------- BWT ----------------------
-    // setup for bwt tests.
-    // it is quite involved because we need to
-    // remap both the string and the patter and
-    // build the suffix array and the bwt tables
-    // before we can search.
-    index_vector bwt; init_index_vector(&bwt, 10);
-    
+
+
+    // ---------- suffix arrays ---------------------
+    // I am doing the remapping of the string and pattern here
+    // so I can reuse the suffix array in the BWT search
+    // below.
     size_t n = strlen(string);
     char remappe_string[n + 1];
     size_t m = strlen(pattern);
@@ -155,6 +151,15 @@ static void match_test(const char *pattern, char *string) {
     remap(remapped_pattern, pattern, &remap_table);
     
     struct suffix_array *sa = qsort_sa_construction(remappe_string);
+
+    
+    // --------------- BWT ----------------------
+    // setup for bwt tests.
+    // it is quite involved because we need to
+    // remap both the string and the patter and
+    // build the suffix array and the bwt tables
+    // before we can search.
+    index_vector bwt; init_index_vector(&bwt, 10);
     
     struct bwt_table bwt_table;
     init_bwt_table(&bwt_table, sa, &remap_table);
@@ -169,14 +174,23 @@ static void match_test(const char *pattern, char *string) {
     }
     dealloc_bwt_exact_match_iter(&bwt_iter);
     
-    free_suffix_array(sa);
     dealloc_remap_table(&remap_table);
     dealloc_bwt_table(&bwt_table);
     
     sort_index_vector(&bwt);
+    
+    printf("string: %s\n", string);
+    printf("pattern: %s\n", pattern);
+    printf("naive:\n");
+    print_index_vector(&naive);
+    printf("bwt:\n");
+    print_index_vector(&bwt);
+    
     assert(vector_equal(&naive, &bwt));
     dealloc_index_vector(&bwt);
+
     
+    free_suffix_array(sa);
     dealloc_index_vector(&naive);
 }
 
@@ -215,6 +229,40 @@ int main(int argc, char * argv[])
         match_test("cg", "acacacg");
         printf("testing g acacacg\n");
         match_test("g", "acacacg");
+        
+        
+        match_test("acg", "gacacacag");
+        match_test("cg", "gacacacag");
+        match_test("aca", "gacacacag");
+        match_test("ac", "gacacacag");
+        match_test("a", "gacacacag");
+        match_test("c", "gacacacag");
+        
+        match_test("acg", "acacacag");
+        match_test("aca", "acacacag");
+        match_test("cg", "acacacag");
+        match_test("ac", "acacacag");
+        match_test("a", "acacacag");
+        match_test("c", "acacacag");
+        
+        // FIXME: add the commented tests.
+        // I need them left out now to fix the
+        // remapping issue in BWT.
+        
+        //match_test("acg", "acacaca");
+        match_test("aca", "acacaca");
+        //match_test("cg", "acacaca");
+        match_test("ac", "acacaca");
+        match_test("a", "acacaca");
+        match_test("c", "acacaca");
+        
+        //match_test("acg", "acataca");
+        match_test("aca", "acataca");
+        //match_test("cg", "acactca");
+        match_test("ac", "acactca");
+        match_test("a", "acacata");
+        match_test("c", "acactca");
+
     }
     
     

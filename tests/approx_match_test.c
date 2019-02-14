@@ -24,15 +24,6 @@ static void free_strings(string_vector *vec)
 }
 
 
-#ifdef PRINT_RESULTS
-static void print_matchs(string_vector *vec)
-{
-    for (size_t i = 0; i < vec->used; ++i) {
-        printf("%s\n", string_vector_get(vec, i));
-    }
-}
-#endif
-
 #pragma mark Collecting matches functions
 
 static void exact_approach(char *string, char *pattern, const char *alphabet,
@@ -102,7 +93,7 @@ static void aho_corasick_approach(char *string, char *pattern, const char *alpha
     for (size_t i = 0; i < patterns.used; ++i) {
         char *pattern = string_vector_get(&patterns, i);
         struct trie *node = get_trie_node(&trie, pattern);
-        if (node) {
+        if (node && node->string_label >= 0) {
             // we have a repeated pattern but with a new cigar
             cigar_table[node->string_label] = prepend_index_link(cigar_table[node->string_label], i);
         } else {
@@ -282,14 +273,24 @@ static void test_exact(char *pattern, char *string,
     dealloc_bwt_table(&bwt_table);
 
     sort_string_vector(&bwt_results);
+    
+#if 1
+    printf("\n---\n");
+    printf("exact:\n");
+    print_string_vector(&exact_results);
+    printf("\nbwt\n");
+    print_string_vector(&bwt_results);
+    printf("\n");
+#endif
+
+    
     assert(string_vector_equal(&exact_results, &bwt_results));
     free_strings(&bwt_results);
     dealloc_string_vector(&bwt_results);
     printf("OK\n");
-    //printf("----------------------------------------------------\n");
+    printf("----------------------------------------------------\n");
 
     free_suffix_array(sa);
-    printf("====================================================\n\n");
     
     free_strings(&exact_results);
     dealloc_string_vector(&exact_results);
@@ -299,16 +300,15 @@ static void test_exact(char *pattern, char *string,
 
 
 
-static void test_approx(char *pattern, char *string, const char *alphabet)
+static void test_approx(char *pattern, char *string, int edits, const char *alphabet)
 {
-    int edits = 1;
     printf("Testing approximative matching with %d %s\n",
            edits, (edits == 1) ? "edit" : "edits");
     printf("====================================================\n");
 
     string_vector exact_results;
     init_string_vector(&exact_results, 10);
-    exact_approach(string, pattern, alphabet, 1, &exact_results);
+    exact_approach(string, pattern, alphabet, edits, &exact_results);
     sort_string_vector(&exact_results);
     
     string_vector ac_results;
@@ -317,6 +317,14 @@ static void test_approx(char *pattern, char *string, const char *alphabet)
     sort_string_vector(&ac_results);
     
     printf("Naive vs Aho-Corasic\t");
+#if 0
+    printf("\n---\n");
+    print_matchs(&exact_results);
+    printf("\n");
+    print_matchs(&ac_results);
+    printf("\n");
+#endif
+    
     assert(vector_equal(&exact_results, &ac_results));
     free_strings(&exact_results);
     dealloc_vector(&exact_results);
@@ -333,6 +341,14 @@ static void test_approx(char *pattern, char *string, const char *alphabet)
     sort_string_vector(&st_results);
     free_suffix_tree(st);
     
+#if 1
+    printf("\n---\n");
+    print_string_vector(&ac_results);
+    printf("\n");
+    print_string_vector(&st_results);
+    printf("\n");
+#endif
+
     assert(vector_equal(&ac_results, &st_results));
     free_strings(&st_results);
     dealloc_string_vector(&st_results);
@@ -369,9 +385,9 @@ static void test_approx(char *pattern, char *string, const char *alphabet)
 
     // Can't assert before I get the strings out of bwt.
     //assert(vector_equal(&ac_results, &bwt_results));
-    print_matchs(&ac_results);
+    print_string_vector(&ac_results);
     printf("===\n");
-    print_matchs(&bwt_results);
+    print_string_vector(&bwt_results);
     printf("OK\n");
     printf("----------------------------------------------------\n");
 
@@ -390,15 +406,50 @@ static void test_approx(char *pattern, char *string, const char *alphabet)
 int main(int argc, char **argv)
 {
     char *alphabet = "acgt";
-    char *string = "gacacacag";
-    char *pattern = "acg";
     
     // FIXME: there is no reason to rebuild the suffix tree
     // suffix array, remapped strings and the bwt_tables.
     // Build them here and pass them on as parameters
     // to the tests.
-    test_exact(pattern, string, alphabet);
-    test_approx(pattern, string, alphabet);
+    
+    printf("EXACT MATCHING...\n");
+    test_exact("acg", "gacacacag", alphabet);
+    test_exact("aca", "gacacacag", alphabet);
+    test_exact("ac", "gacacacag", alphabet);
+    test_exact("a", "gacacacag", alphabet);
+    test_exact("c", "gacacacag", alphabet);
+    
+    test_exact("acg", "acacacag", alphabet);
+    test_exact("aca", "acacacag", alphabet);
+    test_exact("ac", "acacacag", alphabet);
+    test_exact("a", "acacacag", alphabet);
+    test_exact("c", "acacacag", alphabet);
+    
+    test_exact("acg", "acacaca", alphabet);
+    test_exact("aca", "acacaca", alphabet);
+    test_exact("ac", "acacaca", alphabet);
+    test_exact("a", "acacaca", alphabet);
+    test_exact("c", "acacaca", alphabet);
 
+    test_exact("acg", "acataca", alphabet);
+    test_exact("aca", "acataca", alphabet);
+    test_exact("ac", "acactca", alphabet);
+    test_exact("a", "acacata", alphabet);
+    test_exact("c", "acactca", alphabet);
+
+    printf("DONE\n");
+    printf("====================================================\n\n");
+
+#if 0
+    printf("APPROXIMATIVE MATCHING...\n");
+    const char *p = "acg";
+    const char *x = "gacacacag";
+    for (int edits = 0; edits < 3; ++edits) {
+        test_approx(p, x, edits, alphabet);
+    }
+    printf("DONE\n");
+    printf("====================================================\n\n");
+#endif
+    
     return EXIT_SUCCESS;
 }
