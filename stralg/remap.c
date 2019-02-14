@@ -10,7 +10,7 @@ void build_remap_table(struct remap_table *table,
     // so I won't map that to anything here, but
     // I will have it in the table, just mapped to zero
     for (; *x; ++x) {
-        if (table->table[*x] == 0) {
+        if (table->table[*x] == -1) {
             table->table[*x] = table->alphabet_size;
             table->rev_table[table->alphabet_size] = *x;
             table->alphabet_size++;
@@ -31,9 +31,13 @@ void init_remap_table(struct remap_table *table,
 {
     table->alphabet_size = 1; // we always have zero
     
-    // set table intries to zero
-    memset(table->table,     0, sizeof(table->table));
-    memset(table->rev_table, 0, sizeof(table->rev_table));
+    // set table intries to -1. This indicates a letter
+    // that we haven't seen.
+    memset(table->table,     -1, sizeof(table->table));
+    memset(table->rev_table, -1, sizeof(table->rev_table));
+    // sentinel is always sentinel
+    table->table[0] = 0;
+    table->rev_table[0] = 0;
     
     build_remap_table(table, string);
 }
@@ -58,6 +62,7 @@ char *remap_between(char *output,
     const char *y = from;
     for (; y != to; ++y, ++x) {
         *x = table->table[(unsigned char)*y];
+        if (*x < 0) return 0;
     }
     return x;
 }
@@ -68,6 +73,7 @@ char *remap_between0(char *output,
                     struct remap_table *table)
 {
     char *x = remap_between(output, from, to, table);
+    if (!x) return 0;
     *x = '\0';
     return x + 1;
 }
@@ -92,6 +98,7 @@ char *rev_remap_between(char *output,
     const char *y = from;
     for (; y != to; ++y, ++x) {
         *x = table->rev_table[(unsigned int)*y];
+        if (*x < 0) return 0;
     }
     return x;
 }
@@ -110,6 +117,7 @@ char *rev_remap_between0(char *output,
                         struct remap_table *table)
 {
     char *x = rev_remap_between(output, from, to, table);
+    if (!x) return 0;
     *x = '\0';
     return x + 1;
 }
