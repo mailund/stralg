@@ -231,34 +231,24 @@ static void bwt_match(struct suffix_array *sa,
                       string_vector *bwt_results)
 {
     
-    struct bwt_approx_match_iter approx_iter;
-    struct bwt_approx_match approx_match;
-    struct bwt_exact_match_iter exact_iter;
-    struct bwt_exact_match exact_match;
-    
-    size_t n = 3 * strlen(pattern) + 1;
-    
-    // we need this to get the string we actually matched
+    // We need this to get the string we actually matched
     // from the remapped stuff.
+    // FIXME: check if this is the correct length needed.
+    size_t n = 3 * strlen(pattern) + 1;
     char rev_mapped_match[n];
     
-    // FIXME: make this double loop a single iterator in bwt id:22
-    init_bwt_approx_match_iter(&approx_iter, bwt_table,
-                               sa, remap_table, pattern, edits);
-    
-    while (next_bwt_approx_match_iter(&approx_iter, &approx_match)) {
-        init_bwt_exact_match_from_approx_match(&approx_match, &exact_iter);
-        while (next_bwt_exact_match_iter(&exact_iter, &exact_match)) {
-            rev_remap_between0(rev_mapped_match,
-                               string + exact_match.pos,
-                               string + exact_match.pos + approx_match.match_length,
-                               remap_table);
-            string_vector_append(bwt_results,
-                                 match_string(exact_match.pos, rev_mapped_match, approx_match.cigar));
-        }
-        dealloc_bwt_exact_match_iter(&exact_iter);
+    struct bwt_approx_iter iter;
+    struct bwt_approx_match match;
+    init_bwt_approx_iter(&iter, bwt_table, sa, remap_table, pattern, edits);
+    while (next_bwt_approx_match(&iter, &match)) {
+        rev_remap_between0(rev_mapped_match,
+                           string + match.position,
+                           string + match.position + match.match_length,
+                           remap_table);
+        char *m = match_string(match.position, rev_mapped_match, match.cigar);
+        string_vector_append(bwt_results, m);
     }
-    dealloc_bwt_approx_match_iter(&approx_iter);
+    dealloc_bwt_approx_iter(&iter);
 }
 
 

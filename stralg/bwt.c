@@ -120,7 +120,7 @@ static void print_stack(struct bwt_approx_frame *sentinel)
 }
 #endif
 
-static void push_frame(struct bwt_approx_match_iter *iter,
+static void push_frame(struct bwt_approx_match_internal_iter *iter,
                        char edit_op, int edits,
                        char *cigar, size_t match_length,
                        size_t L, size_t R, int i)
@@ -147,7 +147,7 @@ static void push_frame(struct bwt_approx_match_iter *iter,
 
 }
 
-static void push_edits(struct bwt_approx_match_iter *iter,
+static void push_edits(struct bwt_approx_match_internal_iter *iter,
                        bool first, // is this the first push edits we make?
                        char *cigar, size_t match_length,
                        int edits, size_t L, size_t R, int i)
@@ -206,7 +206,7 @@ static void push_edits(struct bwt_approx_match_iter *iter,
 #endif
 }
 
-static void pop_edits(struct bwt_approx_match_iter *iter,
+static void pop_edits(struct bwt_approx_match_internal_iter *iter,
                       char *edit_op, int *edits,
                       char **cigar, size_t *match_length,
                       size_t *L, size_t *R, int *i)
@@ -230,7 +230,7 @@ static void pop_edits(struct bwt_approx_match_iter *iter,
 }
 
 
-void init_bwt_approx_match_iter   (struct bwt_approx_match_iter *iter,
+void init_bwt_approx_match_internal_iter   (struct bwt_approx_match_internal_iter *iter,
                                    struct bwt_table             *bwt_table,
                                    struct suffix_array          *sa,
                                    struct remap_table           *remap_table,
@@ -267,8 +267,8 @@ void init_bwt_approx_match_iter   (struct bwt_approx_match_iter *iter,
                iter->full_cigar_buf, 0, edits, L, R, i);
 }
 
-bool next_bwt_approx_match_iter   (struct bwt_approx_match_iter *iter,
-                                   struct bwt_approx_match      *res)
+bool next_bwt_approx_match_internal_iter   (struct bwt_approx_match_internal_iter *iter,
+                                   struct bwt_approx_internal_match      *res)
 {
     char edit_op;
     int edits;
@@ -315,15 +315,13 @@ bool next_bwt_approx_match_iter   (struct bwt_approx_match_iter *iter,
     return false;
 }
 
-void dealloc_bwt_approx_match_iter(struct bwt_approx_match_iter *iter)
+void dealloc_bwt_approx_match_internal_iter(struct bwt_approx_match_internal_iter *iter)
 {
     free(iter->full_cigar_buf);
     free(iter->cigar_buf);
 }
 
-
-
-void init_bwt_exact_match_from_approx_match(const struct bwt_approx_match *approx_match,
+void init_bwt_exact_match_from_approx_match(const struct bwt_approx_internal_match *approx_match,
                                             struct bwt_exact_match_iter *exact_iter)
 {
     exact_iter->sa = approx_match->sa;
@@ -331,6 +329,61 @@ void init_bwt_exact_match_from_approx_match(const struct bwt_approx_match *appro
     exact_iter->L  = approx_match->L;
     exact_iter->R  = approx_match->R;
 }
+
+// In all this code, I assume that there is no need for
+// actually deallocating (and updating) the exact matches.
+// That way, I can get away with setting it up once and reuse
+// it for all exact matches.
+void init_bwt_approx_iter(struct bwt_approx_iter *iter,
+                          struct bwt_table       *bwt_table,
+                          struct suffix_array    *sa,
+                          struct remap_table     *remap_table,
+                          const char             *remapped_pattern,
+                          int                     edits)
+{
+    iter->internal_approx_iter = malloc(sizeof(struct bwt_approx_match_internal_iter));
+    init_bwt_approx_match_internal_iter(iter->internal_approx_iter, bwt_table, sa,
+                                        remap_table, remapped_pattern, edits);
+    iter->internal_exact_iter = malloc(sizeof(struct bwt_exact_match_iter));
+    init_bwt_exact_match_iter(iter->internal_exact_iter, bwt_table, sa, remapped_pattern);
+    iter->outer = true;
+}
+
+bool next_bwt_approx_match(struct bwt_approx_iter  *iter,
+                           struct bwt_approx_match *match)
+{
+    struct bwt_approx_internal_match outer_match;
+    struct bwt_exact_match inner_match;
+    if (iter->outer) {
+        if (next_bwt_approx_match_internal_iter(iter->internal_approx_iter, &outer_match)) {
+            init_bwt_exact_match_from_approx_match(&outer_match, iter->internal_exact_iter);
+            match->cigar = outer_match.cigar;
+            match->match_length = outer_match.match_length;
+            iter->outer = false;
+            return next_bwt_approx_match(iter, match);
+        } else {
+            return false;
+        }
+    } else {
+        if (next_bwt_exact_match_iter(iter->internal_exact_iter, &inner_match)) {
+            match->position = inner_match.pos;
+            return true;
+        } else {
+            iter->outer = true;
+            return next_bwt_approx_match(iter, match);
+        }
+    }
+    
+    return false;
+}
+
+
+void dealloc_bwt_approx_iter(struct bwt_approx_iter *iter)
+{
+    free(iter->internal_approx_iter);
+    free(iter->internal_exact_iter);
+}
+
 
 void print_c_table(struct bwt_table *table,
                    struct remap_table  *remap_table)
