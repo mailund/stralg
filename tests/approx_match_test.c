@@ -385,7 +385,7 @@ static void test_approx(const char *pattern, const char *string,
     
     printf("Aho-Corasic vs \"naive suffix\" tree\t");
     struct suffix_tree *st = naive_suffix_tree(string);
-    //st_print_dot_name(st, st->root, "naive-tree.dot");
+    st_print_dot_name(st, st->root, "naive-tree.dot");
     
     string_vector st_results;
     init_string_vector(&st_results, 10);
