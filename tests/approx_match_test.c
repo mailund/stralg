@@ -260,8 +260,6 @@ static void exact_bwt_test(string_vector *exact_results,
 {
     struct suffix_array *sa = qsort_sa_construction(remapped_string);
     
-    // FIXME: add lower bound sa search
-    
     printf("BWT\t");
     struct bwt_table bwt_table;
     init_bwt_table(&bwt_table, sa, remap_table);
