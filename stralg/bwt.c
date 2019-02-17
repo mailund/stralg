@@ -162,7 +162,8 @@ static void push_edits(struct bwt_approx_match_iter *iter,
     
     // M-operations
     unsigned char match_a = iter->remapped_pattern[i];
-    for (unsigned char a = 0; a < iter->remap_table->alphabet_size; ++a) {
+    // Iterating alphabet from 1 so I don't include the sentinel.
+    for (unsigned char a = 1; a < iter->remap_table->alphabet_size; ++a) {
         size_t o_contrib = (L == 0) ? 0 : o_table[o_index(a, L - 1, sa)];
         new_L = c_table[a] + o_contrib + 1;
         new_R = c_table[a] + o_table[o_index(a, R, sa)];
@@ -185,7 +186,8 @@ static void push_edits(struct bwt_approx_match_iter *iter,
                L, R, i - 1);
 
     // D-operation
-    for (unsigned char a = 0; a < iter->remap_table->alphabet_size; ++a) {
+    // Iterating alphabet from 1 so I don't include the sentinel.
+    for (unsigned char a = 1; a < iter->remap_table->alphabet_size; ++a) {
         size_t o_contrib = (L == 0) ? 0 : o_table[o_index(a, L - 1, sa)];
         new_L = c_table[a] + o_contrib + 1;
         new_R = c_table[a] + o_table[o_index(a, R, sa)];

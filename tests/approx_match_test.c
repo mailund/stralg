@@ -78,15 +78,10 @@ static void exact_approach(const char *string, const char *pattern,
     init_edit_iter(&iter, pattern, alphabet, dist);
     while (next_edit_pattern(&iter, &edit_pattern)) {
         // skip those cigars that start with deletions
-        //if (sscanf(edit_pattern.cigar, "%*dD") == 0) continue;
-#if 0
-        int dummy;
-        sscanf(edit_pattern.cigar, "%dD", &dummy);
-        if (sscanf(edit_pattern.cigar, "%d[D]", &dummy)) {
-            printf("skipping cigar %s\n", edit_pattern.cigar);
+        int dummy; char dummy_str[1000];
+        if (sscanf(edit_pattern.cigar, "%dD%s", &dummy, dummy_str) > 1) {
             continue;
         }
-#endif
         
         size_t m = strlen(edit_pattern.pattern);
         // If the exact matchers work, I can pick any of them.
@@ -130,16 +125,11 @@ static void aho_corasick_approach(const char *string,
     init_edit_iter(&pattern_iter, pattern, alphabet, dist);
     while (next_edit_pattern(&pattern_iter, &edit_pattern)) {
         // skip those cigars that start with deletions
-#if 0
-        int dummy;
-        sscanf(edit_pattern.cigar, "%dD", &dummy);
-        printf("%s %d\n", edit_pattern.cigar, dummy);
-        if (sscanf(edit_pattern.cigar, "%dD", &dummy)) {
-            printf("dummy\n");
-            printf("skipping on cigar %s\n", edit_pattern.cigar);
+        
+        int dummy; char dummy_str[1000];
+        if (sscanf(edit_pattern.cigar, "%dD%s", &dummy, dummy_str) > 1) {
             continue;
         }
-#endif
         
         string_vector_append(&patterns, str_copy(edit_pattern.pattern));
         string_vector_append(&cigars, str_copy(edit_pattern.cigar));
@@ -410,12 +400,6 @@ static void test_approx(const char *pattern, const char *string,
     sort_string_vector(&st_results);
     free_suffix_tree(st);
     
-    printf("AC:\n");
-    print_string_vector(&ac_results);
-    printf("ST:\n");
-    print_string_vector(&st_results);
-    
-    
     assert(vector_equal(&ac_results, &st_results));
     free_strings(&st_results);
     dealloc_string_vector(&st_results);
@@ -470,7 +454,6 @@ static void test_approx(const char *pattern, const char *string,
     dealloc_string_vector(&ac_only);
     dealloc_string_vector(&bwt_only);
     
-    // Can't assert before I get the strings out of bwt.
     //assert(vector_equal(&ac_results, &bwt_results));
     printf("OK\n");
     printf("----------------------------------------------------\n");
@@ -515,7 +498,7 @@ int main(int argc, char **argv)
         printf("DONE\n");
         printf("====================================================\n\n");
     } else {
-#if 1
+#if 0 // Use this for testing for now...
         printf("APPROXIMATIVE MATCHING (DEBUG)...\n");
         //const char *p = "acg";
         //const char *x = "gacacacag";
