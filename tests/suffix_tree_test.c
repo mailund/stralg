@@ -23,8 +23,10 @@ static bool has_leaf(struct suffix_tree *st, struct suffix_tree_node *v, size_t 
     
     init_st_leaf_iter(&iter, st, v);
     while (next_st_leaf(&iter, &res)) {
-        if (!res.leaf->child && res.leaf->leaf_label == leaf)
+        if (!res.leaf->child && res.leaf->leaf_label == leaf) {
+            dealloc_st_leaf_iter(&iter);
             return true;
+        }
     }
     dealloc_st_leaf_iter(&iter);
     
@@ -40,6 +42,7 @@ static void check_leaf_search(struct suffix_tree *st)
         assert(has_leaf(st, v, i));
         get_path_string(st, v, buffer);
         assert(strcmp(st->string + i, buffer) == 0);
+        assert(!has_leaf(st, v, st->length + i));
     }
 }
 
