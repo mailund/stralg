@@ -456,7 +456,7 @@ static void pop_frame(struct st_approx_frame *sentinel,
 }
 
 
-static void push_children(struct st_approx_iter *iter,
+static void push_children(struct internal_st_approx_iter *iter,
                           struct suffix_tree *st,
                           struct suffix_tree_node *v,
                           bool leading,
@@ -477,7 +477,7 @@ static void push_children(struct st_approx_iter *iter,
     }
 }
 
-void init_st_approx_iter(struct st_approx_iter *iter,
+void init_internal_st_approx_iter(struct internal_st_approx_iter *iter,
                       struct suffix_tree *st,
                       const char *p,
                       int edits)
@@ -492,7 +492,7 @@ void init_st_approx_iter(struct st_approx_iter *iter,
     push_children(iter, st, st->root, true,
                   0, iter->full_cigar_buf, p, edits);
 }
-void dealloc_st_approx_iter(struct st_approx_iter *iter)
+void dealloc_internal_st_approx_iter(struct internal_st_approx_iter *iter)
 {
     free(iter->full_cigar_buf);
     free(iter->cigar_buf);
@@ -500,8 +500,8 @@ void dealloc_st_approx_iter(struct st_approx_iter *iter)
 
 
 
-bool next_st_approx_match(struct st_approx_iter *iter,
-                          struct st_approx_match *match)
+bool next_internal_st_approx_match(struct internal_st_approx_iter *iter,
+                          struct internal_st_approx_match *match)
 {
     struct suffix_tree_node *v;
     bool leading;
@@ -572,6 +572,67 @@ bool next_st_approx_match(struct st_approx_iter *iter,
                    edit - 1);
     }
     return false;
+}
+
+void init_st_approx_iter(struct st_approx_match_iter *iter,
+                         struct suffix_tree *st,
+                         const char *pattern,
+                         int edits)
+{
+    iter->st = st;
+    
+    iter->approx_iter = malloc(sizeof(struct internal_st_approx_iter));
+    init_internal_st_approx_iter(iter->approx_iter, st, pattern, edits);
+    iter->leaf_iter = malloc(sizeof(struct st_leaf_iter));
+    
+    iter->outer = true;
+    iter->has_inner = false;
+}
+
+bool next_st_approx_match(struct st_approx_match_iter *iter,
+                          struct st_approx_match *match)
+{
+    struct internal_st_approx_match outer_match;
+    struct st_leaf_iter_result inner_match;
+    
+    if (iter->outer) {
+        if (iter->has_inner) {
+            dealloc_st_leaf_iter(iter->leaf_iter);
+            iter->has_inner = false;
+        }
+        if (next_internal_st_approx_match(iter->approx_iter, &outer_match)) {
+            match->cigar = outer_match.cigar;
+            match->match_depth = outer_match.match_depth;
+            match->root = outer_match.match_root;
+            
+            init_st_leaf_iter(iter->leaf_iter, iter->st, outer_match.match_root);
+            iter->has_inner = true;
+            
+            iter->outer = false;
+            return next_st_approx_match(iter, match);
+        } else {
+            return false;
+        }
+    } else {
+        if (next_st_leaf(iter->leaf_iter, &inner_match)) {
+            match->match_label = inner_match.leaf->leaf_label;
+            return true;
+        } else {
+            iter->outer = true;
+            return next_st_approx_match(iter, match);
+        }
+    }
+    return false;
+}
+
+void dealloc_st_approx_iter(struct st_approx_match_iter *iter)
+{
+    dealloc_internal_st_approx_iter(iter->approx_iter);
+    free(iter->approx_iter);
+    if (iter->has_inner) {
+        dealloc_st_leaf_iter(iter->leaf_iter);
+    }
+    free(iter->leaf_iter);
 }
 
 

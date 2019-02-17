@@ -197,28 +197,21 @@ static void aho_corasick_approach(const char *string,
 
 static void st_match(struct suffix_tree *st,
                      const char *pattern, const char *string,
-                     int edit,
+                     int edits,
                      string_vector *st_results)
 {
-    struct st_approx_iter iter;
-    struct st_approx_match match;
-    struct st_leaf_iter leaf_iter;
-    struct st_leaf_iter_result st_match;
     char path_buffer[st->length + 1];
     
-    init_st_approx_iter(&iter, st, pattern, edit);
-    // FIXME: implement this double loop as a single
-    // iterator in the suffix tree interface.
+    struct st_approx_match_iter iter;
+    struct st_approx_match match;
+    init_st_approx_iter(&iter, st, pattern, edits);
     while (next_st_approx_match(&iter, &match)) {
-        get_path_string(st, match.match_root, path_buffer);
+        get_path_string(st, match.root, path_buffer);
         path_buffer[match.match_depth] = '\0';
-        init_st_leaf_iter(&leaf_iter, st, match.match_root);
-        while (next_st_leaf(&leaf_iter, &st_match)) {
-            string_vector_append(st_results,
-                                 match_string(st_match.leaf->leaf_label, path_buffer, match.cigar));
-        }
-        dealloc_st_leaf_iter(&leaf_iter);
+        char *m = match_string(match.match_label, path_buffer, match.cigar);
+        string_vector_append(st_results, m);
     }
+    
     dealloc_st_approx_iter(&iter);
 }
 
@@ -231,34 +224,24 @@ static void bwt_match(struct suffix_array *sa,
                       string_vector *bwt_results)
 {
     
-    struct bwt_approx_match_iter approx_iter;
-    struct bwt_approx_match approx_match;
-    struct bwt_exact_match_iter exact_iter;
-    struct bwt_exact_match exact_match;
-    
-    size_t n = 3 * strlen(pattern) + 1;
-    
-    // we need this to get the string we actually matched
+    // We need this to get the string we actually matched
     // from the remapped stuff.
+    // FIXME: check if this is the correct length needed.
+    size_t n = 3 * strlen(pattern) + 1;
     char rev_mapped_match[n];
     
-    // FIXME: make this double loop a single iterator in bwt id:22
-    init_bwt_approx_match_iter(&approx_iter, bwt_table,
-                               sa, remap_table, pattern, edits);
-    
-    while (next_bwt_approx_match_iter(&approx_iter, &approx_match)) {
-        init_bwt_exact_match_from_approx_match(&approx_match, &exact_iter);
-        while (next_bwt_exact_match_iter(&exact_iter, &exact_match)) {
-            rev_remap_between0(rev_mapped_match,
-                               string + exact_match.pos,
-                               string + exact_match.pos + approx_match.match_length,
-                               remap_table);
-            string_vector_append(bwt_results,
-                                 match_string(exact_match.pos, rev_mapped_match, approx_match.cigar));
-        }
-        dealloc_bwt_exact_match_iter(&exact_iter);
+    struct bwt_approx_iter iter;
+    struct bwt_approx_match match;
+    init_bwt_approx_iter(&iter, bwt_table, sa, remap_table, pattern, edits);
+    while (next_bwt_approx_match(&iter, &match)) {
+        rev_remap_between0(rev_mapped_match,
+                           string + match.position,
+                           string + match.position + match.match_length,
+                           remap_table);
+        char *m = match_string(match.position, rev_mapped_match, match.cigar);
+        string_vector_append(bwt_results, m);
     }
-    dealloc_bwt_approx_match_iter(&approx_iter);
+    dealloc_bwt_approx_iter(&iter);
 }
 
 
@@ -269,8 +252,6 @@ static void exact_bwt_test(string_vector *exact_results,
                            char *remapped_pattern, char *remapped_string)
 {
     struct suffix_array *sa = qsort_sa_construction(remapped_string);
-    
-    // FIXME: add lower bound sa search
     
     printf("BWT\t");
     struct bwt_table bwt_table;
