@@ -197,28 +197,21 @@ static void aho_corasick_approach(const char *string,
 
 static void st_match(struct suffix_tree *st,
                      const char *pattern, const char *string,
-                     int edit,
+                     int edits,
                      string_vector *st_results)
 {
-    struct st_approx_iter iter;
-    struct st_approx_match match;
-    struct st_leaf_iter leaf_iter;
-    struct st_leaf_iter_result st_match;
     char path_buffer[st->length + 1];
     
-    init_st_approx_iter(&iter, st, pattern, edit);
-    // FIXME: implement this double loop as a single
-    // iterator in the suffix tree interface.
+    struct st_approx_match_iter iter;
+    struct st_approx_match match;
+    init_st_approx_iter(&iter, st, pattern, edits);
     while (next_st_approx_match(&iter, &match)) {
-        get_path_string(st, match.match_root, path_buffer);
+        get_path_string(st, match.root, path_buffer);
         path_buffer[match.match_depth] = '\0';
-        init_st_leaf_iter(&leaf_iter, st, match.match_root);
-        while (next_st_leaf(&leaf_iter, &st_match)) {
-            string_vector_append(st_results,
-                                 match_string(st_match.leaf->leaf_label, path_buffer, match.cigar));
-        }
-        dealloc_st_leaf_iter(&leaf_iter);
+        char *m = match_string(match.match_label, path_buffer, match.cigar);
+        string_vector_append(st_results, m);
     }
+    
     dealloc_st_approx_iter(&iter);
 }
 

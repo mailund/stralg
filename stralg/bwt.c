@@ -430,7 +430,9 @@ bool next_bwt_approx_match(struct bwt_approx_iter  *iter,
 
 void dealloc_bwt_approx_iter(struct bwt_approx_iter *iter)
 {
+    dealloc_bwt_approx_match_internal_iter(iter->internal_approx_iter);
     free(iter->internal_approx_iter);
+    dealloc_bwt_exact_match_iter(iter->internal_exact_iter);
     free(iter->internal_exact_iter);
 }
 
