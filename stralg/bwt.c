@@ -148,6 +148,7 @@ static void push_frame(struct bwt_approx_match_iter *iter,
 }
 
 static void push_edits(struct bwt_approx_match_iter *iter,
+                       bool first, // is this the first push edits we make?
                        char *cigar, size_t match_length,
                        int edits, size_t L, size_t R, int i)
 {
@@ -186,14 +187,16 @@ static void push_edits(struct bwt_approx_match_iter *iter,
                L, R, i - 1);
 
     // D-operation
-    // Iterating alphabet from 1 so I don't include the sentinel.
-    for (unsigned char a = 1; a < iter->remap_table->alphabet_size; ++a) {
-        size_t o_contrib = (L == 0) ? 0 : o_table[o_index(a, L - 1, sa)];
-        new_L = c_table[a] + o_contrib + 1;
-        new_R = c_table[a] + o_table[o_index(a, R, sa)];
-        push_frame(iter, 'D', edits - 1,
-                   cigar + 1, match_length + 1,
-                   new_L, new_R, i);
+    if (!first) { // never start with a deletion
+        // Iterating alphabet from 1 so I don't include the sentinel.
+        for (unsigned char a = 1; a < iter->remap_table->alphabet_size; ++a) {
+            size_t o_contrib = (L == 0) ? 0 : o_table[o_index(a, L - 1, sa)];
+            new_L = c_table[a] + o_contrib + 1;
+            new_R = c_table[a] + o_table[o_index(a, R, sa)];
+            push_frame(iter, 'D', edits - 1,
+                       cigar + 1, match_length + 1,
+                       new_L, new_R, i);
+        }
     }
     
 #if PRINT_STACK
@@ -260,7 +263,8 @@ void init_bwt_approx_match_iter   (struct bwt_approx_match_iter *iter,
     int i = m - 1;
     
     // push the start of the search
-    push_edits(iter, iter->full_cigar_buf, 0, edits, L, R, i);
+    push_edits(iter, true,
+               iter->full_cigar_buf, 0, edits, L, R, i);
 }
 
 bool next_bwt_approx_match_iter   (struct bwt_approx_match_iter *iter,
@@ -305,7 +309,7 @@ bool next_bwt_approx_match_iter   (struct bwt_approx_match_iter *iter,
             return true;
         }
         
-        push_edits(iter, cigar, match_length, edits, L, R, i);
+        push_edits(iter, false, cigar, match_length, edits, L, R, i);
     }
     
     return false;

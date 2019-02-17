@@ -12,6 +12,7 @@ struct naive_match_iter {
     const char *text;    size_t n;
     const char *pattern; size_t m;
     size_t current_index;
+    bool empty;
 };
 void init_naive_match_iter(
     struct naive_match_iter *iter,
@@ -31,6 +32,7 @@ struct border_match_iter {
     const char *pattern; size_t m;
     size_t *border_array;
     size_t i; size_t b;
+    bool empty;
 };
 void init_border_match_iter(
     struct border_match_iter *iter,
@@ -51,6 +53,7 @@ struct kmp_match_iter {
     size_t *prefixtab;
     size_t max_match_len;
     size_t j, i;
+    bool empty;
 };
 void init_kmp_match_iter(
     struct kmp_match_iter *iter,
@@ -71,6 +74,7 @@ struct bmh_match_iter {
     // Implicitly assuming that the alphabet is eight bits!
     size_t jump_table[256];
     size_t j;
+    bool empty;
 };
 void init_bmh_match_iter(
     struct bmh_match_iter *iter,

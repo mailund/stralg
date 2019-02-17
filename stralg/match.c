@@ -12,6 +12,11 @@ void init_naive_match_iter(
     const char *text, size_t n,
     const char *pattern, size_t m
 ) {
+    if (m == 0) {
+        iter->empty = true;
+        return;
+    }
+    
     // This is necessary because n and m are unsigned so the
     // "j < n - m + 1" loop test can suffer from an overflow.
     assert(m <= n);
@@ -25,6 +30,8 @@ bool next_naive_match(
     struct naive_match_iter *iter,
     struct match *match
 ) {
+    if (iter->empty) return false;
+    
     size_t n = iter->n, m = iter->m;
     const char *text = iter->text;
     const char *pattern = iter->pattern;
@@ -56,6 +63,11 @@ void init_border_match_iter(
     const char *text, size_t n,
     const char *pattern, size_t m
 ) {
+    if (m == 0) {
+        iter->empty = true;
+        return;
+    }
+    
     iter->text = text; iter->n = n;
     iter->pattern = pattern; iter->m = m;
     iter->i = iter->b = 0;
@@ -75,6 +87,7 @@ bool next_border_match(
     struct border_match_iter *iter,
     struct match *match
 ) {
+    if (iter->empty) return false;
     
     const char *text = iter->text;
     const char *pattern = iter->pattern;
@@ -135,6 +148,10 @@ void init_kmp_match_iter(
     const char *text, size_t n,
     const char *pattern, size_t m
 ) {
+    if (m == 0) {
+        iter->empty = true;
+        return;
+    }
     // This is necessary because n and m are unsigned so the
     // "j < n - m + 1" loop test can suffer from an overflow.
     assert(m <= n);
@@ -171,6 +188,8 @@ bool next_kmp_match(
     struct kmp_match_iter *iter,
     struct match *match
 ) {
+    if (iter->empty) return false;
+    
     // aliases to make the code easier to read...
     size_t j = iter->j;
     size_t i = iter->i;
@@ -218,6 +237,11 @@ void init_bmh_match_iter(
     const char *text, size_t n,
     const char *pattern, size_t m
 ) {
+    if (m == 0) {
+        iter->empty = true;
+        return;
+    }
+    
     assert(m <= n);
     iter->j = 0;
     iter->text = text; iter->n = n;
@@ -234,6 +258,8 @@ bool next_bmh_match(
     struct bmh_match_iter *iter,
     struct match *match
 ) {
+    if (iter->empty) return false;
+    
     // aliasing to make the code easier to read...
     const char *text = iter->text;
     const char *pattern = iter->pattern;
