@@ -12,6 +12,8 @@ void init_naive_match_iter(
     const char *text, size_t n,
     const char *pattern, size_t m
 ) {
+    assert(m > 0);
+    
     // This is necessary because n and m are unsigned so the
     // "j < n - m + 1" loop test can suffer from an overflow.
     assert(m <= n);
@@ -56,6 +58,8 @@ void init_border_match_iter(
     const char *text, size_t n,
     const char *pattern, size_t m
 ) {
+    assert(m > 0);
+    
     iter->text = text; iter->n = n;
     iter->pattern = pattern; iter->m = m;
     iter->i = iter->b = 0;
@@ -75,7 +79,6 @@ bool next_border_match(
     struct border_match_iter *iter,
     struct match *match
 ) {
-    
     const char *text = iter->text;
     const char *pattern = iter->pattern;
     size_t *ba = iter->border_array;
@@ -135,6 +138,8 @@ void init_kmp_match_iter(
     const char *text, size_t n,
     const char *pattern, size_t m
 ) {
+    assert(m > 0);
+    
     // This is necessary because n and m are unsigned so the
     // "j < n - m + 1" loop test can suffer from an overflow.
     assert(m <= n);
@@ -218,7 +223,9 @@ void init_bmh_match_iter(
     const char *text, size_t n,
     const char *pattern, size_t m
 ) {
+    assert(m > 0);
     assert(m <= n);
+    
     iter->j = 0;
     iter->text = text; iter->n = n;
     iter->pattern = pattern; iter->m = m;

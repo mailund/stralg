@@ -69,6 +69,7 @@ void dealloc_st_leaf_iter(
 struct st_approx_frame {
     struct st_approx_frame *next;
     struct suffix_tree_node *v;
+    bool leading; // for avoiding leading deletions
     const char *x;
     const char *end;
     size_t match_depth;

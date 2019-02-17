@@ -55,6 +55,8 @@ void free_trie(struct trie *trie)
 
 static struct trie *string_to_trie(const char *str, int string_label)
 {
+    assert(str && strlen(str) > 0);
+    
     const char *s = str;
     while (*s) s++;
     
@@ -89,6 +91,8 @@ struct trie *out_link(struct trie *v, char label)
 
 void add_string_to_trie(struct trie *trie, const char *str, int string_label)
 {
+    assert(str && strlen(str) > 0);
+    
     if (!trie->children) { // first string is a special case (FIXME: check if I can avoid this)
         trie->children = string_to_trie(str, string_label);
         trie->children->parent = trie;
