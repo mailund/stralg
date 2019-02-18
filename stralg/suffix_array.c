@@ -94,7 +94,7 @@ static size_t binary_search(const char *key, size_t *key_len,
     
     int cmp;
     
-    while (low < high) {        
+    while (low < high) {
         mid = low + (high-low) / 2;
         cmp = strncmp(key, sa->string + sa->array[mid], key_len);
         if (cmp < 0) {
@@ -128,12 +128,35 @@ size_t lower_bound_search(struct suffix_array *sa, const char *key)
 }
 
 void init_sa_match_iter(struct sa_match_iter *iter,
-                        char *pattern,
+                        char *key,
                         struct suffix_array *sa)
 {
     iter->sa = sa;
     
+    size_t key_len = strlen(key);
+    assert(key_len > 0); // I cannot handle empty strings!
+    size_t mid = binary_search(key, key_len, sa);
     
+    int cmp = strncmp(sa->string + sa->array[mid], key, key_len);
+    if (cmp != 0) {
+        // we do not have a match, so set the iterator to reflect that.
+        iter->L = iter->R = 0;
+        iter->i = 1;
+    } else {
+        // find lower and upper bound
+        size_t lower = mid;
+        while (lower > 0 && strncmp(sa->string + sa->array[lower], key, key_len) >= 0) {
+            lower--;
+        }
+        iter->i = iter->L = lower + 1;
+        size_t upper = mid;
+        while (upper < sa->length &&
+               strncmp(sa->string + sa->array[upper], key, key_len) == 0) {
+            upper++;
+        }
+        iter->R = upper - 1;
+    }
+
 }
 
 bool next_sa_match(struct sa_match_iter *iter,
