@@ -21,6 +21,10 @@ static void test_search(struct suffix_array *sa)
     assert(idx == 1); //printf("ab idx == %d\n", idx);
     idx = lower_bound_search(sa, "ac");
     assert(idx == 4); //printf("ac idx == %d\n", idx);
+    idx = lower_bound_search(sa, "aa");
+    assert(idx == 0); //printf("ac idx == %d\n", idx);
+    idx = lower_bound_search(sa, "ad");
+    assert(idx == 5); //printf("ac idx == %d\n", idx);
     idx = lower_bound_search(sa, "x");
     assert(idx == 10); //printf("x idx == %d\n", idx);
     idx = lower_bound_search(sa, "b");

@@ -26,6 +26,23 @@ void free_suffix_array(struct suffix_array *sa);
 
 size_t lower_bound_search(struct suffix_array *sa, const char *key);
 
+struct sa_match_iter {
+    struct suffix_array *sa;
+    size_t L;
+    size_t R;
+    size_t i;
+};
+struct sa_match {
+    size_t position;
+};
+void init_sa_match_iter   (struct sa_match_iter *iter,
+                           char *pattern,
+                           struct suffix_array *sa);
+bool next_sa_match        (struct sa_match_iter *iter,
+                           struct sa_match_iter *match);
+void dealloc_sa_match_iter(struct sa_match_iter *iter);
+
+
 void compute_inverse(struct suffix_array *sa);
 void compute_lcp(struct suffix_array *sa);
 

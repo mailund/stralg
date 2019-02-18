@@ -85,18 +85,16 @@ void compute_lcp(struct suffix_array *sa)
     }
 }
 
-// when searching, we cannot simply use bsearch because we want
-// to get a lower bound if the key isn't in the array -- bsearch
-// would give us NULL in that case.
-size_t lower_bound_search(struct suffix_array *sa, const char *key)
+static size_t binary_search(const char *key, size_t *key_len,
+                          struct suffix_array *sa)
 {
-    int low = 0;
-    int high = sa->length;
-    int mid;
-    int cmp = 0;
-    size_t key_len = strlen(key);
-
-    while (low < high) {
+    size_t low = 0;
+    size_t high = sa->length;
+    size_t mid;
+    
+    int cmp;
+    
+    while (low < high) {        
         mid = low + (high-low) / 2;
         cmp = strncmp(key, sa->string + sa->array[mid], key_len);
         if (cmp < 0) {
@@ -104,37 +102,51 @@ size_t lower_bound_search(struct suffix_array *sa, const char *key)
         } else if (cmp > 0) {
             low = mid + 1;
         } else {
-            // a hit, search down until we get the smallest hit...
-            for (int i = mid - 1; i >= 0; --i) {
-                if (strncmp(sa->string + sa->array[i], key, key_len) < 0)
-                    return i + 1;
-            }
-            return 0; // if we get here, we didn't find a smaller string, so we
-                      // have to return 0
+            // now mid is where a possible match
+            // might be
+            break;
         }
     }
-
-    // we didn't find the key -- we are either at the smallest upper bound
-    // or highest lower bound. The relative order of mid and high tells us which
-    assert(cmp != 0);
-    //printf("fell through ... %d %d %d\n", low, mid, high);
-    if (high < 0) return 0;
-    if (low >= sa->length) return sa->length - 1;
-
-    if (high < mid) {
-        // we moved down so mid points to a larger string. This means
-        // that the largest that is smaller must be one below mid (which is high)
-        return mid - 1;
-    } else {
-        // we moved up, so mid is smaller. we have two possible cases, then
-        // either low points to a match or mid is the largest that is smaller
-        assert(low > mid);
-        if (strncmp(sa->string + sa->array[low], key, key_len) == 0)
-            return low;
-        else
-            return mid;
-    }
-    assert(false); // we should never get here.
+    
+    return mid;
 }
 
+// when searching, we cannot simply use bsearch because we want
+// to get a lower bound if the key isn't in the array -- bsearch
+// would give us NULL in that case.
+size_t lower_bound_search(struct suffix_array *sa, const char *key)
+{
+    size_t key_len = strlen(key);
+    assert(key_len > 0); // I cannot handle empty strings!
+    size_t mid = binary_search(key, key_len, sa);
+    
+    int cmp = strncmp(sa->string + sa->array[mid], key, key_len);
+    while (mid > 0 && strncmp(sa->string + sa->array[mid], key, key_len) >= 0) {
+        mid--;
+    }
+    return (cmp == 0) ? mid + 1: mid;
+}
+
+void init_sa_match_iter(struct sa_match_iter *iter,
+                        char *pattern,
+                        struct suffix_array *sa)
+{
+    iter->sa = sa;
+    
+    
+}
+
+bool next_sa_match(struct sa_match_iter *iter,
+                   struct sa_match_iter *match)
+{
+    if (iter->i > iter->R)
+        return false;
+    else
+        return iter->sa->array[iter->i++];
+}
+
+void dealloc_sa_match_iter(struct sa_match_iter *iter)
+{
+    // nothing to be done here
+}
 
