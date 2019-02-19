@@ -121,3 +121,51 @@ char *rev_remap_between0(char *output,
     *x = '\0';
     return x + 1;
 }
+
+void write_table(FILE *f, struct remap_table *table)
+{
+    fwrite(table, sizeof(struct remap_table), 1, f);
+}
+
+void write_table_fname(const char *fname, struct remap_table *table)
+{
+    FILE *f = fopen(fname, "wb");
+    write_table(f, table);
+    fclose(f);
+}
+
+void read_table(FILE *f, struct remap_table *table)
+{
+    fread(table, sizeof(struct remap_table), 1, f);
+}
+
+void read_table_fname(const char *fname, struct remap_table *table)
+{
+    FILE *f = fopen(fname, "rb");
+    read_table(f, table);
+    fclose(f);
+}
+
+void print_remap_table(struct remap_table *table)
+{
+    printf("0 -> $\n");
+    for (unsigned char i = 1; i < table->alphabet_size; ++i) {
+        signed char rev = table->rev_table[i];
+        signed char back = table->table[rev];
+        printf("%d -> %c -> %d\n", i, rev, back);
+    }
+}
+
+bool identical_remap_tables(struct remap_table *table1,
+                            struct remap_table *table2)
+{
+    if (table1->alphabet_size != table2->alphabet_size)
+        return false;
+    
+    for (size_t i = 0; i < table1->alphabet_size; ++i) {
+        if (table1->table[i] != table2->table[i])
+            return false;
+    }
+    
+    return true;
+}

@@ -42,6 +42,12 @@ int main(int argc, char **argv)
         }
     }
     
+    for (size_t i = 0; i < table.alphabet_size; ++i) {
+        signed char rev = table.rev_table[i];
+        signed char back = table.table[rev];
+        assert(i == back);
+    }
+    
     remap(mapped, string, &table);
     for (size_t i = 0; i < n + 1; ++i) {
         printf("mapped[%lu] == %d\n", i, mapped[i]);
@@ -56,7 +62,25 @@ int main(int argc, char **argv)
     const char *other_string = "acgtX";
     char other_buffer[strlen(other_string) + 1];
     assert(remap(other_buffer, other_string, &table) == 0);
+
+    printf("table:\n");
+    print_remap_table(&table);
     
+    // get a unique temporary file name...
+    const char *temp_template = "/tmp/temp.XXXXXX";
+    char fname[strlen(temp_template) + 1];
+    strcpy(fname, temp_template);
+    mktemp(fname);
+    
+    printf("file name: %s\n", fname);
+    write_table_fname(fname, &table);
+    
+    struct remap_table table2;
+    read_table_fname(fname, &table2);
+    
+    print_remap_table(&table2);
+    
+    assert(identical_remap_tables(&table, &table2));
     
     dealloc_remap_table(&table);
     
