@@ -73,21 +73,38 @@ int main(int argc, char *argv[])
     compute_lcp(sa);
 
     for (int i = 0; i < sa->length; ++i)
-        printf("sa[%d] == %zu\t%s\n", i, sa->array[i], string + sa->array[i]);
+        printf("sa[%d] == %u\t%s\n", i, sa->array[i], string + sa->array[i]);
     printf("\n");
     for (int i = 0; i < sa->length; ++i)
-        printf("isa[%d] == %zu\t%s\n", i, sa->inverse[i], string + i);
+        printf("isa[%d] == %u\t%s\n", i, sa->inverse[i], string + i);
     printf("\n");
     for (int i = 0; i < sa->length; ++i)
         printf("lcp[%2d] == %2d\t%s\n", i, sa->lcp[i], string + sa->array[i]);
-    printf("lcp[%zu] == %d\n", sa->length, sa->lcp[sa->length]);
+    printf("lcp[%u] == %d\n", sa->length, sa->lcp[sa->length]);
     printf("\n");
 
     test_order(sa);
     test_inverse(sa);
     test_lcp(sa);
     test_search(sa);
+
+    print_suffix_array(sa);
     
+    // get a unique temporary file name...
+    const char *temp_template = "/tmp/temp.XXXXXX";
+    char fname[strlen(temp_template) + 1];
+    strcpy(fname, temp_template);
+    mktemp(fname);
+    
+    printf("file name: %s\n", fname);
+    write_suffix_array_fname(fname, sa);
+    
+    struct suffix_array *other_sa = read_suffix_array_fname(fname, string);
+    print_suffix_array(other_sa);
+    
+    assert(identical_suffix_arrays(sa, other_sa));
+    
+    free_suffix_array(other_sa);
     free_suffix_array(sa);
 
     return EXIT_SUCCESS;
