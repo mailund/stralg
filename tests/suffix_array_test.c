@@ -14,25 +14,38 @@ static void test_order(struct suffix_array *sa)
                < 0);
 }
 
-
+//char *string = "ababacabac";
+/*
+ SA[  0] =  10
+ SA[  1] =   0    ababacabac
+ SA[  2] =   6    abac
+ SA[  3] =   2    abacabac
+ SA[  4] =   8    ac
+ SA[  5] =   4    acabac
+ SA[  6] =   1    babacabac
+ SA[  7] =   7    bac
+ SA[  8] =   3    bacabac
+ SA[  9] =   9    c
+ SA[ 10] =   5    cabac
+*/
 static void test_search(struct suffix_array *sa)
 {
     int idx = lower_bound_search(sa, "ab");
-    assert(idx == 1); //printf("ab idx == %d\n", idx);
+    assert(idx == 1);
     idx = lower_bound_search(sa, "ac");
-    assert(idx == 4); //printf("ac idx == %d\n", idx);
+    assert(idx == 4);
     idx = lower_bound_search(sa, "aa");
-    assert(idx == 0); //printf("ac idx == %d\n", idx);
+    assert(idx == 0);
     idx = lower_bound_search(sa, "ad");
-    assert(idx == 5); //printf("ac idx == %d\n", idx);
+    assert(idx == 5);
     idx = lower_bound_search(sa, "x");
-    assert(idx == 10); //printf("x idx == %d\n", idx);
+    assert(idx == 10);
     idx = lower_bound_search(sa, "b");
-    assert(idx == 6); //printf("b idx == %d\n", idx);
+    assert(idx == 6);
     idx = lower_bound_search(sa, "c");
-    assert(idx == 9); //printf("c idx == %d\n", idx);
+    assert(idx == 9);
     idx = lower_bound_search(sa, "0");
-    assert(idx == 0); //printf("0 idx == %d\n", idx);
+    assert(idx == 0);
 }
 
 
@@ -70,7 +83,7 @@ static void test_lcp(struct suffix_array *sa)
 
 int main(int argc, char *argv[])
 {
-    char *string = "ababacabac";//string_copy("ababacabac");
+    char *string = "ababacabac";
     struct suffix_array *sa = qsort_sa_construction(string);
 
 
