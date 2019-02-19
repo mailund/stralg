@@ -34,8 +34,8 @@ int main(int argc, char **argv)
     printf("n == %lu\n", n);
     assert(sa->length == n + 1);
     
-    for (size_t i = 0; i < sa->length; ++i) {
-        printf("sa[%2lu] = %2lu = ", i, sa->array[i]);
+    for (uint32_t i = 0; i < sa->length; ++i) {
+        printf("sa[%2u] = %2u = ", i, sa->array[i]);
         for (size_t j = sa->array[i]; j < sa->length; ++j) {
             printf("%d", remapped[j]);
         }

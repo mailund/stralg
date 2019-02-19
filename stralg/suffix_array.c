@@ -3,9 +3,7 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
 #include <assert.h>
-#include <stdbool.h>
 
 static struct suffix_array *allocate_sa(const char *string)
 {
@@ -13,7 +11,7 @@ static struct suffix_array *allocate_sa(const char *string)
         (struct suffix_array*)malloc(sizeof(struct suffix_array));
     sa->string = string;
     sa->length = strlen(string) + 1;
-    sa->array = (size_t*)malloc(sa->length * sizeof(size_t));
+    sa->array = malloc(sa->length * sizeof(*sa->array));
 
     sa->inverse = 0;
     sa->lcp = 0;
@@ -59,7 +57,7 @@ struct suffix_array *qsort_sa_construction(const char *string)
 void compute_inverse(struct suffix_array *sa)
 {
     if (sa->inverse) return; // only compute if it is needed
-    sa->inverse = (size_t*)malloc(sa->length * sizeof(size_t));
+    sa->inverse = malloc(sa->length * sizeof(*sa->inverse));
     for (size_t i = 0; i < sa->length; ++i)
         sa->inverse[sa->array[i]] = i;
 }
@@ -70,7 +68,7 @@ void compute_lcp(struct suffix_array *sa)
 
     compute_inverse(sa);
 
-    sa->lcp = (int*)malloc((1 + sa->length) * sizeof(int));
+    sa->lcp = malloc((1 + sa->length) * sizeof(*sa->lcp));
     sa->lcp[0] = sa->lcp[sa->length] = -1;
 
     int l = 0;
@@ -177,5 +175,64 @@ bool next_sa_match(struct sa_match_iter *iter,
 void dealloc_sa_match_iter(struct sa_match_iter *iter)
 {
     // nothing to be done here
+}
+
+void write_suffix_array(FILE *f, struct suffix_array *sa)
+{
+    fwrite(sa->array, sizeof(*sa->array), sa->length, f);
+}
+void write_suffix_array_fname(const char *fname,
+                              struct suffix_array *sa)
+{
+    FILE *f = fopen(fname, "wb");
+    write_suffix_array(f, sa);
+    fclose(f);
+}
+
+struct suffix_array *read_suffix_array(FILE *f, const char *string)
+{
+    struct suffix_array *sa = allocate_sa(string);
+    fread(sa->array, sizeof(*sa->array), sa->length, f);
+    return sa;
+}
+struct suffix_array *read_suffix_array_fname(const char *fname,
+                                             const char *string)
+{
+    FILE *f = fopen(fname, "rb");
+    struct suffix_array *sa = read_suffix_array(f, string);
+    fclose(f);
+    return sa;
+}
+
+
+
+
+
+void print_suffix_array(struct suffix_array *sa)
+{
+    for (uint32_t i = 0; i < sa->length; ++i) {
+        printf("SA[%3u] = %3u\t%s\n",
+               i, sa->array[i], sa->string + sa->array[i]);
+    }
+    if (sa->lcp) {
+        printf("\n");
+        for (uint32_t i = 0; i < sa->length; ++i) {
+            printf("lcp[%3u] = %3d\t%s\n",
+                   i, sa->lcp[i], sa->string + sa->array[i]);
+        }
+        
+    }
+}
+
+bool identical_suffix_arrays(struct suffix_array *sa1,
+                             struct suffix_array *sa2)
+{
+    if (sa1->length != sa2->length) return false;
+    for (size_t i = 0; i < sa1->length; ++i) {
+        if (sa1->array[i] != sa2->array[i])
+            return false;
+    }
+    
+    return true;
 }
 
