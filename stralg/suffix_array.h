@@ -36,10 +36,10 @@ struct sa_match {
     size_t position;
 };
 void init_sa_match_iter   (struct sa_match_iter *iter,
-                           char *pattern,
+                           const char *pattern,
                            struct suffix_array *sa);
 bool next_sa_match        (struct sa_match_iter *iter,
-                           struct sa_match_iter *match);
+                           struct sa_match      *match);
 void dealloc_sa_match_iter(struct sa_match_iter *iter);
 
 

@@ -128,7 +128,7 @@ size_t lower_bound_search(struct suffix_array *sa, const char *key)
 }
 
 void init_sa_match_iter(struct sa_match_iter *iter,
-                        char *key,
+                        const char *key,
                         struct suffix_array *sa)
 {
     iter->sa = sa;
@@ -136,8 +136,13 @@ void init_sa_match_iter(struct sa_match_iter *iter,
     size_t key_len = strlen(key);
     assert(key_len > 0); // I cannot handle empty strings!
     size_t mid = binary_search(key, key_len, sa);
+    printf("pattern: %s, string: %s, mid: %lu\n",
+           key, sa->string, mid);
+    printf("suffix pointed to by mid: %lu (%s)\n",
+           sa->array[mid], sa->string + sa->array[mid]);
     
     int cmp = strncmp(sa->string + sa->array[mid], key, key_len);
+    printf("if %d == 0 we found %s at index %lu\n", cmp, key, mid);
     if (cmp != 0) {
         // we do not have a match, so set the iterator to reflect that.
         iter->L = iter->R = 0;
@@ -156,16 +161,17 @@ void init_sa_match_iter(struct sa_match_iter *iter,
         }
         iter->R = upper - 1;
     }
+    printf("init range: [%lu:%lu]\n", iter->L, iter->R);
 
 }
 
 bool next_sa_match(struct sa_match_iter *iter,
-                   struct sa_match_iter *match)
+                   struct sa_match      *match)
 {
     if (iter->i > iter->R)
         return false;
-    else
-        return iter->sa->array[iter->i++];
+    match->position = iter->sa->array[iter->i++];
+    return true;
 }
 
 void dealloc_sa_match_iter(struct sa_match_iter *iter)
