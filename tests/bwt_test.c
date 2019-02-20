@@ -86,12 +86,11 @@ int main(int argc, char **argv)
     printf("file name: %s\n", fname);
     write_bwt_table_fname(fname, &bwt_table);
     
-    struct bwt_table other_table;
-    read_bwt_table_fname(fname, &other_table, sa, &remap_table);
+    struct bwt_table *other_table = read_bwt_table_fname(fname, sa, &remap_table);
 
-    assert(identical_bwt_tables(&bwt_table, &other_table));
+    assert(identical_bwt_tables(&bwt_table, other_table));
     
-    dealloc_bwt_table(&other_table);
+    free_bwt_table(other_table);
     dealloc_bwt_table(&bwt_table);
     free_suffix_array(sa);
     dealloc_remap_table(&remap_table);

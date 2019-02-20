@@ -77,15 +77,12 @@ int main(int argc, char **argv)
     mkstemp(fname);
 
     printf("file name: %s\n", fname);
-    write_table_fname(fname, &table);
+    write_remap_table_fname(fname, &table);
     
-    struct remap_table table2;
-    read_table_fname(fname, &table2);
+    struct remap_table *table2 = read_remap_table_fname(fname);
+    assert(identical_remap_tables(&table, table2));
     
-    print_remap_table(&table2);
-    
-    assert(identical_remap_tables(&table, &table2));
-    
+    free_remap_table(table2);
     dealloc_remap_table(&table);
     
     return EXIT_SUCCESS;

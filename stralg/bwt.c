@@ -15,8 +15,8 @@ static inline unsigned char bwt(const struct suffix_array *sa, size_t i)
 }
 
 void init_bwt_table(struct bwt_table    *bwt_table,
-                    const struct suffix_array *sa,
-                    const struct remap_table  *remap_table)
+                    struct suffix_array *sa,
+                    struct remap_table  *remap_table)
 {
     bwt_table->remap_table = remap_table;
     bwt_table->sa = sa;
@@ -57,6 +57,36 @@ void dealloc_bwt_table(struct bwt_table *bwt_table)
     free(bwt_table->c_table);
     free(bwt_table->o_table);
 }
+
+void dealloc_complete_bwt_table(struct bwt_table *bwt_table)
+{
+    free_complete_suffix_array(bwt_table->sa);
+    free_remap_table(bwt_table->remap_table);
+    dealloc_bwt_table(bwt_table);
+}
+
+struct bwt_table *alloc_bwt_table(struct bwt_table    *bwt_table,
+                                  struct suffix_array *sa,
+                                  struct remap_table  *remap_table)
+{
+    struct bwt_table *table = malloc(sizeof(struct bwt_table));
+    init_bwt_table(table, sa, remap_table);
+    return table;
+}
+
+void free_bwt_table(struct bwt_table *bwt_table)
+{
+    dealloc_bwt_table(bwt_table);
+    free(bwt_table);
+}
+
+void free_complete_bwt_table(struct bwt_table *bwt_table)
+{
+    dealloc_complete_bwt_table(bwt_table);
+    free(bwt_table);
+}
+
+
 
 void init_bwt_exact_match_iter(struct bwt_exact_match_iter *iter,
                                struct bwt_table *bwt_table,
@@ -443,29 +473,33 @@ void write_bwt_table_fname(const char *fname, const struct bwt_table *bwt_table)
     fclose(f);
 }
 
-void read_bwt_table(FILE *f,
-                    struct bwt_table *bwt_table,
-                    const struct suffix_array *sa,
-                    const struct remap_table  *remap_table)
+struct bwt_table *read_bwt_table(FILE *f,
+                                 struct suffix_array *sa,
+                                 struct remap_table  *remap_table)
 {
+    struct bwt_table *bwt_table = malloc(sizeof(struct bwt_table));
+    
     bwt_table->remap_table = remap_table;
     bwt_table->sa = sa;
     size_t c_table_length = remap_table->alphabet_size;
     size_t o_table_length = remap_table->alphabet_size * sa->length;
+    
     bwt_table->c_table = malloc(sizeof(*bwt_table->c_table) * c_table_length);
     bwt_table->o_table = malloc(sizeof(*bwt_table->o_table) * o_table_length);
     fread(bwt_table->c_table, sizeof(*bwt_table->c_table), c_table_length, f);
     fread(bwt_table->o_table, sizeof(*bwt_table->o_table), o_table_length, f);
+    
+    return bwt_table;
 }
 
-void read_bwt_table_fname(const char *fname,
-                          struct bwt_table *bwt_table,
-                          const struct suffix_array *sa,
-                          const struct remap_table  *remap_table)
+struct bwt_table * read_bwt_table_fname(const char *fname,
+                                        struct suffix_array *sa,
+                                        struct remap_table  *remap_table)
 {
     FILE *f = fopen(fname, "rb");
-    read_bwt_table(f, bwt_table, sa, remap_table);
+    struct bwt_table *bwt_table = read_bwt_table(f, sa, remap_table);
     fclose(f);
+    return bwt_table;
 }
 
 

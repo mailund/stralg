@@ -114,7 +114,7 @@ static void simple_exact_matchers(index_vector *naive,
 
 static void general_suffix_test(index_vector *naive,
                                 const char *pattern,
-                                const char *string)
+                                char *string)
 {
     // ------------- SUFFIX TREE ----------------
     struct suffix_tree *st = naive_suffix_tree(string);
@@ -138,7 +138,7 @@ static void general_suffix_test(index_vector *naive,
 }
 
 static void general_match_test(const char *pattern,
-                               const char *string)
+                               char *string)
 {
     index_vector naive;  init_index_vector(&naive, 10);
     printf("naive algorithm.\n");
@@ -229,7 +229,7 @@ static void remap_match_test(const char *pattern,
     dealloc_index_vector(&naive);
 }
 
-static void match_test(const char *pattern, const char *string)
+static void match_test(const char *pattern, char *string)
 {
     general_match_test(pattern, string);
     remap_match_test(pattern, string);
@@ -257,7 +257,7 @@ int main(int argc, char * argv[])
         free(string);
         
     } else {
-        const char *strings[] = {
+        char *strings[] = {
             "acacacg",
             "gacacacag",
             "acacacag",

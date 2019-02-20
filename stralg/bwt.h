@@ -8,8 +8,8 @@
 #include <stdint.h>
 
 struct bwt_table {
-    const struct remap_table  *remap_table;
-    const struct suffix_array *sa;
+    struct remap_table  *remap_table;
+    struct suffix_array *sa;
     uint32_t *c_table;
     uint32_t *o_table;
 };
@@ -23,9 +23,20 @@ static inline size_t o_index(unsigned char a, size_t i,
 // for these to work, sa must have been build
 // from a remapped string.
 void init_bwt_table   (struct bwt_table    *bwt_table,
-                       const struct suffix_array *sa,
-                       const struct remap_table  *remap_table);
+                       struct suffix_array *sa,
+                       struct remap_table  *remap_table);
 void dealloc_bwt_table(struct bwt_table *bwt_table);
+
+// This function frees the remap table and the suffix
+// array as well as the BWT tables.
+void dealloc_complete_bwt_table(struct bwt_table *bwt_table);
+
+struct bwt_table *alloc_bwt_table(struct bwt_table    *bwt_table,
+                                  struct suffix_array *sa,
+                                  struct remap_table  *remap_table);
+void free_bwt_table(struct bwt_table *bwt_table);
+void free_complete_bwt_table(struct bwt_table *bwt_table);
+
 
 struct bwt_exact_match_iter {
     const struct suffix_array *sa;
@@ -67,14 +78,12 @@ void dealloc_bwt_approx_iter(struct bwt_approx_iter *iter);
 void write_bwt_table(FILE *f, const struct bwt_table *bwt_table);
 void write_bwt_table_fname(const char *fname, const struct bwt_table *bwt_table);
 
-void read_bwt_table(FILE *f,
-                    struct bwt_table *bwt_table,
-                    const struct suffix_array *sa,
-                    const struct remap_table  *remap_table);
-void read_bwt_table_fname(const char *fname,
-                          struct bwt_table *bwt_table,
-                          const struct suffix_array *sa,
-                          const struct remap_table  *remap_table);
+struct bwt_table *read_bwt_table(FILE *f,
+                                 struct suffix_array *sa,
+                                 struct remap_table  *remap_table);
+struct bwt_table * read_bwt_table_fname(const char *fname,
+                                        struct suffix_array *sa,
+                                        struct remap_table  *remap_table);
 
 
 
