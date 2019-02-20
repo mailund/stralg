@@ -428,6 +428,48 @@ void dealloc_bwt_approx_iter(struct bwt_approx_iter *iter)
 }
 
 
+void write_bwt_table(FILE *f, const struct bwt_table *bwt_table)
+{
+    size_t c_table_length = bwt_table->remap_table->alphabet_size;
+    size_t o_table_length = bwt_table->remap_table->alphabet_size * bwt_table->sa->length;
+    fwrite(bwt_table->c_table, sizeof(*bwt_table->c_table), c_table_length, f);
+    fwrite(bwt_table->o_table, sizeof(*bwt_table->o_table), o_table_length, f);
+}
+
+void write_bwt_table_fname(const char *fname, const struct bwt_table *bwt_table)
+{
+    FILE *f = fopen(fname, "wb");
+    write_bwt_table(f, bwt_table);
+    fclose(f);
+}
+
+void read_bwt_table(FILE *f,
+                    struct bwt_table *bwt_table,
+                    const struct suffix_array *sa,
+                    const struct remap_table  *remap_table)
+{
+    bwt_table->remap_table = remap_table;
+    bwt_table->sa = sa;
+    size_t c_table_length = remap_table->alphabet_size;
+    size_t o_table_length = remap_table->alphabet_size * sa->length;
+    bwt_table->c_table = malloc(sizeof(*bwt_table->c_table) * c_table_length);
+    bwt_table->o_table = malloc(sizeof(*bwt_table->o_table) * o_table_length);
+    fread(bwt_table->c_table, sizeof(*bwt_table->c_table), c_table_length, f);
+    fread(bwt_table->o_table, sizeof(*bwt_table->o_table), o_table_length, f);
+}
+
+void read_bwt_table_fname(const char *fname,
+                          struct bwt_table *bwt_table,
+                          const struct suffix_array *sa,
+                          const struct remap_table  *remap_table)
+{
+    FILE *f = fopen(fname, "rb");
+    read_bwt_table(f, bwt_table, sa, remap_table);
+    fclose(f);
+}
+
+
+
 void print_c_table(struct bwt_table *table)
 {
     const struct remap_table *remap_table = table->remap_table;
@@ -458,4 +500,24 @@ void print_bwt_table(struct bwt_table *table)
     printf("\n");
     print_o_table(table);
     printf("\n\n");
+}
+
+bool identical_bwt_tables(struct bwt_table *table1,
+                          struct bwt_table *table2)
+{
+    if (!identical_suffix_arrays(table1->sa, table2->sa))
+        return false;
+    if (!identical_remap_tables(table1->remap_table, table2->remap_table))
+        return false;
+    for (uint32_t i = 0; i < table1->remap_table->alphabet_size; ++i) {
+        if (table1->c_table[i] != table2->c_table[i])
+            return false;
+    }
+    uint32_t o_table_size = table1->remap_table->alphabet_size * table1->sa->length;
+    for (uint32_t i = 0; i < o_table_size; ++i) {
+        if (table1->o_table[i] != table2->o_table[i])
+            return false;
+    }
+    
+    return true;
 }

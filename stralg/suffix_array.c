@@ -183,8 +183,8 @@ void print_suffix_array(struct suffix_array *sa)
     }
 }
 
-bool identical_suffix_arrays(struct suffix_array *sa1,
-                             struct suffix_array *sa2)
+bool identical_suffix_arrays(const struct suffix_array *sa1,
+                             const struct suffix_array *sa2)
 {
     if (sa1->length != sa2->length) return false;
     for (size_t i = 0; i < sa1->length; ++i) {

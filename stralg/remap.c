@@ -146,7 +146,7 @@ void read_table_fname(const char *fname, struct remap_table *table)
     fclose(f);
 }
 
-void print_remap_table(struct remap_table *table)
+void print_remap_table(const struct remap_table *table)
 {
     printf("0 -> $\n");
     for (unsigned char i = 1; i < table->alphabet_size; ++i) {
@@ -156,8 +156,8 @@ void print_remap_table(struct remap_table *table)
     }
 }
 
-bool identical_remap_tables(struct remap_table *table1,
-                            struct remap_table *table2)
+bool identical_remap_tables(const struct remap_table *table1,
+                            const struct remap_table *table2)
 {
     if (table1->alphabet_size != table2->alphabet_size)
         return false;

@@ -71,6 +71,28 @@ int main(int argc, char **argv)
         printf("\n");
     }
     
+    assert(identical_bwt_tables(&bwt_table, &bwt_table));
+    
+    // get a unique temporary file name...
+    const char *temp_template = "/tmp/temp.XXXXXX";
+    char fname[strlen(temp_template) + 1];
+    strcpy(fname, temp_template);
+    // I am opening the file here, and not closing it,
+    // but I will terminate the program soon, so who cares?
+    // Ussing mkstemp() instead of mktemp() shuts up the
+    // static analyser.
+    mkstemp(fname);
+    
+    printf("file name: %s\n", fname);
+    write_bwt_table_fname(fname, &bwt_table);
+    
+    struct bwt_table other_table;
+    read_bwt_table_fname(fname, &other_table, sa, &remap_table);
+
+    assert(identical_bwt_tables(&bwt_table, &other_table));
+    
+    dealloc_bwt_table(&other_table);
+    dealloc_bwt_table(&bwt_table);
     free_suffix_array(sa);
     dealloc_remap_table(&remap_table);
     

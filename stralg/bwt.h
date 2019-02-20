@@ -63,12 +63,31 @@ bool next_bwt_approx_match(struct bwt_approx_iter  *iter,
 void dealloc_bwt_approx_iter(struct bwt_approx_iter *iter);
 
 
+// Serialisation
+void write_bwt_table(FILE *f, const struct bwt_table *bwt_table);
+void write_bwt_table_fname(const char *fname, const struct bwt_table *bwt_table);
+
+void read_bwt_table(FILE *f,
+                    struct bwt_table *bwt_table,
+                    const struct suffix_array *sa,
+                    const struct remap_table  *remap_table);
+void read_bwt_table_fname(const char *fname,
+                          struct bwt_table *bwt_table,
+                          const struct suffix_array *sa,
+                          const struct remap_table  *remap_table);
+
+
 
 // Some debug code
 void print_c_table  (struct bwt_table *table);
 void print_o_table  (struct bwt_table *table);
 void print_bwt_table(struct bwt_table *table);
 
+// FIXME: maybe change the name. I am testing for
+// equivalence, not whether the two tables point to
+// the same object or whether the underlying
+// suffix array and remap tables are the
+// same.
 bool identical_bwt_tables(struct bwt_table *table1,
                           struct bwt_table *table2);
 

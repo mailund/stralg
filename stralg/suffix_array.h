@@ -33,17 +33,17 @@ void compute_lcp(struct suffix_array *sa);
 
 // Serialisation -- FIXME: error handling!
 void write_suffix_array(FILE *f, struct suffix_array *sa);
-void write_suffix_array_fname(const char *fname,
-                              struct suffix_array *sa);
+void write_suffix_array_fname(const char *fname, struct suffix_array *sa);
 
 struct suffix_array *read_suffix_array(FILE *f, const char *string);
 struct suffix_array *read_suffix_array_fname(const char *fname, const char *string);
 
+// FIXME: serialisation of lcp...
 
 // This is mostly for debugging
 void print_suffix_array(struct suffix_array *sa);
-bool identical_suffix_arrays(struct suffix_array *sa1,
-                             struct suffix_array *sa2);
+bool identical_suffix_arrays(const struct suffix_array *sa1,
+                             const struct suffix_array *sa2);
 
 
 
