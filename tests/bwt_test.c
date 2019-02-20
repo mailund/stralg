@@ -79,7 +79,7 @@ int main(int argc, char **argv)
     strcpy(fname, temp_template);
     // I am opening the file here, and not closing it,
     // but I will terminate the program soon, so who cares?
-    // Ussing mkstemp() instead of mktemp() shuts up the
+    // Using mkstemp() instead of mktemp() shuts up the
     // static analyser.
     mkstemp(fname);
     

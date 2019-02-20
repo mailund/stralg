@@ -64,6 +64,20 @@ add_test(
 )
 
 add_executable(
+    serialise_test
+    serialise_test.c
+)
+target_link_libraries(
+    serialise_test
+    stralg
+)
+add_test(
+    Serialise
+    serialise_test
+)
+
+
+add_executable(
     string_utils_test
     string_utils_test.c
 )

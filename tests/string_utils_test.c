@@ -27,6 +27,35 @@ static void test_rev(const char *x, const char *rev_x)
     free(rev_x_cpy);
 }
 
+static void test_serialise(void)
+{
+    // get a unique temporary file name...
+    const char *temp_template = "/tmp/temp.XXXXXX";
+    char fname[strlen(temp_template) + 1];
+    strcpy(fname, temp_template);
+    // I am opening the file here, and not closing it,
+    // but I will terminate the program soon, so who cares?
+    // Ussing mkstemp() instead of mktemp() shuts up the
+    // static analyser.
+    mkstemp(fname);
+
+    const char *str = "acgtacgtacgtacgtfoo";
+    write_string_fname(fname, str);
+
+    size_t str_len;
+    char *other_string = read_string_len_fname(fname, &str_len);
+    assert(str_len = strlen(str) + 1);
+    assert(strcmp(str, other_string) == 0);
+    free(other_string);
+    
+    size_t prefix_len = 4;
+    write_string_len_fname(fname, str, prefix_len);
+    other_string = read_string_len_fname(fname, &str_len);
+    assert(str_len == prefix_len);
+    assert(strncmp(str, other_string, prefix_len) == 0);
+    free(other_string);
+}
+
 int main(int argc, char **argv)
 {
     test_copy();
@@ -38,6 +67,8 @@ int main(int argc, char **argv)
     test_rev("aba", "aba");
     test_rev("abc", "cba");
     test_rev("foobar", "raboof");
+    
+    test_serialise();
     
     return EXIT_SUCCESS;
 }
