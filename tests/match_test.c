@@ -152,8 +152,7 @@ static void general_suffix_test(index_vector *naive,
     printf("sa:\n");
     print_index_vector(&sa_results);
     
-    // FIXME
-    //assert(index_vector_equal(naive, &sa_results));
+    assert(index_vector_equal(naive, &sa_results));
     
     dealloc_index_vector(&sa_results);
     

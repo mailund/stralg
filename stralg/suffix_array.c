@@ -83,13 +83,12 @@ void compute_lcp(struct suffix_array *sa)
     }
 }
 
-static size_t binary_search(const char *key, size_t *key_len,
+static size_t binary_search(const char *key, size_t key_len,
                           struct suffix_array *sa)
 {
     size_t low = 0;
     size_t high = sa->length;
     size_t mid;
-    
     int cmp;
     
     while (low < high) {
@@ -100,24 +99,28 @@ static size_t binary_search(const char *key, size_t *key_len,
         } else if (cmp > 0) {
             low = mid + 1;
         } else {
-            // now mid is where a possible match
-            // might be
-            break;
+            // if cmp is 0 we have a match
+            return mid;
         }
     }
     
-    return mid;
+    return low; // this must be the lowest point where
+                // a hit could be if we didn't catch it above.
 }
 
 // when searching, we cannot simply use bsearch because we want
 // to get a lower bound if the key isn't in the array -- bsearch
 // would give us NULL in that case.
-size_t lower_bound_search(struct suffix_array *sa, const char *key)
+uint32_t lower_bound_search(struct suffix_array *sa, const char *key)
 {
     size_t key_len = strlen(key);
     assert(key_len > 0); // I cannot handle empty strings!
     size_t mid = binary_search(key, key_len, sa);
     
+    if (mid == sa->length)
+        return mid; // we hit the end.
+    
+    // if we are not at the end, we need to find the lower bound.
     int cmp = strncmp(sa->string + sa->array[mid], key, key_len);
     while (mid > 0 && strncmp(sa->string + sa->array[mid], key, key_len) >= 0) {
         mid--;
@@ -134,33 +137,34 @@ void init_sa_match_iter(struct sa_match_iter *iter,
     size_t key_len = strlen(key);
     assert(key_len > 0); // I cannot handle empty strings!
     size_t mid = binary_search(key, key_len, sa);
-    printf("pattern: %s, string: %s, mid: %lu\n",
-           key, sa->string, mid);
-    printf("suffix pointed to by mid: %lu (%s)\n",
-           sa->array[mid], sa->string + sa->array[mid]);
     
-    int cmp = strncmp(sa->string + sa->array[mid], key, key_len);
-    printf("if %d == 0 we found %s at index %lu\n", cmp, key, mid);
-    if (cmp != 0) {
-        // we do not have a match, so set the iterator to reflect that.
+    int cmp;
+    if (mid == sa->length ||
+        (cmp = strncmp(sa->string + sa->array[mid], key, key_len)) != 0) {
+        // this is a special case where the lower bound is
+        // the end of the array. Here we cannot check
+        // the strcmp to figure out the interval
+        // (or whether we have a hit at all)
+        // but we know that the key is not in the
+        // string.
         iter->L = iter->R = 0;
         iter->i = 1;
-    } else {
-        // find lower and upper bound
-        size_t lower = mid;
-        while (lower > 0 && strncmp(sa->string + sa->array[lower], key, key_len) >= 0) {
-            lower--;
-        }
-        iter->i = iter->L = lower + 1;
-        size_t upper = mid;
-        while (upper < sa->length &&
-               strncmp(sa->string + sa->array[upper], key, key_len) == 0) {
-            upper++;
-        }
-        iter->R = upper - 1;
+        return;
     }
-    printf("init range: [%lu:%lu]\n", iter->L, iter->R);
-
+    
+    assert(cmp == 0);
+    // find lower and upper bound
+    size_t lower = mid;
+    while (lower > 0 && strncmp(sa->string + sa->array[lower], key, key_len) >= 0) {
+        lower--;
+    }
+    iter->i = iter->L = lower + 1;
+    size_t upper = mid;
+    while (upper < sa->length &&
+           strncmp(sa->string + sa->array[upper], key, key_len) == 0) {
+        upper++;
+    }
+    iter->R = upper - 1;
 }
 
 bool next_sa_match(struct sa_match_iter *iter,

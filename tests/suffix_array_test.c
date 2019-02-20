@@ -39,7 +39,7 @@ static void test_search(struct suffix_array *sa)
     idx = lower_bound_search(sa, "ad");
     assert(idx == 5);
     idx = lower_bound_search(sa, "x");
-    assert(idx == 10);
+    assert(idx == 11);
     idx = lower_bound_search(sa, "b");
     assert(idx == 6);
     idx = lower_bound_search(sa, "c");
@@ -124,5 +124,17 @@ int main(int argc, char *argv[])
     free_suffix_array(other_sa);
     free_suffix_array(sa);
 
+    string = "gacacacag";
+    sa = qsort_sa_construction(string);
+    printf("\n");
+    print_suffix_array(sa);
+    printf("\n");
+    
+    uint32_t hit = lower_bound_search(sa, "cag");
+    printf("hit: SA[%u]=%u\n", hit, sa->array[hit]);
+    printf("does cag match '%s'?\n", sa->string + sa->array[hit]);
+    
+    free_suffix_array(sa);
+    
     return EXIT_SUCCESS;
 }

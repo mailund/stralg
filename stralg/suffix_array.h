@@ -26,16 +26,16 @@ struct suffix_array {
 struct suffix_array *qsort_sa_construction(const char *string);
 void free_suffix_array(struct suffix_array *sa);
 
-size_t lower_bound_search(struct suffix_array *sa, const char *key);
+uint32_t lower_bound_search(struct suffix_array *sa, const char *key);
 
 struct sa_match_iter {
     struct suffix_array *sa;
-    size_t L;
-    size_t R;
-    size_t i;
+    uint32_t L;
+    uint32_t R;
+    uint32_t i;
 };
 struct sa_match {
-    size_t position;
+    uint32_t position;
 };
 void init_sa_match_iter   (struct sa_match_iter *iter,
                            const char *pattern,
