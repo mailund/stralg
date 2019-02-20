@@ -169,7 +169,7 @@ static void bwt_match(index_vector *naive,
     
     struct bwt_table bwt_table;
     init_bwt_table(&bwt_table, sa, remap_table);
-    print_bwt_table(&bwt_table, sa, remap_table);
+    print_bwt_table(&bwt_table);
     
     struct bwt_exact_match_iter bwt_iter;
     struct bwt_exact_match bwt_match;

@@ -44,15 +44,17 @@ int main(int argc, char **argv)
     
     init_bwt_table(&bwt_table, sa, &remap_table);
     
-    size_t expected_c[] = {
+    print_bwt_table(&bwt_table);
+    
+    uint32_t expected_c[] = {
         0, 0, 1, 5, 9
     };
-    for (size_t i = 0; i < remap_table.alphabet_size; ++i) {
-        printf("C[%lu] == %lu\n", i, bwt_table.c_table[i]);
+    for (uint32_t i = 0; i < remap_table.alphabet_size; ++i) {
+        printf("C[%u] == %u\n", i, bwt_table.c_table[i]);
         assert(bwt_table.c_table[i] == expected_c[i]);
     }
     
-    size_t expected_o[] = {
+    uint32_t expected_o[] = {
         0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
         0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1,
         1, 1, 1, 1, 1, 1, 1, 1, 2, 3, 3, 4,
@@ -62,8 +64,8 @@ int main(int argc, char **argv)
     for (unsigned char a = 0; a < remap_table.alphabet_size; ++a) {
         printf("O(%d,-) == ", a);
         for (size_t i = 0; i < sa->length; ++i) {
-            size_t idx = o_index(a, i, sa);
-            printf("%lu ", bwt_table.o_table[idx]);
+            size_t idx = o_index(a, i, &bwt_table);
+            printf("%u ", bwt_table.o_table[idx]);
             assert(bwt_table.o_table[idx] == expected_o[idx]);
         }
         printf("\n");
