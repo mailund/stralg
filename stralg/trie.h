@@ -42,6 +42,7 @@ static inline bool string_in_trie(struct trie *trie, const char *str) {
 void compute_failure_links(struct trie *trie);
 
 void trie_print_dot(struct trie *trie, FILE *file);
+void trie_print_dot_fname(struct trie *trie, const char *fname);
 
 
 #endif // TRIE_H

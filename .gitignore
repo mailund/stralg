@@ -62,3 +62,5 @@ tests/cigar_test
 tests/string_utils_test
 naive-tree.*
 tests/naive-tree.*tools/exact_readmapper/exact_readmapper
+tests/serialise_test
+tests/test-trie.dot

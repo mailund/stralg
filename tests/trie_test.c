@@ -116,6 +116,12 @@ int main(int argc, char * argv[])
     assert(bab->output->string_label == 3);
     assert(bab->output->next == b->output);
     
+    // by writing the trie to a file, I
+    // get that code tested as well ... at least
+    // I test that it doesn't crash and the
+    // code coverage statistics is happy that way.
+    trie_print_dot_fname(trie, "test-trie.dot");
+    
     free_trie(trie);
     
     return EXIT_SUCCESS;

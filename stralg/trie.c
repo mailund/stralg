@@ -263,3 +263,10 @@ void trie_print_dot(struct trie *trie, FILE *file)
     }
     fprintf(file, "}\n");
 }
+
+void trie_print_dot_fname(struct trie *trie, const char *fname)
+{
+    FILE *f = fopen(fname, "w");
+    trie_print_dot(trie, f);
+    fclose(f);
+}
