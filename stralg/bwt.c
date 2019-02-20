@@ -65,8 +65,7 @@ void dealloc_complete_bwt_table(struct bwt_table *bwt_table)
     dealloc_bwt_table(bwt_table);
 }
 
-struct bwt_table *alloc_bwt_table(struct bwt_table    *bwt_table,
-                                  struct suffix_array *sa,
+struct bwt_table *alloc_bwt_table(struct suffix_array *sa,
                                   struct remap_table  *remap_table)
 {
     struct bwt_table *table = malloc(sizeof(struct bwt_table));

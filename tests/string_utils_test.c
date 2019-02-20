@@ -42,8 +42,12 @@ static void test_serialise(void)
     const char *str = "acgtacgtacgtacgtfoo";
     write_string_fname(fname, str);
 
+    char *other_string = read_string_fname(fname);
+    assert(strcmp(str, other_string) == 0);
+    free(other_string);
+    
     size_t str_len;
-    char *other_string = read_string_len_fname(fname, &str_len);
+    other_string = read_string_len_fname(fname, &str_len);
     assert(str_len = strlen(str) + 1);
     assert(strcmp(str, other_string) == 0);
     free(other_string);
@@ -53,6 +57,18 @@ static void test_serialise(void)
     other_string = read_string_len_fname(fname, &str_len);
     assert(str_len == prefix_len);
     assert(strncmp(str, other_string, prefix_len) == 0);
+    free(other_string);
+    
+    // to get complete test coverage, I also need to test
+    // these FILE versions.
+    FILE *f = fopen(fname, "wb");
+    write_string(f, str);
+    fclose(f);
+    
+    f = fopen(fname, "rb");
+    other_string = read_string(f);
+    fclose(f);
+    assert(strcmp(str, other_string) == 0);
     free(other_string);
 }
 

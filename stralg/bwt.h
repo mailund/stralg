@@ -31,8 +31,7 @@ void dealloc_bwt_table(struct bwt_table *bwt_table);
 // array as well as the BWT tables.
 void dealloc_complete_bwt_table(struct bwt_table *bwt_table);
 
-struct bwt_table *alloc_bwt_table(struct bwt_table    *bwt_table,
-                                  struct suffix_array *sa,
+struct bwt_table *alloc_bwt_table(struct suffix_array *sa,
                                   struct remap_table  *remap_table);
 void free_bwt_table(struct bwt_table *bwt_table);
 void free_complete_bwt_table(struct bwt_table *bwt_table);
