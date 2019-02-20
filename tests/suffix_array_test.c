@@ -14,21 +14,38 @@ static void test_order(struct suffix_array *sa)
                < 0);
 }
 
-
+//char *string = "ababacabac";
+/*
+ SA[  0] =  10
+ SA[  1] =   0    ababacabac
+ SA[  2] =   6    abac
+ SA[  3] =   2    abacabac
+ SA[  4] =   8    ac
+ SA[  5] =   4    acabac
+ SA[  6] =   1    babacabac
+ SA[  7] =   7    bac
+ SA[  8] =   3    bacabac
+ SA[  9] =   9    c
+ SA[ 10] =   5    cabac
+*/
 static void test_search(struct suffix_array *sa)
 {
     int idx = lower_bound_search(sa, "ab");
-    assert(idx == 1); //printf("ab idx == %d\n", idx);
+    assert(idx == 1);
     idx = lower_bound_search(sa, "ac");
-    assert(idx == 4); //printf("ac idx == %d\n", idx);
+    assert(idx == 4);
+    idx = lower_bound_search(sa, "aa");
+    assert(idx == 0);
+    idx = lower_bound_search(sa, "ad");
+    assert(idx == 5);
     idx = lower_bound_search(sa, "x");
-    assert(idx == 10); //printf("x idx == %d\n", idx);
+    assert(idx == 11);
     idx = lower_bound_search(sa, "b");
-    assert(idx == 6); //printf("b idx == %d\n", idx);
+    assert(idx == 6);
     idx = lower_bound_search(sa, "c");
-    assert(idx == 9); //printf("c idx == %d\n", idx);
+    assert(idx == 9);
     idx = lower_bound_search(sa, "0");
-    assert(idx == 0); //printf("0 idx == %d\n", idx);
+    assert(idx == 0);
 }
 
 
@@ -66,29 +83,58 @@ static void test_lcp(struct suffix_array *sa)
 
 int main(int argc, char *argv[])
 {
-    char *string = "ababacabac";//string_copy("ababacabac");
+    char *string = "ababacabac";
     struct suffix_array *sa = qsort_sa_construction(string);
 
 
     compute_lcp(sa);
 
     for (int i = 0; i < sa->length; ++i)
-        printf("sa[%d] == %zu\t%s\n", i, sa->array[i], string + sa->array[i]);
+        printf("sa[%d] == %u\t%s\n", i, sa->array[i], string + sa->array[i]);
     printf("\n");
     for (int i = 0; i < sa->length; ++i)
-        printf("isa[%d] == %zu\t%s\n", i, sa->inverse[i], string + i);
+        printf("isa[%d] == %u\t%s\n", i, sa->inverse[i], string + i);
     printf("\n");
     for (int i = 0; i < sa->length; ++i)
         printf("lcp[%2d] == %2d\t%s\n", i, sa->lcp[i], string + sa->array[i]);
-    printf("lcp[%zu] == %d\n", sa->length, sa->lcp[sa->length]);
+    printf("lcp[%u] == %d\n", sa->length, sa->lcp[sa->length]);
     printf("\n");
 
     test_order(sa);
     test_inverse(sa);
     test_lcp(sa);
     test_search(sa);
+
+    print_suffix_array(sa);
     
+    // get a unique temporary file name...
+    const char *temp_template = "/tmp/temp.XXXXXX";
+    char fname[strlen(temp_template) + 1];
+    strcpy(fname, temp_template);
+    mktemp(fname);
+    
+    printf("file name: %s\n", fname);
+    write_suffix_array_fname(fname, sa);
+    
+    struct suffix_array *other_sa = read_suffix_array_fname(fname, string);
+    print_suffix_array(other_sa);
+    
+    assert(identical_suffix_arrays(sa, other_sa));
+    
+    free_suffix_array(other_sa);
     free_suffix_array(sa);
 
+    string = "gacacacag";
+    sa = qsort_sa_construction(string);
+    printf("\n");
+    print_suffix_array(sa);
+    printf("\n");
+    
+    uint32_t hit = lower_bound_search(sa, "cag");
+    printf("hit: SA[%u]=%u\n", hit, sa->array[hit]);
+    printf("does cag match '%s'?\n", sa->string + sa->array[hit]);
+    
+    free_suffix_array(sa);
+    
     return EXIT_SUCCESS;
 }

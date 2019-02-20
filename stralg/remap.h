@@ -2,6 +2,8 @@
 #define REMAP_H
 
 #include <stdlib.h>
+#include <stdio.h>
+#include <stdbool.h>
 
 struct remap_table {
     size_t alphabet_size;
@@ -45,5 +47,17 @@ char *remap_between0    (char *output,
 char *rev_remap_between0(char *output,
                          const char *from, const char *to,
                          struct remap_table *table);
+
+// Serialisation -- FIXME: error handling!
+void write_table(FILE *f, struct remap_table *table);
+void write_table_fname(const char *fname, struct remap_table *table);
+
+void read_table(FILE *f, struct remap_table *table);
+void read_table_fname(const char *fname, struct remap_table *table);
+
+// This is mostly for debugging
+void print_remap_table(struct remap_table *table);
+bool identical_remap_tables(struct remap_table *table1,
+                            struct remap_table *table2);
 
 #endif

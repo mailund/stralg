@@ -132,8 +132,30 @@ static void general_suffix_test(index_vector *naive,
 
 
     // ---------- suffix arrays ---------------------
-    // FIXME: test without remapping...
     struct suffix_array *sa = qsort_sa_construction(string);
+    
+    struct sa_match_iter sa_iter;
+    struct sa_match sa_match;
+    index_vector sa_results;
+    init_index_vector(&sa_results, 10);
+    
+    init_sa_match_iter(&sa_iter, pattern, sa);
+    while (next_sa_match(&sa_iter, &sa_match)) {
+        index_vector_append(&sa_results, sa_match.position);
+    }
+    dealloc_sa_match_iter(&sa_iter);
+    
+    sort_index_vector(&sa_results);
+    
+    printf("naive:\n");
+    print_index_vector(naive);
+    printf("sa:\n");
+    print_index_vector(&sa_results);
+    
+    assert(index_vector_equal(naive, &sa_results));
+    
+    dealloc_index_vector(&sa_results);
+    
     free_suffix_array(sa);
 }
 
