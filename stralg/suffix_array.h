@@ -9,7 +9,7 @@
 
 struct suffix_array {
     // memory management of the string must be handled elsewhere
-    const char *string;
+    char *string;
     
     // length of the array
     uint32_t length;
@@ -23,8 +23,13 @@ struct suffix_array {
     int *lcp;
 };
 
-struct suffix_array *qsort_sa_construction(const char *string);
+struct suffix_array *qsort_sa_construction(char *string);
+
+// When you free the suffix array, you will not free the
+// underlying string.
 void free_suffix_array(struct suffix_array *sa);
+// This function, however, does free the string.
+void free_complete_suffix_array(struct suffix_array *sa);
 
 uint32_t lower_bound_search(struct suffix_array *sa, const char *key);
 
@@ -48,19 +53,24 @@ void dealloc_sa_match_iter(struct sa_match_iter *iter);
 void compute_inverse(struct suffix_array *sa);
 void compute_lcp(struct suffix_array *sa);
 
+/**
+ * The suffix array serialisation only serialise the
+ * suffix array, not additional arrays. You need to
+ * explicitly serialise those if you need them.
+ **/
 // Serialisation -- FIXME: error handling!
-void write_suffix_array(FILE *f, struct suffix_array *sa);
-void write_suffix_array_fname(const char *fname,
-                              struct suffix_array *sa);
+void write_suffix_array(FILE *f, const struct suffix_array *sa);
+void write_suffix_array_fname(const char *fname, const struct suffix_array *sa);
 
-struct suffix_array *read_suffix_array(FILE *f, const char *string);
-struct suffix_array *read_suffix_array_fname(const char *fname, const char *string);
+struct suffix_array *read_suffix_array(FILE *f, char *string);
+struct suffix_array *read_suffix_array_fname(const char *fname, char *string);
 
+// FIXME: serialisation of lcp...
 
 // This is mostly for debugging
 void print_suffix_array(struct suffix_array *sa);
-bool identical_suffix_arrays(struct suffix_array *sa1,
-                             struct suffix_array *sa2);
+bool identical_suffix_arrays(const struct suffix_array *sa1,
+                             const struct suffix_array *sa2);
 
 
 

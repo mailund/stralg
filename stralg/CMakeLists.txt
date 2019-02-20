@@ -10,6 +10,7 @@ add_library(stralg SHARED
 	generic_data_structures.h generic_data_structures.c
 	io.h io.c
 	remap.h remap.c
+	serialise.h serialise.c
 	string_utils.h string_utils.c
 	suffix_array.h suffix_array.c
 	suffix_tree.h suffix_tree.c

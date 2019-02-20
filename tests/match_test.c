@@ -114,7 +114,7 @@ static void simple_exact_matchers(index_vector *naive,
 
 static void general_suffix_test(index_vector *naive,
                                 const char *pattern,
-                                const char *string)
+                                char *string)
 {
     // ------------- SUFFIX TREE ----------------
     struct suffix_tree *st = naive_suffix_tree(string);
@@ -160,7 +160,7 @@ static void general_suffix_test(index_vector *naive,
 }
 
 static void general_match_test(const char *pattern,
-                               const char *string)
+                               char *string)
 {
     index_vector naive;  init_index_vector(&naive, 10);
     printf("naive algorithm.\n");
@@ -179,9 +179,6 @@ static void general_match_test(const char *pattern,
 }
 
 static void bwt_match(index_vector *naive,
-                      // the original pattern and string parameters
-                      // are here for debugging.
-                      const char *pattern, const char *string,
                       struct remap_table *remap_table,
                       char *remapped_pattern, char *remapped_string)
 {
@@ -191,12 +188,12 @@ static void bwt_match(index_vector *naive,
     
     struct bwt_table bwt_table;
     init_bwt_table(&bwt_table, sa, remap_table);
-    print_bwt_table(&bwt_table, sa, remap_table);
+    print_bwt_table(&bwt_table);
     
     struct bwt_exact_match_iter bwt_iter;
     struct bwt_exact_match bwt_match;
     
-    init_bwt_exact_match_iter(&bwt_iter, &bwt_table, sa, remapped_pattern);
+    init_bwt_exact_match_iter(&bwt_iter, &bwt_table, remapped_pattern);
     while (next_bwt_exact_match_iter(&bwt_iter, &bwt_match)) {
         index_vector_append(&bwt, bwt_match.pos);
     }
@@ -248,14 +245,13 @@ static void remap_match_test(const char *pattern,
     simple_exact_matchers(&naive, remapped_pattern, remapped_string);
     general_suffix_test(&naive, remapped_pattern, remapped_string);
     
-    bwt_match(&naive, pattern, string, &remap_table,
-              remapped_pattern, remapped_string);
+    bwt_match(&naive, &remap_table, remapped_pattern, remapped_string);
 
     dealloc_remap_table(&remap_table);
     dealloc_index_vector(&naive);
 }
 
-static void match_test(const char *pattern, const char *string)
+static void match_test(const char *pattern, char *string)
 {
     general_match_test(pattern, string);
     remap_match_test(pattern, string);
@@ -283,7 +279,7 @@ int main(int argc, char * argv[])
         free(string);
         
     } else {
-        const char *strings[] = {
+        char *strings[] = {
             "acacacg",
             "gacacacag",
             "acacacag",

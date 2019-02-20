@@ -70,18 +70,19 @@ int main(int argc, char **argv)
     const char *temp_template = "/tmp/temp.XXXXXX";
     char fname[strlen(temp_template) + 1];
     strcpy(fname, temp_template);
-    mktemp(fname);
-    
+    // I am opening the file here, and not closing it,
+    // but I will terminate the program soon, so who cares?
+    // Ussing mkstemp() instead of mktemp() shuts up the
+    // static analyser.
+    mkstemp(fname);
+
     printf("file name: %s\n", fname);
-    write_table_fname(fname, &table);
+    write_remap_table_fname(fname, &table);
     
-    struct remap_table table2;
-    read_table_fname(fname, &table2);
+    struct remap_table *table2 = read_remap_table_fname(fname);
+    assert(identical_remap_tables(&table, table2));
     
-    print_remap_table(&table2);
-    
-    assert(identical_remap_tables(&table, &table2));
-    
+    free_remap_table(table2);
     dealloc_remap_table(&table);
     
     return EXIT_SUCCESS;

@@ -122,31 +122,34 @@ char *rev_remap_between0(char *output,
     return x + 1;
 }
 
-void write_table(FILE *f, struct remap_table *table)
+void write_remap_table(FILE *f, const struct remap_table *table)
 {
     fwrite(table, sizeof(struct remap_table), 1, f);
 }
 
-void write_table_fname(const char *fname, struct remap_table *table)
+void write_remap_table_fname(const char *fname, const struct remap_table *table)
 {
     FILE *f = fopen(fname, "wb");
-    write_table(f, table);
+    write_remap_table(f, table);
     fclose(f);
 }
 
-void read_table(FILE *f, struct remap_table *table)
+struct remap_table *read_remap_table(FILE *f)
 {
-    fread(table, sizeof(struct remap_table), 1, f);
+    struct remap_table *remap_table = malloc(sizeof(struct remap_table));
+    fread(remap_table, sizeof(struct remap_table), 1, f);
+    return remap_table;
 }
 
-void read_table_fname(const char *fname, struct remap_table *table)
+struct remap_table *read_remap_table_fname(const char *fname)
 {
     FILE *f = fopen(fname, "rb");
-    read_table(f, table);
+    struct remap_table *res = read_remap_table(f);
     fclose(f);
+    return res;
 }
 
-void print_remap_table(struct remap_table *table)
+void print_remap_table(const struct remap_table *table)
 {
     printf("0 -> $\n");
     for (unsigned char i = 1; i < table->alphabet_size; ++i) {
@@ -156,8 +159,8 @@ void print_remap_table(struct remap_table *table)
     }
 }
 
-bool identical_remap_tables(struct remap_table *table1,
-                            struct remap_table *table2)
+bool identical_remap_tables(const struct remap_table *table1,
+                            const struct remap_table *table2)
 {
     if (table1->alphabet_size != table2->alphabet_size)
         return false;

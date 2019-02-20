@@ -5,7 +5,7 @@
 #include <string.h>
 #include <assert.h>
 
-static struct suffix_array *allocate_sa(const char *string)
+static struct suffix_array *allocate_sa(char *string)
 {
     struct suffix_array *sa =
         (struct suffix_array*)malloc(sizeof(struct suffix_array));
@@ -30,6 +30,11 @@ void free_suffix_array(struct suffix_array *sa)
         free(sa->lcp);
 }
 
+void free_complete_suffix_array(struct suffix_array *sa)
+{
+    free(sa->string);
+    free_suffix_array(sa);
+}
 
 static // Wrapper of strcmp needed for qsort
 int construction_cmpfunc(const void *a, const void *b)
@@ -37,7 +42,7 @@ int construction_cmpfunc(const void *a, const void *b)
     return strcmp(*(char **)a, *(char **)b);
 }
 
-struct suffix_array *qsort_sa_construction(const char *string)
+struct suffix_array *qsort_sa_construction(char *string)
 {
     struct suffix_array *sa = allocate_sa(string);
 
@@ -181,36 +186,32 @@ void dealloc_sa_match_iter(struct sa_match_iter *iter)
     // nothing to be done here
 }
 
-void write_suffix_array(FILE *f, struct suffix_array *sa)
+void write_suffix_array(FILE *f, const struct suffix_array *sa)
 {
     fwrite(sa->array, sizeof(*sa->array), sa->length, f);
 }
 void write_suffix_array_fname(const char *fname,
-                              struct suffix_array *sa)
+                              const struct suffix_array *sa)
 {
     FILE *f = fopen(fname, "wb");
     write_suffix_array(f, sa);
     fclose(f);
 }
 
-struct suffix_array *read_suffix_array(FILE *f, const char *string)
+struct suffix_array *read_suffix_array(FILE *f, char *string)
 {
     struct suffix_array *sa = allocate_sa(string);
     fread(sa->array, sizeof(*sa->array), sa->length, f);
     return sa;
 }
 struct suffix_array *read_suffix_array_fname(const char *fname,
-                                             const char *string)
+                                             char *string)
 {
     FILE *f = fopen(fname, "rb");
     struct suffix_array *sa = read_suffix_array(f, string);
     fclose(f);
     return sa;
 }
-
-
-
-
 
 void print_suffix_array(struct suffix_array *sa)
 {
@@ -228,10 +229,15 @@ void print_suffix_array(struct suffix_array *sa)
     }
 }
 
-bool identical_suffix_arrays(struct suffix_array *sa1,
-                             struct suffix_array *sa2)
+bool identical_suffix_arrays(const struct suffix_array *sa1,
+                             const struct suffix_array *sa2)
 {
-    if (sa1->length != sa2->length) return false;
+    if (sa1->length != sa2->length)
+        return false;
+    
+    if (strcmp(sa1->string, sa2->string) != 0)
+        return false;
+    
     for (size_t i = 0; i < sa1->length; ++i) {
         if (sa1->array[i] != sa2->array[i])
             return false;

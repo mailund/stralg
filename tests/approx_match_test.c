@@ -143,10 +143,6 @@ static void aho_corasick_approach(const char *string,
     // init patter->cigars table -- we need it if there are more than one
     // cigar per pattern (which there often will be)
     index_list *cigar_table[patterns.used];
-    for (size_t i = 0; i < patterns.used; ++i) {
-        cigar_table[i] = 0;
-    }
-    
     struct trie trie;
     init_trie(&trie);
     for (size_t i = 0; i < patterns.used; ++i) {
@@ -157,7 +153,7 @@ static void aho_corasick_approach(const char *string,
             cigar_table[node->string_label] = prepend_index_link(cigar_table[node->string_label], i);
         } else {
             add_string_to_trie(&trie, pattern, i);
-            cigar_table[i] = prepend_index_link(cigar_table[i], i);
+            cigar_table[i] = prepend_index_link(0, i);
         }
         
     }
@@ -232,7 +228,7 @@ static void bwt_match(struct suffix_array *sa,
     
     struct bwt_approx_iter iter;
     struct bwt_approx_match match;
-    init_bwt_approx_iter(&iter, bwt_table, sa, remap_table, pattern, edits);
+    init_bwt_approx_iter(&iter, bwt_table, pattern, edits);
     while (next_bwt_approx_match(&iter, &match)) {
         rev_remap_between0(rev_mapped_match,
                            string + match.position,

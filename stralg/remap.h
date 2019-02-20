@@ -49,15 +49,15 @@ char *rev_remap_between0(char *output,
                          struct remap_table *table);
 
 // Serialisation -- FIXME: error handling!
-void write_table(FILE *f, struct remap_table *table);
-void write_table_fname(const char *fname, struct remap_table *table);
+void write_remap_table(FILE *f, const struct remap_table *table);
+void write_remap_table_fname(const char *fname, const struct remap_table *table);
 
-void read_table(FILE *f, struct remap_table *table);
-void read_table_fname(const char *fname, struct remap_table *table);
+struct remap_table *read_remap_table(FILE *f);
+struct remap_table *read_remap_table_fname(const char *fname);
 
 // This is mostly for debugging
-void print_remap_table(struct remap_table *table);
-bool identical_remap_tables(struct remap_table *table1,
-                            struct remap_table *table2);
+void print_remap_table(const struct remap_table *table);
+bool identical_remap_tables(const struct remap_table *table1,
+                            const struct remap_table *table2);
 
 #endif
