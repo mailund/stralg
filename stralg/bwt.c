@@ -108,7 +108,7 @@ void dealloc_bwt_exact_match_iter(struct bwt_exact_match_iter *iter)
 struct bwt_approx_internal_match {
     const char *cigar;
     size_t match_length;
-    struct suffix_array *sa;
+    const struct suffix_array *sa;
     size_t L;
     size_t R;
 };
@@ -125,12 +125,8 @@ struct bwt_approx_frame {
     size_t R;
 };
 struct bwt_approx_match_internal_iter {
-    struct suffix_array *sa;
-    struct bwt_table    *bwt_table;
-    struct remap_table  *remap_table;
-    
+    struct bwt_table *bwt_table;
     struct bwt_approx_frame sentinel;
-    
     const char *remapped_pattern;
     char *full_cigar_buf;
     char *cigar_buf;
@@ -138,11 +134,9 @@ struct bwt_approx_match_internal_iter {
 
 
 void init_bwt_approx_match_internal_iter   (struct bwt_approx_match_internal_iter *iter,
-                                            struct bwt_table                      *bwt_table,
-                                            struct suffix_array                   *sa,
-                                            struct remap_table                    *remap_table,
-                                            const char                            *remapped_pattern,
-                                            int                                    edits);
+                                            struct bwt_table *bwt_table,
+                                            const char *remapped_pattern,
+                                            int edits);
 
 bool next_bwt_approx_match_internal_iter   (struct bwt_approx_match_internal_iter *iter,
                                             struct bwt_approx_internal_match      *match);
@@ -210,6 +204,7 @@ static void push_edits(struct bwt_approx_match_internal_iter *iter,
     struct bwt_table *bwt_table = iter->bwt_table;
     uint32_t *c_table = bwt_table->c_table;
     uint32_t *o_table = bwt_table->o_table;
+    const struct remap_table *remap_table = iter->bwt_table->remap_table;
     
     size_t new_L;
     size_t new_R;
@@ -217,7 +212,7 @@ static void push_edits(struct bwt_approx_match_internal_iter *iter,
     // M-operations
     unsigned char match_a = iter->remapped_pattern[i];
     // Iterating alphabet from 1 so I don't include the sentinel.
-    for (unsigned char a = 1; a < iter->remap_table->alphabet_size; ++a) {
+    for (unsigned char a = 1; a < remap_table->alphabet_size; ++a) {
         size_t o_contrib = (L == 0) ? 0 : o_table[o_index(a, L - 1, bwt_table)];
         new_L = c_table[a] + o_contrib + 1;
         new_R = c_table[a] + o_table[o_index(a, R, bwt_table)];
@@ -242,7 +237,7 @@ static void push_edits(struct bwt_approx_match_internal_iter *iter,
     // D-operation
     if (!first) { // never start with a deletion
         // Iterating alphabet from 1 so I don't include the sentinel.
-        for (unsigned char a = 1; a < iter->remap_table->alphabet_size; ++a) {
+        for (unsigned char a = 1; a < remap_table->alphabet_size; ++a) {
             size_t o_contrib = (L == 0) ? 0 : o_table[o_index(a, L - 1, bwt_table)];
             new_L = c_table[a] + o_contrib + 1;
             new_R = c_table[a] + o_table[o_index(a, R, bwt_table)];
@@ -283,16 +278,11 @@ static void pop_edits(struct bwt_approx_match_internal_iter *iter,
 }
 
 
-void init_bwt_approx_match_internal_iter   (struct bwt_approx_match_internal_iter *iter,
-                                   struct bwt_table             *bwt_table,
-                                   struct suffix_array          *sa,
-                                   struct remap_table           *remap_table,
-                                   const char                   *p,
-                                   int                           edits)
+void init_bwt_approx_match_internal_iter
+    (struct bwt_approx_match_internal_iter *iter,
+     struct bwt_table *bwt_table, const char *p, int edits)
 {
-    iter->sa = sa;
     iter->bwt_table = bwt_table;
-    iter->remap_table = remap_table;
     iter->remapped_pattern = p;
     
      // one edit can max cost four characters
@@ -308,7 +298,7 @@ void init_bwt_approx_match_internal_iter   (struct bwt_approx_match_internal_ite
     printf("\n");
 #endif
     
-    size_t n = iter->sa->length;
+    size_t n = iter->bwt_table->sa->length;
     size_t m = strlen(p);
 
     size_t L = 0;
@@ -320,8 +310,9 @@ void init_bwt_approx_match_internal_iter   (struct bwt_approx_match_internal_ite
                iter->full_cigar_buf, 0, edits, L, R, i);
 }
 
-bool next_bwt_approx_match_internal_iter   (struct bwt_approx_match_internal_iter *iter,
-                                   struct bwt_approx_internal_match      *res)
+bool next_bwt_approx_match_internal_iter
+    (struct bwt_approx_match_internal_iter *iter,
+     struct bwt_approx_internal_match      *res)
 {
     char edit_op;
     int edits;
@@ -355,7 +346,7 @@ bool next_bwt_approx_match_internal_iter   (struct bwt_approx_match_internal_ite
             
             res->cigar = iter->cigar_buf;
             res->match_length = match_length;
-            res->sa = iter->sa;
+            res->sa = iter->bwt_table->sa;
             res->L = L;
             res->R = R;
             
@@ -389,14 +380,11 @@ void init_bwt_exact_match_from_approx_match(const struct bwt_approx_internal_mat
 // it for all exact matches.
 void init_bwt_approx_iter(struct bwt_approx_iter *iter,
                           struct bwt_table       *bwt_table,
-                          struct suffix_array    *sa,
-                          struct remap_table     *remap_table,
                           const char             *remapped_pattern,
                           int                     edits)
 {
     iter->internal_approx_iter = malloc(sizeof(struct bwt_approx_match_internal_iter));
-    init_bwt_approx_match_internal_iter(iter->internal_approx_iter, bwt_table, sa,
-                                        remap_table, remapped_pattern, edits);
+    init_bwt_approx_match_internal_iter(iter->internal_approx_iter, bwt_table, remapped_pattern, edits);
     iter->internal_exact_iter = malloc(sizeof(struct bwt_exact_match_iter));
     init_bwt_exact_match_iter(iter->internal_exact_iter, bwt_table, remapped_pattern);
     iter->outer = true;

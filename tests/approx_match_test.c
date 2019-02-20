@@ -228,7 +228,7 @@ static void bwt_match(struct suffix_array *sa,
     
     struct bwt_approx_iter iter;
     struct bwt_approx_match match;
-    init_bwt_approx_iter(&iter, bwt_table, sa, remap_table, pattern, edits);
+    init_bwt_approx_iter(&iter, bwt_table, pattern, edits);
     while (next_bwt_approx_match(&iter, &match)) {
         rev_remap_between0(rev_mapped_match,
                            string + match.position,

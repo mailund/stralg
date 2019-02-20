@@ -56,8 +56,6 @@ struct bwt_approx_match {
 };
 void init_bwt_approx_iter(struct bwt_approx_iter *iter,
                           struct bwt_table       *bwt_table,
-                          struct suffix_array    *sa,
-                          struct remap_table     *remap_table,
                           const char             *remapped_pattern,
                           int                     edits);
 bool next_bwt_approx_match(struct bwt_approx_iter  *iter,
