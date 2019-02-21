@@ -8,6 +8,7 @@ set(CMAKE_MODULE_PATH
     "${CMAKE_SOURCE_DIR}/Modules/"
 )
 include(CTest)
+include(GoogleTest)
 
 if(CMAKE_BUILD_TYPE MATCHES Debug)
     include(CodeCoverage)
