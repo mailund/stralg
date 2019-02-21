@@ -7,7 +7,11 @@ foreach(test_c ${test_sources})
     get_filename_component(testname ${test_c} NAME_WE)
     add_executable(${testname} ${test_c})
     target_link_libraries(${testname} stralg stralg_bioinf)
-    add_test(${testname} ${testname})
+    add_test(
+        NAME ${testname}
+        COMMAND ${testname}
+        WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/tests/bioinf"
+    )
     set_target_properties(
         ${testname} PROPERTIES FOLDER Tests/Bioinf
     )

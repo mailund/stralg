@@ -8,17 +8,8 @@
 
 int main(int argc, char **argv)
 {
-    return EXIT_SUCCESS; // FIXME
-
-    if (argc != 3) {
-        // LCOV_EXCL_START
-        printf("need one argument: fasta file\n");
-        return EXIT_FAILURE;
-        // LCOV_EXCL_STOP
-    }
-    
     // A test where everything should work out with no errors.
-    const char *fname = argv[1];
+    const char *fname = "test-data/ref.fa";
     enum error_codes err;
     struct fasta_records *fasta_file = load_fasta_records(fname, &err);
     if (!fasta_file) {
@@ -68,7 +59,7 @@ int main(int argc, char **argv)
     assert(err == CANNOT_OPEN_FILE);
     
     // Test we capture malformed files
-    const char *malformed = argv[2];
+    const char *malformed = "test-data/malformed.fa";
     assert(!load_fasta_records(malformed, &err));
     assert(err == MALFOREMED_DATA);
     

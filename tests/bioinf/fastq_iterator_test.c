@@ -5,15 +5,7 @@
 
 int main(int argc, char *argv[])
 {
-    return EXIT_SUCCESS; // FIXME
-    if (argc != 2) {
-        // LCOV_EXCL_START
-        printf("needs one argument\n");
-        return EXIT_FAILURE;
-        // LCOV_EXCL_STOP
-    }
-
-    FILE *input = fopen(argv[1], "r");
+    FILE *input = fopen("test-data/test.fq", "r");
     struct fastq_iter iter;
     struct fastq_record record;
     init_fastq_iter(&iter, input);
