@@ -4,7 +4,7 @@
 #include <bwt.h>
 
 #include <stdio.h>
-#include <strings.h>
+#include <string.h>
 
 #define PRINT_STACK 0
 

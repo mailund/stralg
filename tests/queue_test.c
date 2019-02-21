@@ -1,4 +1,5 @@
 #include <generic_data_structures.h>
+
 #include <stdlib.h>
 #include <assert.h>
 
@@ -13,7 +14,7 @@ static int queue_length(const struct queue *queue)
     return i;
 }
 
-int main(int argc, char * argv[])
+static void queue_test(void)
 {
     index_queue *queue = alloc_index_queue();
     
@@ -29,11 +30,11 @@ int main(int argc, char * argv[])
     }
     assert(queue_length(queue) == 10);
     /*
-    queue_to_array(queue, array);
-    for (int i = 0; i < 10; i++) {
-        assert(i == array[i]);
-    }
-    */
+     queue_to_array(queue, array);
+     for (int i = 0; i < 10; i++) {
+     assert(i == array[i]);
+     }
+     */
     for (int i = 0; i < 5; i++) {
         dequeue(queue);
     }
@@ -46,6 +47,11 @@ int main(int argc, char * argv[])
     // make sure we can delete empty queues.
     queue = alloc_queue();
     free_queue(queue);
+}
+
+int main(int argc, char * argv[])
+{
+    queue_test();
     
     return EXIT_SUCCESS;
 }

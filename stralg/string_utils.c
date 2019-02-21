@@ -1,6 +1,6 @@
 #include <string_utils.h>
 #include <stdlib.h>
-#include <strings.h>
+#include <string.h>
 
 char *str_copy(const char *x)
 {

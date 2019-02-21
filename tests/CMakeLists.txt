@@ -1,4 +1,6 @@
 
+enable_testing()
+
 add_executable(
     queue_test
     queue_test.c
@@ -11,6 +13,7 @@ add_test(
     Queue
     queue_test
 )
+
 add_executable(
     vector_test
     vector_test.c
