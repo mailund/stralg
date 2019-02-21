@@ -5,6 +5,7 @@
 #include <bwt.h>
 #include <cigar.h>
 #include <edit_distance_generator.h>
+#include <error.h>
 #include <generic_data_structures.h>
 #include <io.h>
 #include <match.h>

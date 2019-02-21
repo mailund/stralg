@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <assert.h>
 
 static void print_help(const char *progname)
 {
@@ -204,21 +205,24 @@ int main(int argc, char **argv)
     const char *fasta_file_name = argv[0];
     const char *fastq_file_name = argv[1];
     
-    enum fasta_errors err;
+    enum error_codes err;
     struct fasta_records *fasta_records =
         load_fasta_records(fasta_file_name, &err);
     
     switch (err) {
-        case NO_FASTA_ERRORS:
+        case NO_ERROR:
             break;
             
-        case CANNOT_OPEN_FASTA_FILE:
+        case CANNOT_OPEN_FILE:
             printf("Cannot open fasta file: %s\n", fasta_file_name);
             return EXIT_FAILURE;
             
-        case MALFORMED_FASTA_RECORD_ERROR:
+        case MALFOREMED_DATA:
             printf("The fasta file is malformed: %s\n", fasta_file_name);
             return EXIT_FAILURE;
+            
+        default:
+            assert(false); // this is not an error the function should return
     }
     
     FILE *fastq_file = fopen(fastq_file_name, "r");

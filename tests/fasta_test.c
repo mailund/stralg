@@ -17,7 +17,7 @@ int main(int argc, char **argv)
     
     // A test where everything should work out with no errors.
     const char *fname = argv[1];
-    enum fasta_errors err;
+    enum error_codes err;
     struct fasta_records *fasta_file = load_fasta_records(fname, &err);
     if (!fasta_file) {
         // LCOV_EXCL_START
@@ -25,7 +25,7 @@ int main(int argc, char **argv)
         return EXIT_FAILURE;
         // LCOV_EXCL_STOP
     }
-    assert(err == NO_FASTA_ERRORS);
+    assert(err == NO_ERROR);
 
     struct fasta_iter iter;
     init_fasta_iter(&iter, fasta_file);
@@ -61,15 +61,17 @@ int main(int argc, char **argv)
     
     // Done with working test.
     
-    
     // Test when the file does not exist.
     assert(!load_fasta_records("no such file", &err));
-    assert(err == CANNOT_OPEN_FASTA_FILE);
+    assert(err == CANNOT_OPEN_FILE);
     
     // Test we capture malformed files
     const char *malformed = argv[2];
     assert(!load_fasta_records(malformed, &err));
-    assert(err == MALFORMED_FASTA_RECORD_ERROR);
+    assert(err == MALFOREMED_DATA);
+    
+    // just test that it doesn't die if the error is null
+    assert(!load_fasta_records(malformed, 0));
     
     return EXIT_SUCCESS;
 }

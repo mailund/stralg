@@ -87,9 +87,9 @@ static struct fasta_record_impl *alloc_rec(
 
 struct fasta_records *load_fasta_records(
     const char *fname,
-    enum fasta_errors *err
+    enum error_codes *err
 ) {
-    if (err) *err = NO_FASTA_ERRORS;
+    if (err) *err = NO_ERROR;
     // stuff to deallocated in case of errors
     struct fasta_records *rec = 0;
     
@@ -98,7 +98,7 @@ struct fasta_records *load_fasta_records(
         // This is the first place we allocate a resource
         // and it wasn't allocated, so we just return rather
         // than jump to fail.
-        if (err) *err = CANNOT_OPEN_FASTA_FILE;
+        if (err) *err = CANNOT_OPEN_FILE;
         return 0;
     }
 
@@ -116,7 +116,7 @@ struct fasta_records *load_fasta_records(
         pack_name(&pack);
 
         if (pack.front == 0) {
-            if (err) *err = MALFORMED_FASTA_RECORD_ERROR;
+            if (err) *err = MALFOREMED_DATA;
             goto fail;
         }
 
