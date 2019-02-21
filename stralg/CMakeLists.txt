@@ -17,6 +17,9 @@ add_library(stralg SHARED
 	suffix_tree.h suffix_tree.c
 	trie.h trie.c
 )
+set_target_properties(
+	stralg PROPERTIES FOLDER Libraries/StrAlg
+)
 
 target_include_directories(stralg
   PUBLIC

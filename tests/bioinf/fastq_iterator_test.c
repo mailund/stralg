@@ -5,6 +5,7 @@
 
 int main(int argc, char *argv[])
 {
+    return EXIT_SUCCESS; // FIXME
     if (argc != 2) {
         // LCOV_EXCL_START
         printf("needs one argument\n");

@@ -27,7 +27,6 @@ static void print_leaves(struct suffix_tree_node *from)
 static void test_suffix_tree_match(index_vector *naive_matches, const char *pattern, struct suffix_tree *st, char *string) {
     struct st_leaf_iter st_iter;
     struct st_leaf_iter_result res;
-    index_vector *st_matches = alloc_index_vector(100);
     
     printf("I managed to build the suffix tree!\n");
     printf("the root is %p\n", st->root);
@@ -36,26 +35,16 @@ static void test_suffix_tree_match(index_vector *naive_matches, const char *patt
     printf("search that should miss!\n");
     assert(!st_search(st, "blahblahblahdeblablabla"));
     
-    printf("Search that should not.\n");
     struct suffix_tree_node *match_root = st_search(st, pattern);
-    assert(match_root != st->root);
-    assert(match_root != 0);
     
-    /*
-     printf("Printing tree.\n");
-     FILE *f = fopen("tree.dot", "w");
-     st_print_dot(st, 0, f);
-     fclose(f);
-     
-     printf("Printing subtree.\n");
-     f = fopen("subtree.dot", "w");
-     st_print_dot(st, match_root, f);
-     fclose(f);
-     */
+    if (!match_root) return; // we only do the rest when there are matches
+    
     
     printf("Depth-first leaves:\n");
-    print_leaves(match_root);
+    if (match_root)
+        print_leaves(match_root);
     
+    index_vector *st_matches = alloc_index_vector(100);
     init_st_leaf_iter(&st_iter, st, match_root);
     while (next_st_leaf(&st_iter, &res)) {
         index_vector_append(st_matches, res.leaf->leaf_label);
@@ -79,27 +68,7 @@ static void test_suffix_tree_match(index_vector *naive_matches, const char *patt
     free_index_vector(st_matches);
 }
 
-int main(int argc, const char **argv)
-{
-    if (argc != 3) {
-        // LCOV_EXCL_START
-        printf("Needs two arguments: pattern inputfile.\n");
-        return EXIT_FAILURE;
-        // LCOV_EXCL_STOP
-    }
-    const char *pattern = argv[1];
-    const char *fname = argv[2];
-    
-    char *string = load_file(fname);
-    printf("did I get this far?\n");
-    if (!string) {
-        // LCOV_EXCL_START
-        printf("Couldn't read file %s\n", fname);
-        return EXIT_FAILURE;
-        // LCOV_EXCL_STOP
-    }
-
-    // Get matches with the naive match algorithm
+static void test_matching(const char *pattern, char *string) {
     index_vector *naive_matches  = alloc_index_vector(10);
     size_t n = strlen(string);
     size_t m = strlen(pattern);
@@ -110,12 +79,12 @@ int main(int argc, const char **argv)
         index_vector_append(naive_matches, match.pos);
     }
     dealloc_naive_match_iter(&naive_iter);
-
+    
     printf("naive matches:\n");
     for (size_t i = 0; i < naive_matches->used; ++i)
         printf("%lu ", index_vector_get(naive_matches, i));
     printf("\n");
-
+    
     
     // Get the matches using the suffix tree
     struct suffix_tree *st = naive_suffix_tree(string);
@@ -124,16 +93,57 @@ int main(int argc, const char **argv)
     size_t sa[st->length];
     size_t lcp[st->length];
     st_compute_sa_and_lcp(st, sa, lcp);
-
+    
     free_suffix_tree(st);
-
+    
     
     st = lcp_suffix_tree(string, sa, lcp);
     test_suffix_tree_match(naive_matches, pattern, st, string);
     free_suffix_tree(st);
-
-    free(string);
+    
     free_index_vector(naive_matches);
+}
+
+
+int main(int argc, const char **argv)
+{
+    if (argc == 3) {
+        const char *pattern = argv[1];
+        const char *fname = argv[2];
+    
+        char *string = load_file(fname);
+        printf("did I get this far?\n");
+        if (!string) {
+            // LCOV_EXCL_START
+            printf("Couldn't read file %s\n", fname);
+            return EXIT_FAILURE;
+            // LCOV_EXCL_STOP
+        }
+
+        test_matching(pattern, string);
+        free(string);
+    } else {
+        char *strings[] = {
+            "acacacg",
+            "gacacacag",
+            "acacacag",
+            "acacaca",
+            "acataca",
+        };
+        size_t no_strings = sizeof(strings) / sizeof(const char *);
+        const char *patterns[] = {
+            "aca", "ac", "ca", "a", "c", "acg", "cg", "g",
+        };
+        size_t no_patterns = sizeof(patterns) / sizeof(const char *);
+        
+        for (size_t i = 0; i < no_patterns; ++i) {
+            for (size_t j = 0; j < no_strings; ++j) {
+                printf("%s in %s\n", patterns[i], strings[j]);
+                test_matching(patterns[i], strings[j]);
+            }
+        }
+
+    }
 
     return EXIT_SUCCESS;
 }

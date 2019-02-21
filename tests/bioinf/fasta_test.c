@@ -8,6 +8,8 @@
 
 int main(int argc, char **argv)
 {
+    return EXIT_SUCCESS; // FIXME
+
     if (argc != 3) {
         // LCOV_EXCL_START
         printf("need one argument: fasta file\n");

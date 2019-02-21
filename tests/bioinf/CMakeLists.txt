@@ -1,18 +1,18 @@
 
 
 enable_testing()
-add_subdirectory(stralg)
-add_subdirectory(bioinf)
 
-# BIOINF ----------------------------------------------
-# add_executable(
-#     fastq_iterator_test
-#     fastq_iterator_test.c
-# )
-# target_link_libraries(
-#     fastq_iterator_test
-#     stralg stralg_bioinf
-# )
+file(GLOB test_sources *_test.c)
+foreach(test_c ${test_sources})
+    get_filename_component(testname ${test_c} NAME_WE)
+    add_executable(${testname} ${test_c})
+    target_link_libraries(${testname} stralg stralg_bioinf)
+    add_test(${testname} ${testname})
+    set_target_properties(
+        ${testname} PROPERTIES FOLDER Tests/Bioinf
+    )
+endforeach(test_c)
+
 # add_test(
 #     NAME FASTQ-iterator-run
 #     COMMAND
