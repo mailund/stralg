@@ -20,15 +20,18 @@ int main(int argc, char **argv)
     }
     assert(err == NO_ERROR);
 
+    FILE *outfile = fopen("test-data/fasta-test-observed.txt", "w");
+    
     struct fasta_iter iter;
     init_fasta_iter(&iter, fasta_file);
     struct fasta_record rec;
     while (next_fasta_record(&iter, &rec)) {
-        printf("name: \"%s\"\n", rec.name);
-        printf("seq: \"%s\"\n", rec.seq);
-        printf("seq len %lu\n", rec.seq_len);
+        fprintf(outfile, "name: \"%s\"\n", rec.name);
+        fprintf(outfile, "seq: \"%s\"\n", rec.seq);
+        fprintf(outfile, "seq len %lu\n", rec.seq_len);
     }
     dealloc_fasta_iter(&iter);
+    fclose(outfile);
     
     // check that we can look up records.
     const char *ref1 = "ACCTACAGACTACCATGTATCTCCATTTACCTAGTCTAG"
