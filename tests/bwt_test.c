@@ -36,6 +36,12 @@ static void test_expected(const struct bwt_table *bwt_table)
     }
 }
 
+void error_test(void)
+{
+    // test that it is possible to
+    
+}
+
 int main(int argc, char **argv)
 {
     const char *string = "mississippi";
@@ -107,7 +113,7 @@ int main(int argc, char **argv)
     free_suffix_array(sa);
     dealloc_remap_table(&remap_table);
 
-    
+    error_test();
     
     return EXIT_SUCCESS;
 }

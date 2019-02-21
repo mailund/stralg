@@ -4,6 +4,7 @@ add_library(stralg SHARED
 	stralg.h
 	aho_corasick.h aho_corasick.c
 	bwt.h bwt.c
+	error.h
 	match.h match.c
 	cigar.h cigar.c
 	edit_distance_generator.h edit_distance_generator.c
