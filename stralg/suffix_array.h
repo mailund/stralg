@@ -8,19 +8,15 @@
 #include <stdint.h>
 
 struct suffix_array {
-    // memory management of the string must be handled elsewhere
-    char *string;
-    
-    // length of the array
+    char *string;    
     uint32_t length;
-    // the actual suffix array
     uint32_t *array;
 
     // these arrays are optional but used in extended suffix arrays.
     // they aren't all used at the same time, and we could get rid of some
     // after we have used them, but I just keep them here
     uint32_t *inverse;
-    int *lcp;
+    uint32_t *lcp;
 };
 
 struct suffix_array *qsort_sa_construction(char *string);

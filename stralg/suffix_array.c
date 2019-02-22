@@ -8,14 +8,14 @@
 static struct suffix_array *allocate_sa(char *string)
 {
     struct suffix_array *sa =
-        (struct suffix_array*)malloc(sizeof(struct suffix_array));
+    (struct suffix_array*)malloc(sizeof(struct suffix_array));
     sa->string = string;
     sa->length = strlen(string) + 1;
     sa->array = malloc(sa->length * sizeof(*sa->array));
-
+    
     sa->inverse = 0;
     sa->lcp = 0;
-
+    
     return sa;
 }
 
@@ -45,16 +45,16 @@ int construction_cmpfunc(const void *a, const void *b)
 struct suffix_array *qsort_sa_construction(char *string)
 {
     struct suffix_array *sa = allocate_sa(string);
-
+    
     char **suffixes = malloc(sa->length * sizeof(char *));
     for (int i = 0; i < sa->length; ++i)
         suffixes[i] = (char *)string + i;
-
+    
     qsort(suffixes, sa->length, sizeof(char *), construction_cmpfunc);
-
+    
     for (int i = 0; i < sa->length; i++)
         sa->array[i] = suffixes[i] - string;
-
+    
     return sa;
 }
 
@@ -62,24 +62,27 @@ struct suffix_array *qsort_sa_construction(char *string)
 void compute_inverse(struct suffix_array *sa)
 {
     if (sa->inverse) return; // only compute if it is needed
+    
     sa->inverse = malloc(sa->length * sizeof(*sa->inverse));
-    for (size_t i = 0; i < sa->length; ++i)
+    for (uint32_t i = 0; i < sa->length; ++i)
         sa->inverse[sa->array[i]] = i;
 }
 
 void compute_lcp(struct suffix_array *sa)
 {
     if (sa->lcp) return; // only compute if we have to
-
+    
+    sa->lcp = malloc((sa->length) * sizeof(*sa->lcp));
+    
     compute_inverse(sa);
-
-    sa->lcp = malloc((1 + sa->length) * sizeof(*sa->lcp));
-    sa->lcp[0] = sa->lcp[sa->length] = -1;
-
-    int l = 0;
-    for (int i = 0; i < sa->length; ++i) {
-        int j = sa->inverse[i];
-        if (j == 0) continue; // don't handle index 0 -- lcp here is always -1
+    sa->lcp[0] = 0;
+    uint32_t l = 0;
+    for (uint32_t i = 0; i < sa->length; ++i) {
+        uint32_t j = sa->inverse[i];
+        
+        // Don't handle index 0; lcp[0] is always zero.
+        if (j == 0) continue;
+        
         int k = sa->array[j - 1];
         while (sa->string[k+l] == sa->string[i+l])
             ++l;
@@ -88,12 +91,12 @@ void compute_lcp(struct suffix_array *sa)
     }
 }
 
-static size_t binary_search(const char *key, size_t key_len,
-                          struct suffix_array *sa)
+static uint32_t binary_search(const char *key, uint32_t key_len,
+                              struct suffix_array *sa)
 {
-    size_t low = 0;
-    size_t high = sa->length;
-    size_t mid;
+    uint32_t low = 0;
+    uint32_t high = sa->length;
+    uint32_t mid;
     int cmp;
     
     while (low < high) {
@@ -110,7 +113,7 @@ static size_t binary_search(const char *key, size_t key_len,
     }
     
     return low; // this must be the lowest point where
-                // a hit could be if we didn't catch it above.
+    // a hit could be if we didn't catch it above.
 }
 
 // when searching, we cannot simply use bsearch because we want
@@ -118,9 +121,9 @@ static size_t binary_search(const char *key, size_t key_len,
 // would give us NULL in that case.
 uint32_t lower_bound_search(struct suffix_array *sa, const char *key)
 {
-    size_t key_len = strlen(key);
+    uint32_t key_len = strlen(key);
     assert(key_len > 0); // I cannot handle empty strings!
-    size_t mid = binary_search(key, key_len, sa);
+    uint32_t mid = binary_search(key, key_len, sa);
     
     if (mid == sa->length)
         return mid; // we hit the end.
@@ -139,9 +142,9 @@ void init_sa_match_iter(struct sa_match_iter *iter,
 {
     iter->sa = sa;
     
-    size_t key_len = strlen(key);
+    uint32_t key_len = strlen(key);
     assert(key_len > 0); // I cannot handle empty strings!
-    size_t mid = binary_search(key, key_len, sa);
+    uint32_t mid = binary_search(key, key_len, sa);
     
     int cmp;
     if (mid == sa->length ||
@@ -159,12 +162,12 @@ void init_sa_match_iter(struct sa_match_iter *iter,
     
     assert(cmp == 0);
     // find lower and upper bound
-    size_t lower = mid;
+    uint32_t lower = mid;
     while (lower > 0 && strncmp(sa->string + sa->array[lower], key, key_len) >= 0) {
         lower--;
     }
     iter->i = iter->L = lower + 1;
-    size_t upper = mid;
+    uint32_t upper = mid;
     while (upper < sa->length &&
            strncmp(sa->string + sa->array[upper], key, key_len) == 0) {
         upper++;
@@ -238,11 +241,12 @@ bool identical_suffix_arrays(const struct suffix_array *sa1,
     if (strcmp(sa1->string, sa2->string) != 0)
         return false;
     
-    for (size_t i = 0; i < sa1->length; ++i) {
+    for (uint32_t i = 0; i < sa1->length; ++i) {
         if (sa1->array[i] != sa2->array[i])
             return false;
     }
     
     return true;
 }
+
 
