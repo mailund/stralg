@@ -7,6 +7,7 @@
 #include <assert.h>
 
 #define BUFFER_SIZE 1024
+#define PRINT 0
 
 static char *match_string(size_t idx, const char *cigar)
 {
@@ -22,12 +23,32 @@ static void free_strings(string_vector *vec)
     }
 }
 
+#if PRINT
+static void print_difference(string_vector *first,
+                             string_vector *second)
+{
+    string_vector first_unique;
+    string_vector second_unique;
+    init_string_vector(&first_unique, 10);
+    init_string_vector(&second_unique, 10);
+    
+    split_string_vectors(first, second, &first_unique, &second_unique);
+    printf("Unique to first:\n");
+    print_string_vector(&first_unique);
+    printf("Unique to second:\n");
+    print_string_vector(&second_unique);
+    
+    dealloc_vector(&first_unique);
+    dealloc_vector(&second_unique);
+}
+#endif
 
 
 // MARK: Straightforward recursive implementation
 
 struct search_data {
     struct suffix_tree *st;
+    const char *string_end;
     char *full_cigar_buf;
     char *cigar_buf;
     string_vector *results;
@@ -46,12 +67,14 @@ static void search_edge(struct search_data *data,
 {
     if (edits < 0)
         return; // we ran out of edits
-    
+    if (x == data->string_end)
+        return; // do not move past the end of the buffer (overflow)
+
     if (*p == '\0') {
         // We have a match.
         *cigar = '\0';
         simplify_cigar(data->cigar_buf, data->full_cigar_buf);
-        
+
         struct st_leaf_iter leaf_iter;
         init_st_leaf_iter(&leaf_iter, data->st, v);
         struct st_leaf_iter_result res;
@@ -65,13 +88,13 @@ static void search_edge(struct search_data *data,
     } else if (x == end) {
         // We ran out of edge.
         search_children(data, v, cigar, p, edits);
-        
+
     } else {
         // Recurse on different edits
         *cigar = 'M';
         int match_edit = (*p == *x) ? edits : edits - 1;
         search_edge(data, v, x + 1, end, p + 1, cigar + 1, match_edit);
-        
+
         *cigar = 'D';
         search_edge(data, v, x + 1, end, p, cigar + 1, edits - 1);
 
@@ -104,28 +127,116 @@ static void simple_match(struct suffix_tree *st,
                          string_vector *results)
 {
     size_t m = strlen(p) + 4*edits + 1; // one edit can max cost four characters
-    
+
     struct search_data data;
     data.st = st;
+    data.string_end = st->string + st->length;
     data.full_cigar_buf = malloc(m + 1);
     data.full_cigar_buf[0] = '\0';
     data.cigar_buf = malloc(m + 1);
     data.cigar_buf[0] = '\0';
     data.results = results;
-    
+
     search_children(&data, st->root, data.full_cigar_buf, p, edits);
-    
+
     free(data.full_cigar_buf);
     free(data.cigar_buf);
 }
 
 
 // MARK: Recursive implementation w/o flanking deletions
-static void deleteless_match(struct suffix_tree *st,
-                             const char *pattern, const char *string,
+static void ld_search_children(struct search_data *data,
+                               struct suffix_tree_node *v,
+                               bool leading,
+                               char *cigar,
+                               const char *p, int edits);
+
+static void ld_search_edge(struct search_data *data,
+                           struct suffix_tree_node *v,
+                           bool leading,
+                           const char *x, const char *end,
+                           const char *p,
+                           char *cigar, int edits)
+{
+    if (edits < 0)
+        return; // we ran out of edits
+    if (x == data->string_end)
+        return; // do not move past the end of the buffer (overflow)
+
+    if (*p == '\0') {
+        // We have a match.
+        *cigar = '\0';
+        simplify_cigar(data->cigar_buf, data->full_cigar_buf);
+        
+        struct st_leaf_iter leaf_iter;
+        init_st_leaf_iter(&leaf_iter, data->st, v);
+        struct st_leaf_iter_result res;
+        while (next_st_leaf(&leaf_iter, &res)) {
+            uint32_t position = res.leaf->leaf_label;
+            char *m = match_string(position, data->cigar_buf);
+            string_vector_append(data->results, m);
+        }
+        dealloc_st_leaf_iter(&leaf_iter);
+        
+    } else if (x == end) {
+        // We ran out of edge.
+        ld_search_children(data, v, leading, cigar, p, edits);
+        
+    } else {
+        // Recurse on different edits
+        *cigar = 'M';
+        int match_edit = (*p == *x) ? edits : edits - 1;
+        ld_search_edge(data, v, false, x + 1, end, p + 1, cigar + 1, match_edit);
+        
+        if (!leading) {
+            *cigar = 'D';
+            ld_search_edge(data, v, false, x + 1, end, p, cigar + 1, edits - 1);
+        }
+        
+        *cigar = 'I';
+        ld_search_edge(data, v, false, x, end, p + 1, cigar + 1, edits - 1);
+        
+    }
+}
+
+static void ld_search_children(struct search_data *data,
+                               struct suffix_tree_node *v,
+                               bool leading,
+                               char *cigar,
+                               const char *p, int edits)
+{
+    struct suffix_tree *st = data->st;
+    struct suffix_tree_node *child = v->child;
+    while (child) {
+        const char *x = st->string + child->range.from;
+        const char *end = st->string + child->range.to;
+        ld_search_edge(data, child, leading, x, end, p, cigar, edits);
+        child = child->sibling;
+    }
+    
+}
+
+static void ld_match(struct suffix_tree *st,
+                             const char *p,
+                             const char *string,
                              int edits,
                              string_vector *results)
 {
+    size_t m = strlen(p) + 4*edits + 1; // one edit can max cost four characters
+    
+    struct search_data data;
+    data.st = st;
+    data.string_end = st->string + st->length;
+    data.full_cigar_buf = malloc(m + 1);
+    data.full_cigar_buf[0] = '\0';
+    data.cigar_buf = malloc(m + 1);
+    data.cigar_buf[0] = '\0';
+    data.results = results;
+    
+    ld_search_children(&data, st->root, true, data.full_cigar_buf, p, edits);
+    
+    free(data.full_cigar_buf);
+    free(data.cigar_buf);
 }
 
 
@@ -179,35 +290,46 @@ static void test_matching(const char *pattern, const char *string, int edits)
 {
     string_vector simple_results;
     init_string_vector(&simple_results, 100);
-    string_vector deleteless_results;
-    init_string_vector(&deleteless_results, 100);
+    string_vector ld_results;
+    init_string_vector(&ld_results, 100);
     string_vector iter_results;
     init_string_vector(&iter_results, 100);
 
     struct suffix_tree *st = naive_suffix_tree(string);
     simple_match(st, pattern, string, edits, &simple_results);
-    deleteless_match(st, pattern, string, edits, &deleteless_results);
+    ld_match(st, pattern, string, edits, &ld_results);
     iter_match(st, pattern, string, edits, &iter_results);
     free_suffix_tree(st);
     
     sort_string_vector(&simple_results);
-    sort_string_vector(&deleteless_results);
+    sort_string_vector(&ld_results);
     sort_string_vector(&iter_results);
-    
+
+#if PRINT
     printf("recursive\n");
     print_string_vector(&simple_results);
+    printf("\nleading deletes\n");
+    print_string_vector(&ld_results);
     printf("\niter\n");
     print_string_vector(&iter_results);
     printf("\n");
     
-    // FIXME: test vectors
-    //assert(first_unique(&simple_results, &deleteless_results))
-    // assert(equal_vectors(&deleteless_results, &iter_results);
+    printf("UNIQUE:\n");
+    printf("---- simple vs ld ------------------------------\n");
+    print_difference(&simple_results, &ld_results);
+    printf("\n");
+    printf("---- ld vs iter --------------------------------\n");
+    print_difference(&ld_results, &iter_results);
+#endif
+
+    
+    assert(first_unique(&simple_results, &ld_results));
+    assert(equal_vectors(&ld_results, &iter_results));
     
     free_strings(&simple_results);
     dealloc_vector(&simple_results);
-    free_strings(&deleteless_results);
-    dealloc_vector(&deleteless_results);
+    free_strings(&ld_results);
+    dealloc_vector(&ld_results);
     free_strings(&iter_results);
     dealloc_vector(&iter_results);
 }
@@ -238,9 +360,6 @@ int main(int argc, char **argv)
         free(string);
     } else {
 
-#if 1
-        test_matching("ac", "acacacg", 1);
-#else
         char *strings[] = {
             "acacacg",
             "gacacacag",
@@ -257,14 +376,13 @@ int main(int argc, char **argv)
         for (size_t i = 0; i < no_patterns; ++i) {
             for (size_t j = 0; j < no_strings; ++j) {
                 for (size_t k = 0; k < no_edits; ++k) {
-                    printf("%s in %s [%d]\n", patterns[i], strings[j], edits[k]);
+//                    printf("\n\n%s in %s [%d]\n", patterns[i], strings[j], edits[k]);
+//                    printf("=======================================\n\n");
                     test_matching(patterns[i], strings[j], edits[k]);
 
                 }
             }
         }
-
-#endif
     }
 
     
