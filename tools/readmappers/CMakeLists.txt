@@ -1,1 +1,2 @@
 add_subdirectory(exact_readmapper)
+add_subdirectory(bwt_readmapper)
