@@ -232,3 +232,41 @@ void print_string_vector(string_vector *vec)
     }
 }
 
+
+void split_string_vectors(string_vector *first,
+                          string_vector *second,
+                          string_vector *unique_first,
+                          string_vector *unique_second)
+{
+    sort_string_vector(first); sort_string_vector(second);
+    
+    size_t i = 0, j = 0;
+    while (i < first->used && j < second->used) {
+        char *first_front = string_vector_get(first, i);
+        char *second_front = string_vector_get(second, j);
+        int cmp = strcmp(first_front, second_front);
+        if (cmp == 0) {
+            i++;
+            j++;
+        } else if (cmp < 0) {
+            string_vector_append(unique_first, string_vector_get(first, i));
+            i++;
+        } else {
+            string_vector_append(unique_second, string_vector_get(second, j));
+            j++;
+        }
+    }
+    
+    if (i == first->used) {
+        // copy the last of second to unique_second.
+        for (; j < second->used; ++j) {
+            string_vector_append(unique_second, string_vector_get(second, j));
+        }
+    }
+    if (j == second->used) {
+        // copy the last of first to unique_first.
+        for (; i < first->used; ++i) {
+            string_vector_append(unique_first, string_vector_get(first, i));
+        }
+    }
+}

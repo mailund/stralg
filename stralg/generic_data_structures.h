@@ -188,4 +188,9 @@ void sort_string_vector(string_vector *vec);
 bool string_vector_equal(string_vector *v1, string_vector *v2);
 void print_string_vector(string_vector *vec);
 
+void split_string_vectors(string_vector *first,
+                          string_vector *second,
+                          string_vector *unique_first,
+                          string_vector *unique_second);
+
 #endif

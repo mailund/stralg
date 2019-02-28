@@ -2,48 +2,5 @@
 
 enable_testing()
 add_subdirectory(stralg)
+add_subdirectory(iterators)
 add_subdirectory(bioinf)
-
-# BIOINF ----------------------------------------------
-# add_executable(
-#     fastq_iterator_test
-#     fastq_iterator_test.c
-# )
-# target_link_libraries(
-#     fastq_iterator_test
-#     stralg stralg_bioinf
-# )
-# add_test(
-#     NAME FASTQ-iterator-run
-#     COMMAND
-#     sh -c "$<TARGET_FILE:fastq_iterator_test> test-data/test.fq > test-data/fastq_iterator_test_current.txt"
-#     WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/tests"
-# )
-# add_test(
-#     NAME FASTQ-iterator-compare
-#     COMMAND
-#     cmp fastq_iterator_test_current.txt fastq_iterator_test_expected.txt
-#     WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/tests/test-data"
-# )
-
-# add_executable(
-#     fasta_test
-#     fasta_test.c
-# )
-# target_link_libraries(
-#     fasta_test stralg
-#     stralg_bioinf
-# )
-# add_test(
-#     NAME FASTA-run
-#     COMMAND
-#     sh -c "$<TARGET_FILE:fasta_test> test-data/ref.fa test-data/malformed.fa > test-data/fasta-test-observed.txt"
-#     WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/tests"
-# )
-# add_test(
-#     NAME FASTA-compare-output
-#     COMMAND
-#     cmp test-data/fasta-test-observed.txt test-data/fasta-test-expected.txt
-#     WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/tests"
-# )
-

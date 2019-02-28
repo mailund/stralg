@@ -9,47 +9,6 @@
 #define BUFFER_SIZE 1024
 #define PRINT_RESULTS
 
-#if 0
-static void split_vectors(string_vector *first,
-                          string_vector *second,
-                          string_vector *unique_first,
-                          string_vector *unique_second)
-{
-    sort_string_vector(first); sort_string_vector(second);
-    
-    size_t i = 0, j = 0;
-    while (i < first->used && j < second->used) {
-        char *first_front = string_vector_get(first, i);
-        char *second_front = string_vector_get(second, j);
-        int cmp = strcmp(first_front, second_front);
-        if (cmp == 0) {
-            i++;
-            j++;
-        } else if (cmp < 0) {
-            string_vector_append(unique_first, string_vector_get(first, i));
-            i++;
-        } else {
-            string_vector_append(unique_second, string_vector_get(second, j));
-            j++;
-        }
-    }
-    
-    if (i == first->used) {
-        // copy the last of second to unique_second.
-        for (; j < second->used; ++j) {
-            string_vector_append(unique_second, string_vector_get(second, j));
-        }
-    }
-    if (j == second->used) {
-        // copy the last of first to unique_first.
-        for (; i < first->used; ++i) {
-            string_vector_append(unique_first, string_vector_get(first, i));
-        }
-    }
-}
-#endif
-
-
 static char *match_string(size_t idx, const char *string, const char *cigar)
 {
     char *new_string = malloc(BUFFER_SIZE);
@@ -324,25 +283,6 @@ static void test_exact(const char *pattern, const char *string,
     remap(remapped_string, string, &remap_table);
     if (remap(remapped_pattern, pattern, &remap_table)) {
         // we only do these tests if we can remap the pattern.
-#if 0 // need to back-map the match for this to work...
-        printf("Aho-Corasick (remapped)\t");
-        string_vector ac_results;
-        init_string_vector(&ac_results, 10);
-        aho_corasick_approach(remapped_string, remapped_pattern, "acgt", 0, &ac_results);
-        sort_string_vector(&ac_results);
-        
-        printf("wanted:\n");
-        print_string_vector(&exact_results);
-        printf("got\n");
-        print_string_vector(&ac_results);
-        
-        assert(string_vector_equal(&exact_results, &ac_results));
-        free_strings(&ac_results);
-        dealloc_string_vector(&ac_results);
-        printf("OK\n");
-        printf("----------------------------------------------------\n");
-#endif
-        
         printf("BWT\t");
         exact_bwt_test(&exact_results, &remap_table, remapped_pattern, remapped_string);
         printf("OK\n");

@@ -1,6 +1,5 @@
 
 
-enable_testing()
 
 file(GLOB test_sources *_test.c)
 foreach(test_c ${test_sources})

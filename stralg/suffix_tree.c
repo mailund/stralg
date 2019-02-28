@@ -431,6 +431,7 @@ static void push_frame(struct st_approx_frame *sentinel,
     frame->next = sentinel->next;
     sentinel->next = frame;
 }
+
 static void pop_frame(struct st_approx_frame *sentinel,
                       struct suffix_tree_node **v,
                       bool *leading,
@@ -501,7 +502,7 @@ void dealloc_internal_st_approx_iter(struct internal_st_approx_iter *iter)
 
 
 bool next_internal_st_approx_match(struct internal_st_approx_iter *iter,
-                          struct internal_st_approx_match *match)
+                                   struct internal_st_approx_match *match)
 {
     struct suffix_tree_node *v;
     bool leading;
