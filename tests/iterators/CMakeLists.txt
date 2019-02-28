@@ -14,15 +14,3 @@ foreach(test_c ${test_sources})
     )
 endforeach(test_c)
 
-# add_test(
-#     NAME Match[modest-proposal]
-#     COMMAND
-#     sh -c "$<TARGET_FILE:match_test> the test-data/modest-proposal.txt"
-#     WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/tests/iterators"
-# )
-# add_test(
-#     NAME "Match[rep]"
-#     COMMAND
-#     sh -c "$<TARGET_FILE:match_test> ababaaba test-data/repetitive-string.txt"
-#     WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/tests/iterators"
-# )
