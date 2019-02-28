@@ -187,7 +187,7 @@ int main(int argc, char **argv)
                 break;
                 
             default:
-                printf("Incorrect options.\n");
+                printf("Invalid options.\n");
                 printf("Either an unknown option or a missing parameter to an option.\n\n");
                 print_help(progname);
                 return EXIT_FAILURE;
