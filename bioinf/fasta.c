@@ -119,7 +119,7 @@ struct fasta_records *load_fasta_records(
         pack_name(&pack);
 
         if (pack.front == 0) {
-            if (err) *err = MALFOREMED_DATA;
+            if (err) *err = MALFORMED_FILE;
             goto fail;
         }
 

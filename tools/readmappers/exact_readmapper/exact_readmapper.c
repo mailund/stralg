@@ -217,7 +217,7 @@ int main(int argc, char **argv)
             printf("Cannot open fasta file: %s\n", fasta_file_name);
             return EXIT_FAILURE;
             
-        case MALFOREMED_DATA:
+        case MALFORMED_FILE:
             printf("The fasta file is malformed: %s\n", fasta_file_name);
             return EXIT_FAILURE;
             

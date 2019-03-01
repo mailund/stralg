@@ -36,6 +36,10 @@ struct bwt_table *alloc_bwt_table(struct suffix_array *sa,
 void free_bwt_table(struct bwt_table *bwt_table);
 void free_complete_bwt_table(struct bwt_table *bwt_table);
 
+// This function builds all the structures needed to work
+// with the bwt tables. It should be "completely" freed
+// when no longer used.
+struct bwt_table *build_complete_table(const char *string);
 
 struct bwt_exact_match_iter {
     const struct suffix_array *sa;

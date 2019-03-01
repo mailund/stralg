@@ -109,11 +109,16 @@ int main(int argc, char **argv)
     assert(identical_bwt_tables(&bwt_table, bwt_ptr));
     free_bwt_table(bwt_ptr);
     
-    dealloc_bwt_table(&bwt_table);
-    free_suffix_array(sa);
-    dealloc_remap_table(&remap_table);
 
     error_test();
+    
+    struct bwt_table *yet_another_table = build_complete_table(string);
+    assert(identical_bwt_tables(&bwt_table, yet_another_table));
+    free_complete_bwt_table(yet_another_table);
+    
+    free_suffix_array(sa);
+    dealloc_remap_table(&remap_table);
+    dealloc_bwt_table(&bwt_table);
     
     return EXIT_SUCCESS;
 }

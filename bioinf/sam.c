@@ -17,6 +17,6 @@ void parse_sam_line(const char *line_buffer, char *read_name_buffer,
         line_buffer, "%s %*d %s %d %*d %s * %*d %*d %s %*s\n", read_name_buffer,
         ref_name_buffer, match_index, cigar_buffer, pattern_buffer);
     if (no_matched != 5) {
-        *error = MALFOREMED_DATA;
+        *error = MALFORMED_FILE;
     }
 }

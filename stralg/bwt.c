@@ -85,6 +85,20 @@ void free_complete_bwt_table(struct bwt_table *bwt_table)
     free(bwt_table);
 }
 
+struct bwt_table *build_complete_table(const char *string)
+{
+    char *remapped_str = malloc(strlen(string) + 1);
+    struct remap_table  *remap_table = alloc_remap_table(string);
+    remap(remapped_str, string, remap_table);
+    
+    // FIXME: use the fastest algorithm I have here...
+    struct suffix_array *sa = qsort_sa_construction(remapped_str);
+
+    struct bwt_table *table = malloc(sizeof(struct bwt_table));
+    init_bwt_table(table, sa, remap_table);
+    return table;
+
+}
 
 
 void init_bwt_exact_match_iter(struct bwt_exact_match_iter *iter,

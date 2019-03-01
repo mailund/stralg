@@ -66,7 +66,7 @@ int main(int argc, char **argv)
     // Test we capture malformed files
     const char *malformed = "test-data/malformed.fa";
     assert(!load_fasta_records(malformed, &err));
-    assert(err == MALFOREMED_DATA);
+    assert(err == MALFORMED_FILE);
     
     // just test that it doesn't die if the error is null
     assert(!load_fasta_records(malformed, 0));
