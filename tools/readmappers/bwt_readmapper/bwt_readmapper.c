@@ -128,7 +128,8 @@ static void map_records(FILE *outfile,
         init_bwt_approx_iter(&match_iter, records->table, remapped_seq, edits);
         while (next_bwt_approx_match(&match_iter, &match)) {
             print_sam_line(outfile, fastq_rec->name,
-                           records->seq_name, match.position,
+                           records->seq_name,
+                           match.position + 1,
                            match.cigar, fastq_rec->sequence,
                            fastq_rec->quality);
         }

@@ -1,4 +1,5 @@
 
+#include <stralg.h>
 #include <fasta.h>
 #include <fastq.h>
 #include <match.h>
@@ -10,12 +11,15 @@
 #include <string.h>
 #include <assert.h>
 
+static const char alphabet[] = "ACGT";
+
 static void print_help(const char *progname)
 {
     printf("Usage: %s [options] fasta-file fastq-file\n\n", progname);
     printf("Options:\n");
     printf("\t-h | --help:\t\t Show this message.\n");
     printf("\t-a | --algorithm:\tThe algorithm to use for matching.\n");
+    printf("\t-a | --edits:\tThe edit distance to explore.\n");
     printf("\t     Options are:\n");
     printf("\t     - naive: The obvious quadratic time algorithm.\n");
     printf("\t     - border: The border array linear time algorithm.\n");
@@ -24,30 +28,50 @@ static void print_help(const char *progname)
     printf("\n\n");
 }
 
-typedef void (*map_func_type)(struct fastq_record *fastq_record, struct fasta_record *fasta_record);
-static void map(struct fasta_records *records, struct fastq_iter *fastq_iter, map_func_type map_func)
+typedef void (*map_func_type)(const char *edit_str, const char *edit_cigar,
+                              struct fastq_record *fastq_record,
+                              struct fasta_record *fasta_record);
+
+static void map(struct fasta_records *records,
+                struct fastq_iter *fastq_iter,
+                int edits,
+                map_func_type map_func)
 {
     struct fastq_record fastq_record;
     struct fasta_iter fasta_iter;
     struct fasta_record fasta_record;
     
+    struct edit_iter iter; struct edit_pattern edit_pattern;
     while (next_fastq_record(fastq_iter, &fastq_record)) {
-        init_fasta_iter(&fasta_iter, records);
-        while (next_fasta_record(&fasta_iter, &fasta_record)) {
-            map_func(&fastq_record, &fasta_record);
+        fprintf(stderr, "looking at read %s.\n", fastq_record.name);
+        init_edit_iter(&iter, fastq_record.sequence, alphabet, edits);
+        while (next_edit_pattern(&iter, &edit_pattern)) {
+            
+            // Skip matches with flanking deletions.
+            int dummy; char dummy_str[1000];
+            if (sscanf(edit_pattern.cigar, "%dD%s", &dummy, dummy_str) > 1) {
+                continue;
+            }
+            if (sscanf(edit_pattern.cigar, "%s%dD", dummy_str, &dummy) > 1) {
+                continue;
+            }
+
+            init_fasta_iter(&fasta_iter, records);
+            while (next_fasta_record(&fasta_iter, &fasta_record)) {
+                map_func(edit_pattern.pattern, edit_pattern.cigar,
+                         &fastq_record, &fasta_record);
+            }
+            dealloc_fasta_iter(&fasta_iter);
         }
-        dealloc_fasta_iter(&fasta_iter);
+        dealloc_edit_iter(&iter);
     }
 }
 
 
-static void map_naive(struct fastq_record *fastq_record, struct fasta_record *fasta_record)
+static void map_naive(const char *edit_str, const char *edit_cigar,
+                      struct fastq_record *fastq_record, struct fasta_record *fasta_record)
 {
-    char cigar[1024]; // implicitly assuming that we do not have reads longer than 1024
-    
     int readlen = strlen(fastq_record->sequence);
-    sprintf(cigar, "%dM", readlen);
-    
     struct naive_match_iter iter;
     init_naive_match_iter(
         &iter, fasta_record->seq,
@@ -58,26 +82,22 @@ static void map_naive(struct fastq_record *fastq_record, struct fasta_record *fa
     
     struct match match;
     while (next_naive_match(&iter, &match)) {
-        print_sam_line(
-            stdout,
-            fasta_record->name,
-            fastq_record->name,
-            match.pos + 1,
-            cigar,
-            fastq_record->sequence,
-            fastq_record->quality
-        );
+        print_sam_line(stdout,
+                       fastq_record->name,
+                       fasta_record->name,
+                       match.pos + 1,
+                       edit_cigar,
+                       fastq_record->sequence,
+                       fastq_record->quality);
     }
     
     dealloc_naive_match_iter(&iter);
 }
 
-static void map_border(struct fastq_record *fastq_record, struct fasta_record *fasta_record)
+static void map_border(const char *edit_str, const char *edit_cigar,
+                       struct fastq_record *fastq_record, struct fasta_record *fasta_record)
 {
-    char cigar[1024]; // implicitly assuming that we do not have reads longer than 1024
-    
     int readlen = strlen(fastq_record->sequence);
-    sprintf(cigar, "%dM", readlen);
     
     struct border_match_iter iter;
     init_border_match_iter(
@@ -91,10 +111,10 @@ static void map_border(struct fastq_record *fastq_record, struct fasta_record *f
     while (next_border_match(&iter, &match)) {
         print_sam_line(
                        stdout,
-                       fasta_record->name,
                        fastq_record->name,
+                       fasta_record->name,
                        match.pos + 1,
-                       cigar,
+                       edit_cigar,
                        fastq_record->sequence,
                        fastq_record->quality
                        );
@@ -103,29 +123,24 @@ static void map_border(struct fastq_record *fastq_record, struct fasta_record *f
     dealloc_border_match_iter(&iter);
 }
 
-static void map_kmp(struct fastq_record *fastq_record, struct fasta_record *fasta_record)
+static void map_kmp(const char *edit_str, const char *edit_cigar,
+                    struct fastq_record *fastq_record, struct fasta_record *fasta_record)
 {
-    char cigar[1024]; // implicitly assuming that we do not have reads longer than 1024
-    
     int readlen = strlen(fastq_record->sequence);
-    sprintf(cigar, "%dM", readlen);
-    
     struct kmp_match_iter iter;
-    init_kmp_match_iter(
-                          &iter, fasta_record->seq,
-                          fasta_record->seq_len,
-                          fastq_record->sequence,
-                          readlen
-                          );
+    init_kmp_match_iter(&iter, fasta_record->seq,
+                        fasta_record->seq_len,
+                        fastq_record->sequence,
+                        readlen);
     
     struct match match;
     while (next_kmp_match(&iter, &match)) {
         print_sam_line(
                        stdout,
-                       fasta_record->name,
                        fastq_record->name,
+                       fasta_record->name,
                        match.pos + 1,
-                       cigar,
+                       edit_cigar,
                        fastq_record->sequence,
                        fastq_record->quality
                        );
@@ -134,29 +149,24 @@ static void map_kmp(struct fastq_record *fastq_record, struct fasta_record *fast
     dealloc_kmp_match_iter(&iter);
 }
 
-static void map_bmh(struct fastq_record *fastq_record, struct fasta_record *fasta_record)
+static void map_bmh(const char *edit_str, const char *edit_cigar,
+                    struct fastq_record *fastq_record, struct fasta_record *fasta_record)
 {
-    char cigar[1024]; // implicitly assuming that we do not have reads longer than 1024
-    
     int readlen = strlen(fastq_record->sequence);
-    sprintf(cigar, "%dM", readlen);
-    
     struct bmh_match_iter iter;
-    init_bmh_match_iter(
-                          &iter, fasta_record->seq,
-                          fasta_record->seq_len,
-                          fastq_record->sequence,
-                          readlen
-                          );
+    init_bmh_match_iter(&iter, fasta_record->seq,
+                        fasta_record->seq_len,
+                        fastq_record->sequence,
+                        readlen);
     
     struct match match;
     while (next_bmh_match(&iter, &match)) {
         print_sam_line(
                        stdout,
-                       fasta_record->name,
                        fastq_record->name,
+                       fasta_record->name,
                        match.pos + 1,
-                       cigar,
+                       edit_cigar,
                        fastq_record->sequence,
                        fastq_record->quality
                        );
@@ -169,14 +179,16 @@ int main(int argc, char **argv)
 {
     const char *progname = argv[0];
     const char *algorithm = "border";
+    int edits = -1;
     
     int opt;
     static struct option longopts[] = {
-        { "help",      no_argument,       NULL, 'h' },
-        { "algorithm", required_argument, NULL, 'a' },
-        { NULL,        0,                 NULL,  0  }
+        { "help",      no_argument,        NULL, 'h' },
+        { "algorithm", required_argument,  NULL, 'a' },
+        { "edits",     required_argument,  NULL, 'd' },
+        { NULL,        0,                  NULL,  0  }
     };
-    while ((opt = getopt_long(argc, argv, "ha:", longopts, NULL)) != -1) {
+    while ((opt = getopt_long(argc, argv, "ha:d:", longopts, NULL)) != -1) {
         switch (opt) {
             case 'h':
                 print_help(progname);
@@ -184,6 +196,10 @@ int main(int argc, char **argv)
 
             case 'a':
                 algorithm = optarg;
+                break;
+                
+            case 'd':
+                edits = atoi(optarg);
                 break;
                 
             default:
@@ -202,9 +218,15 @@ int main(int argc, char **argv)
         print_help(progname);
         return EXIT_FAILURE;
     }
+    if (edits < 0) {
+        printf("You must provide a non-negative edit distance (option -d)\n\n");
+        print_help(progname);
+        return EXIT_FAILURE;
+    }
+    
     const char *fasta_file_name = argv[0];
     const char *fastq_file_name = argv[1];
-    
+
     enum error_codes err;
     struct fasta_records *fasta_records =
         load_fasta_records(fasta_file_name, &err);
@@ -230,18 +252,18 @@ int main(int argc, char **argv)
     init_fastq_iter(&fastq_iter, fastq_file);
     
     if (strcmp(algorithm, "naive") == 0) {
-        map(fasta_records, &fastq_iter, map_naive);
+        map(fasta_records, &fastq_iter, edits, map_naive);
         
     } else if (strcmp(algorithm, "border") == 0) {
-        map(fasta_records, &fastq_iter, map_border);
+        map(fasta_records, &fastq_iter, edits, map_border);
 
         
     } else if (strcmp(algorithm, "kmp") == 0) {
-        map(fasta_records, &fastq_iter, map_kmp);
+        map(fasta_records, &fastq_iter, edits, map_kmp);
 
         
     } else if (strcmp(algorithm, "bmh") == 0) {
-        map(fasta_records, &fastq_iter, map_bmh);
+        map(fasta_records, &fastq_iter, edits, map_bmh);
 
         
     } else {
