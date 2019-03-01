@@ -10,7 +10,8 @@
 struct fasta_record_impl {
     const char *name;
     const char *seq;
-    size_t seq_len;
+    uint32_t seq_len;
+    uint32_t no_records;
     struct fasta_record_impl *next;
 };
 struct fasta_records {
@@ -70,17 +71,19 @@ static void pack_seq(struct packing *pack)
     }
 }
 
-static struct fasta_record_impl *alloc_rec(
-    const char *name,
-    const char *seq,
-    size_t seq_len,
-    struct fasta_record_impl *next
+static struct fasta_record_impl *
+alloc_rec(const char *name,
+          const char *seq,
+          uint32_t seq_len,
+          uint32_t no_records,
+          struct fasta_record_impl *next
 ) {
     struct fasta_record_impl *rec =
         malloc(sizeof(struct fasta_record_impl));
     rec->name = name;
     rec->seq = seq;
     rec->seq_len = seq_len;
+    rec->no_records = no_records;
     rec->next = next;
     return rec;
 }
@@ -123,11 +126,10 @@ struct fasta_records *load_fasta_records(
         seq = pack.pack;
         pack_seq(&pack);
 
-        rec->recs = alloc_rec(
-            name, seq,
-            pack.pack - seq - 1,
-            rec->recs
-        );
+        rec->recs = alloc_rec(name, seq,
+                              pack.pack - seq - 1,
+                              (rec->recs) ? rec->recs->no_records + 1 : 1,
+                              rec->recs);
     }
 
     return rec;
@@ -162,6 +164,11 @@ void free_fasta_records(
         rec = next;
     }
     free(file);
+}
+
+uint32_t number_of_fasta_records(struct fasta_records *records)
+{
+    return records->recs->no_records;
 }
 
 bool lookup_fasta_record_by_name(

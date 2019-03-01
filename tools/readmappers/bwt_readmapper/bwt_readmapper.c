@@ -1,10 +1,39 @@
 
 #include <stralg.h>
+#include <fasta.h>
+#include <fastq.h>
+#include <sam.h>
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include <getopt.h>
+
+static void preprocess(const char *fasta_fname)
+{
+    enum error_codes err;
+    struct fasta_records *fasta_records =
+        load_fasta_records(fasta_fname, &err);
+    
+    switch (err) {
+        case NO_ERROR:
+            break;
+            
+        case CANNOT_OPEN_FILE:
+            printf("Cannot open fasta file: %s\n", fasta_fname);
+            perror("Could not open FASTA file");
+            exit(EXIT_FAILURE);
+            
+        case MALFOREMED_DATA:
+            printf("The fasta file is malformed: %s\n", fasta_fname);
+            exit(EXIT_FAILURE);
+            
+        default:
+            assert(false); // this is not an error the function should return
+    }
+    
+    free_fasta_records(fasta_records);
+}
 
 static void print_help(const char *progname)
 {
@@ -19,7 +48,9 @@ static void print_help(const char *progname)
 int main(int argc, char **argv)
 {
     const char *progname = argv[0];
-    bool preprocess = false;
+    bool should_preprocess = false;
+    const char *fasta_fname = 0;
+    const char *fastq_fname = 0;
 
     int opt;
     static struct option longopts[] = {
@@ -34,7 +65,8 @@ int main(int argc, char **argv)
                 return EXIT_SUCCESS;
                 
             case 'p':
-                preprocess = true;
+                should_preprocess = true;
+                fasta_fname = optarg;
                 break;
                 
             default:
@@ -48,14 +80,20 @@ int main(int argc, char **argv)
     argc -= optind;
     argv += optind;
     
-    if (preprocess) {
-        printf("preprocess.\n");
+    if (should_preprocess) {
+        printf("preprocessing %s.\n", fasta_fname);
+        preprocess(fasta_fname);
+
     } else {
         if (argc != 2) {
             printf("You must provide both a fasta file and a fastq file.\n\n");
             print_help(progname);
             return EXIT_FAILURE;
         }
+        fasta_fname = argv[1];
+        fastq_fname = argv[2];
+        printf("search for reads from %s in %s\n",
+               fastq_fname, fasta_fname);
     }
 
     
