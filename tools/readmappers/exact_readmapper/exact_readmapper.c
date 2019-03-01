@@ -43,13 +43,8 @@ static void map(struct fasta_records *records,
     
     struct edit_iter iter; struct edit_pattern edit_pattern;
     while (next_fastq_record(fastq_iter, &fastq_record)) {
-        fprintf(stderr, "looking at read %s.\n", fastq_record.name);
         init_edit_iter(&iter, fastq_record.sequence, alphabet, edits);
-        fprintf(stderr, "init itrator...\n");
         while (next_edit_pattern(&iter, &edit_pattern)) {
-            
-            fprintf(stderr, "%s and %s\n", edit_pattern.pattern, edit_pattern.cigar);
-            
             // Skip matches with flanking deletions.
             int dummy; char dummy_str[1000];
             if (sscanf(edit_pattern.cigar, "%dD%s", &dummy, dummy_str) > 1) {
