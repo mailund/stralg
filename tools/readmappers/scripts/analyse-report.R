@@ -8,16 +8,45 @@ check_package <- function(x) {
     }
  }
 
-check_package("ggplot2")
-check_package("dplyr")
+check_package("tidyverse")
 
-args <- commandArgs(TRUE)
-if (length(args) < 1) {
-	stop("The evaluation report needs to be provided as the first argument.")
-}
+# args <- commandArgs(TRUE)
+# if (length(args) < 1) {
+# 	stop("The evaluation report needs to be provided as the first argument.")
+# }
+args <- "/Users/mailund/Projects/stralg/tools/readmappers/out.txt"
 time_results <- read.table(args[1], header = TRUE)
 
-ordered <- time_results %>%
+normalisation <- time_results %>%
+    filter(Operation == "Preprocessing", Mapper == "BWA") %>%
+    summarise(mean = mean(Time)) %>%
+    unlist()
+preprocessing <- time_results %>%
+    filter(Operation == "Preprocessing") %>%
+    mutate(Time = Time / normalisation)
+
+normalisation <- time_results %>%
+    filter(Operation == "Mapping", Mapper == "BWA") %>%
+    summarise(mean = mean(Time)) %>%
+    unlist()
+mapping <- time_results %>%
+    filter(Operation == "Mapping") %>%
+    mutate(Time = Time / normalisation)
+mapping
+
+preprocessing %>%
+    ggplot(aes(x = Mapper, colour = as_factor(Editdist), y = Time)) +
+    geom_boxplot() +
+    geom_jitter(width = 0.1) +
+    scale_color_discrete()
+
+mapping %>%
+    ggplot(aes(x = Mapper, colour = Editdist, y = Time)) +
+    geom_boxplot() +
+    geom_jitter(width = 0.1)
+
+
+ordered_ <- time_results %>%
     group_by(mapper) %>%
     summarise(median_time = median(time)) %>%
     arrange(median_time)
