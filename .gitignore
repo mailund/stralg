@@ -85,6 +85,3 @@ tests/stralg/aho_corasick_test
 tests/bioinf/test-data/fasta-test-observed.txt
 tests/bioinf/fastq_iterator_test
 tests/bioinf/fasta_test
-.Rproj.user
-*.bwttables
-*.fa.bwt

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Script input
-if (($# != 3)); then
+if (( $# != 3)); then
 	echo "This script requires three arguments: edit distance, reference genome and reads file"
 	exit
 fi
@@ -30,6 +30,9 @@ declare -a map_cmds=(
 	"$exact -d $edits $reference $reads"
 	"$bwt -d $edits $reference $reads"
 )
+
+
+
 
 ## IO code
 function success() {
