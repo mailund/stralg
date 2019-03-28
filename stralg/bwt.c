@@ -243,6 +243,8 @@ static void push_edits(struct bwt_approx_match_internal_iter *iter,
                        char *cigar, size_t match_length,
                        int edits, size_t L, size_t R, int i)
 {
+    if (edits < 0) return;
+    
     // aliasing to make the code easier to read.
     struct bwt_table *bwt_table = iter->bwt_table;
     uint32_t *c_table = bwt_table->c_table;
@@ -268,10 +270,6 @@ static void push_edits(struct bwt_approx_match_internal_iter *iter,
                    new_L, new_R, i - 1);
     }
     
-    // The insertion and deletion operations
-    // are only possible if we have more edits left.
-    if (edits <= 0) return;
-
     // I-operation
     push_frame(iter, 'I', edits - 1,
                cigar + 1, match_length,
@@ -378,7 +376,7 @@ bool next_bwt_approx_match_internal_iter
             // We have a match!
             
             // To get the right cigar, we must reverse and simplify.
-            // We need to revese a copy because the full_cigar_buf
+            // We need to reverse a copy because the full_cigar_buf
             // contains state that will be reused elsewhere in
             // the recursive exploration.
             *cigar = '\0';
