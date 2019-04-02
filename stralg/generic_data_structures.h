@@ -16,20 +16,20 @@ enum data_type {
 struct boxed_data {
     enum data_type type_tag;
     union {
-        size_t index;
+        uint32_t index;
         char *string;
         void *pointer;
     } data;
 };
 
 #pragma mark boxing functions
-static inline struct boxed_data box_index(size_t index) {
+static inline struct boxed_data box_index(uint32_t index) {
     struct boxed_data box;
     box.type_tag = INDEX;
     box.data.index = index;
     return box;
 }
-static inline size_t unbox_index(struct boxed_data box) {
+static inline uint32_t unbox_index(struct boxed_data box) {
     assert(box.type_tag == INDEX);
     return box.data.index;
 }
@@ -72,11 +72,11 @@ struct linked_list *prepend_link(struct linked_list *list, struct boxed_data box
 typedef struct linked_list index_list;
 #define init_index_list init_list
 #define dealloc_index_list dealloc_list
-inline index_list *alloc_index_list(size_t index) {
+inline index_list *alloc_index_list(uint32_t index) {
     return alloc_list(box_index(index));
 }
 #define free_index_list free_list
-static inline index_list *prepend_index_link(index_list *list, size_t index) {
+static inline index_list *prepend_index_link(index_list *list, uint32_t index) {
     return prepend_link(list, box_index(index));
 }
 
@@ -94,7 +94,7 @@ struct queue {
 
 void init_queue(struct queue *queue);
 void dealloc_queue(struct queue *queue);
-struct queue *alloc_queue();
+struct queue *alloc_queue(void);
 void free_queue(struct queue *queue);
 
 static inline bool is_queue_empty(const struct queue *queue) {
@@ -111,10 +111,10 @@ typedef struct queue index_queue;
 #define free_index_queue     free_queue
 #define is_index_queue_empty is_queue_empty
 #define dequeue_index_queue  dequeue
-static inline size_t index_queue_front(const struct queue *queue) {
+static inline uint32_t index_queue_front(const struct queue *queue) {
     return unbox_index(queue_front(queue));
 }
-static inline void enqueue_index(struct queue *queue, size_t index) {
+static inline void enqueue_index(struct queue *queue, uint32_t index) {
     enqueue(queue, box_index(index));
 }
 
@@ -135,17 +135,17 @@ static inline void enqueue_pointer(struct queue *queue, void *pointer) {
 #pragma mark vector
 struct vector {
     struct boxed_data *data;
-    size_t size;
-    size_t used;
+    uint32_t size;
+    uint32_t used;
 };
 
-void init_vector(struct vector *vec, size_t init_size);
+void init_vector(struct vector *vec, uint32_t init_size);
 void dealloc_vector(struct vector *vec);
-struct vector *alloc_vector(size_t init_size);
+struct vector *alloc_vector(uint32_t init_size);
 void free_vector(struct vector *vec);
 
-struct boxed_data vector_get(struct vector *vec, size_t idx);
-void vector_set(struct vector *vec, size_t idx,
+struct boxed_data vector_get(struct vector *vec, uint32_t idx);
+void vector_set(struct vector *vec, uint32_t idx,
                 struct boxed_data data);
 void vector_append(struct vector *vec, struct boxed_data data);
 bool vector_equal(struct vector *v1, struct vector *v2);
@@ -155,14 +155,14 @@ typedef struct vector index_vector;
 #define dealloc_index_vector dealloc_vector
 #define alloc_index_vector   alloc_vector
 #define free_index_vector    free_vector
-static inline size_t index_vector_get(index_vector *vec, size_t idx) {
+static inline uint32_t index_vector_get(index_vector *vec, uint32_t idx) {
     return unbox_index(vector_get(vec, idx));
 }
 static inline void index_vector_set(index_vector *vec,
-                                    size_t idx, size_t index) {
+                                    uint32_t idx, uint32_t index) {
     vector_set(vec, idx, box_index(index));
 }
-static inline void index_vector_append(index_vector *vec, size_t index) {
+static inline void index_vector_append(index_vector *vec, uint32_t index) {
     vector_append(vec, box_index(index));
 }
 void sort_index_vector(index_vector *vec);
@@ -174,11 +174,11 @@ typedef struct vector string_vector;
 #define dealloc_string_vector dealloc_vector
 #define alloc_string_vector   alloc_vector
 #define free_string_vector    free_vector
-static inline char *string_vector_get(string_vector *vec, size_t idx) {
+static inline char *string_vector_get(string_vector *vec, uint32_t idx) {
     return unbox_string(vector_get(vec, idx));
 }
 static inline void string_vector_set(string_vector *vec,
-                                     size_t idx, char *string) {
+                                     uint32_t idx, char *string) {
     vector_set(vec, idx, box_string(string));
 }
 static inline void string_vector_append(string_vector *vec, char *string) {

@@ -8,6 +8,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 
 typedef bool (*iteration_func)(
@@ -16,8 +17,8 @@ typedef bool (*iteration_func)(
 );
 typedef void (*iter_init_func)(
     void *iter,
-    const char *text, size_t n,
-    const char *pattern, size_t m
+    const char *text, uint32_t n,
+    const char *pattern, uint32_t m
 );
 typedef void (*iter_dealloc_func)(
     void *iter
@@ -31,8 +32,8 @@ static void iter_test(
     iter_dealloc_func iter_dealloc,
     index_vector *res
 ) {
-    size_t n = strlen(text);
-    size_t m = strlen(pattern);
+    uint32_t n = (uint32_t)strlen(text);
+    uint32_t m = (uint32_t)strlen(pattern);
 
     struct match match;
     iter_init(iter, text, n, pattern, m);
@@ -121,8 +122,8 @@ static void general_suffix_test(index_vector *naive,
     //st_print_dot_name(st, st->root, "tree.dot");
     test_suffix_tree_match(naive, pattern, st, string);
     
-    size_t sorted_suffixes[st->length];
-    size_t lcp[st->length];
+    uint32_t sorted_suffixes[st->length];
+    uint32_t lcp[st->length];
     st_compute_sa_and_lcp(st, sorted_suffixes, lcp);
     free_suffix_tree(st);
     
@@ -216,9 +217,9 @@ static void bwt_match(index_vector *naive,
 static void remap_match_test(const char *pattern,
                              const char *string)
 {
-    size_t n = strlen(string);
+    uint32_t n = (uint32_t)strlen(string);
     char remapped_string[n + 1];
-    size_t m = strlen(pattern);
+    uint32_t m = (uint32_t)strlen(pattern);
     char remapped_pattern[m + 1];
     
     struct remap_table remap_table;
@@ -286,14 +287,14 @@ int main(int argc, char * argv[])
             "acacaca",
             "acataca",
         };
-        size_t no_strings = sizeof(strings) / sizeof(const char *);
+        uint32_t no_strings = sizeof(strings) / sizeof(const char *);
         const char *patterns[] = {
             "aca", "ac", "ca", "a", "c", "acg", "cg", "g",
         };
-        size_t no_patterns = sizeof(patterns) / sizeof(const char *);
+        uint32_t no_patterns = sizeof(patterns) / sizeof(const char *);
         
-        for (size_t i = 0; i < no_patterns; ++i) {
-            for (size_t j = 0; j < no_strings; ++j) {
+        for (uint32_t i = 0; i < no_patterns; ++i) {
+            for (uint32_t j = 0; j < no_strings; ++j) {
                 printf("%s in %s\n", patterns[i], strings[j]);
                 match_test(patterns[i], strings[j]);
             }

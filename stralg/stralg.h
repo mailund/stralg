@@ -10,6 +10,7 @@
 #include <io.h>
 #include <match.h>
 #include <remap.h>
+#include <serialise.h>
 #include <string_utils.h>
 #include <suffix_array.h>
 #include <suffix_tree.h>

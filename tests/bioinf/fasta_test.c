@@ -28,10 +28,12 @@ int main(int argc, char **argv)
     while (next_fasta_record(&iter, &rec)) {
         fprintf(outfile, "name: \"%s\"\n", rec.name);
         fprintf(outfile, "seq: \"%s\"\n", rec.seq);
-        fprintf(outfile, "seq len %lu\n", rec.seq_len);
+        fprintf(outfile, "seq len %u\n", rec.seq_len);
     }
     dealloc_fasta_iter(&iter);
     fclose(outfile);
+    
+    assert(number_of_fasta_records(fasta_file) == 2);
     
     // check that we can look up records.
     const char *ref1 = "ACCTACAGACTACCATGTATCTCCATTTACCTAGTCTAG"
@@ -42,7 +44,7 @@ int main(int argc, char **argv)
         "CATACTTTCCACACGCTGTGTGTCACTAGTGTGACTACG";
     
     lookup_fasta_record_by_name(fasta_file, "ref1", &rec);
-    assert(strcmp(rec.seq, ref1) == 0);
+        assert(strcmp(rec.seq, ref1) == 0);
     assert(strcmp(rec.seq, ref2) != 0);
     lookup_fasta_record_by_name(fasta_file, "ref2", &rec);
     assert(strcmp(rec.seq, ref1) != 0);
@@ -64,7 +66,7 @@ int main(int argc, char **argv)
     // Test we capture malformed files
     const char *malformed = "test-data/malformed.fa";
     assert(!load_fasta_records(malformed, &err));
-    assert(err == MALFOREMED_DATA);
+    assert(err == MALFORMED_FILE);
     
     // just test that it doesn't die if the error is null
     assert(!load_fasta_records(malformed, 0));

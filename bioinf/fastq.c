@@ -10,7 +10,7 @@ void init_fastq_iter(
     FILE *file
 ) {
     iter->file = file;
-    iter->buffer = malloc(MAX_STRING_LEN);
+    iter->buffer = malloc(MAX_STRING_LEN + 1);
 }
 
 bool next_fastq_record(
@@ -20,9 +20,11 @@ bool next_fastq_record(
     FILE *file = iter->file;
     char *buffer = iter->buffer;
     if (fgets(buffer, MAX_STRING_LEN, file)) {
-        strcpy((char*)record->name, strtok(buffer+1, "\n"));
+        strcpy((char*)record->name, strtok(buffer + 1, "\n"));
+        
         fgets(buffer, MAX_STRING_LEN, file);
         strcpy((char*)record->sequence, strtok(buffer, "\n"));
+        
         fgets(buffer, MAX_STRING_LEN, file);
         fgets(buffer, MAX_STRING_LEN, file);
         strcpy((char*)record->quality, strtok(buffer, "\n"));

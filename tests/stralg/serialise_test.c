@@ -26,6 +26,8 @@ static void test_complete_bwt(void)
     write_complete_bwt_info_fname(fname, &bwt_table);
     struct bwt_table *other_table = read_complete_bwt_info_fname(fname);
     
+    assert(strlen(bwt_table.sa->string) + 1 == bwt_table.sa->length);
+    assert(strlen(other_table->sa->string) + 1 == other_table->sa->length);
     // Now check equality
     assert(identical_bwt_tables(&bwt_table, other_table));
     

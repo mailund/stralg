@@ -10,7 +10,7 @@ static struct suffix_array *allocate_sa(char *string)
     struct suffix_array *sa =
     (struct suffix_array*)malloc(sizeof(struct suffix_array));
     sa->string = string;
-    sa->length = strlen(string) + 1;
+    sa->length = (uint32_t)strlen(string) + 1;
     sa->array = malloc(sa->length * sizeof(*sa->array));
     
     sa->inverse = 0;
@@ -24,10 +24,8 @@ static struct suffix_array *allocate_sa(char *string)
 void free_suffix_array(struct suffix_array *sa)
 {
     free(sa->array);
-    if (sa->inverse)
-        free(sa->inverse);
-    if (sa->lcp)
-        free(sa->lcp);
+    if (sa->inverse) free(sa->inverse);
+    if (sa->lcp)     free(sa->lcp);
 }
 
 void free_complete_suffix_array(struct suffix_array *sa)
@@ -53,7 +51,7 @@ struct suffix_array *qsort_sa_construction(char *string)
     qsort(suffixes, sa->length, sizeof(char *), construction_cmpfunc);
     
     for (int i = 0; i < sa->length; i++)
-        sa->array[i] = suffixes[i] - string;
+        sa->array[i] = (uint32_t)(suffixes[i] - string);
     
     return sa;
 }
@@ -121,7 +119,7 @@ static uint32_t binary_search(const char *key, uint32_t key_len,
 // would give us NULL in that case.
 uint32_t lower_bound_search(struct suffix_array *sa, const char *key)
 {
-    uint32_t key_len = strlen(key);
+    uint32_t key_len = (uint32_t)strlen(key);
     assert(key_len > 0); // I cannot handle empty strings!
     uint32_t mid = binary_search(key, key_len, sa);
     
@@ -142,7 +140,7 @@ void init_sa_match_iter(struct sa_match_iter *iter,
 {
     iter->sa = sa;
     
-    uint32_t key_len = strlen(key);
+    uint32_t key_len = (uint32_t)strlen(key);
     assert(key_len > 0); // I cannot handle empty strings!
     uint32_t mid = binary_search(key, key_len, sa);
     
@@ -245,6 +243,11 @@ bool identical_suffix_arrays(const struct suffix_array *sa1,
         if (sa1->array[i] != sa2->array[i])
             return false;
     }
+    
+    assert(strlen(sa1->string) + 1 == sa1->length);
+    if (strlen(sa1->string) + 1 != sa1->length)
+        return false;
+    
     
     return true;
 }

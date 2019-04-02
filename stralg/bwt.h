@@ -14,8 +14,8 @@ struct bwt_table {
     uint32_t *o_table;
 };
 
-static inline size_t o_index(unsigned char a, size_t i,
-                             const struct bwt_table *table)
+static inline uint32_t o_index(unsigned char a, uint32_t i,
+                               const struct bwt_table *table)
 {
     return a * table->sa->length + i;
 }
@@ -36,15 +36,19 @@ struct bwt_table *alloc_bwt_table(struct suffix_array *sa,
 void free_bwt_table(struct bwt_table *bwt_table);
 void free_complete_bwt_table(struct bwt_table *bwt_table);
 
+// This function builds all the structures needed to work
+// with the bwt tables. It should be "completely" freed
+// when no longer used.
+struct bwt_table *build_complete_table(const char *string);
 
 struct bwt_exact_match_iter {
     const struct suffix_array *sa;
-    size_t L;
-    size_t i;
-    size_t R;
+    uint32_t L;
+    uint32_t i;
+    uint32_t R;
 };
 struct bwt_exact_match {
-    size_t pos;
+    uint32_t pos;
 };
 void init_bwt_exact_match_iter   (struct bwt_exact_match_iter *iter,
                                   struct bwt_table            *bwt_table,
@@ -61,8 +65,8 @@ struct bwt_approx_iter {
 };
 struct bwt_approx_match {
     const char *cigar;
-    size_t match_length;
-    size_t position;
+    uint32_t match_length;
+    uint32_t position;
 };
 void init_bwt_approx_iter(struct bwt_approx_iter *iter,
                           struct bwt_table       *bwt_table,

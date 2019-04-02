@@ -52,7 +52,7 @@ static void test_search(struct suffix_array *sa)
 static void test_inverse(struct suffix_array *sa)
 {
     compute_inverse(sa);
-    for (size_t i = 0; i < sa->length; ++i) {
+    for (uint32_t i = 0; i < sa->length; ++i) {
         assert(sa->inverse[sa->array[i]] == i);
         assert(sa->array[sa->inverse[i]] == i);
     }
@@ -74,7 +74,7 @@ static void test_lcp(struct suffix_array *sa)
     //assert(sa->lcp[0] == sa->lcp[sa->length]);
     assert(sa->lcp[0] == 0);
 
-    for (size_t i = 1; i < sa->length; ++i) {
+    for (uint32_t i = 1; i < sa->length; ++i) {
         int l = lcp(sa->string + sa->array[i-1], sa->string + sa->array[i]);
         assert(sa->lcp[i] == l);
     }

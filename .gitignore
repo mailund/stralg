@@ -87,6 +87,9 @@ tests/bioinf/fastq_iterator_test
 tests/bioinf/fasta_test
 tests/iterators/st_iterator_test
 tools/readmappers/bwt_readmapper/bwt_readmapper
+tools/readmappers/exact_readmapper/exact_readmapper
+tools/readmappers/scripts/.Rproj.user/B0AD098A/rmd-outputs
+tools/readmappers/scripts/.Rproj.user/B0AD098A/saved_source_markers
 tools/readmappers/scripts/.Rproj.user/B0AD098A/console06/INDEX001
 tools/readmappers/scripts/.Rproj.user/B0AD098A/pcs/files-pane.pper
 tools/readmappers/scripts/.Rproj.user/B0AD098A/pcs/source-pane.pper

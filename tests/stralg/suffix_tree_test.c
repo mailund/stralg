@@ -16,7 +16,7 @@ static void check_parent_pointers(struct suffix_tree_node *v)
     }
 }
 
-static bool has_leaf(struct suffix_tree *st, struct suffix_tree_node *v, size_t leaf)
+static bool has_leaf(struct suffix_tree *st, struct suffix_tree_node *v, uint32_t leaf)
 {
     struct st_leaf_iter iter;
     struct st_leaf_iter_result res;
@@ -37,7 +37,7 @@ static bool has_leaf(struct suffix_tree *st, struct suffix_tree_node *v, size_t 
 static void check_leaf_search(struct suffix_tree *st)
 {
     char buffer[st->length + 1];
-    for (size_t i = 0; i < st->length; ++i) {
+    for (uint32_t i = 0; i < st->length; ++i) {
         struct suffix_tree_node *v = st_search(st, st->string + i);
         assert(has_leaf(st, v, i));
         get_path_string(st, v, buffer);
@@ -48,10 +48,10 @@ static void check_leaf_search(struct suffix_tree *st)
 
 static void check_suffix_tree(struct suffix_tree *st)
 {
-    size_t expected[] = {
+    uint32_t expected[] = {
         11, 10, 7, 4, 1, 0, 9, 8, 6, 3, 5, 2
     };
-    size_t no_indices = sizeof(expected) / sizeof(size_t);
+    uint32_t no_indices = sizeof(expected) / sizeof(uint32_t);
     assert(st->length == no_indices);
     
     struct st_leaf_iter iter;
@@ -69,7 +69,7 @@ static void check_suffix_tree(struct suffix_tree *st)
     
 //    printf("testing indices\n");
     assert(indices->used == no_indices);
-    for (size_t i = 0; i < no_indices; ++i) {
+    for (uint32_t i = 0; i < no_indices; ++i) {
         assert(indices->data[i].data.index == expected[i]);
     }
     
@@ -101,22 +101,22 @@ int main(int argc, const char **argv)
     struct suffix_tree *st = naive_suffix_tree(string);
     check_suffix_tree(st);
 
-    size_t sa[st->length];
-    size_t lcp[st->length];
+    uint32_t sa[st->length];
+    uint32_t lcp[st->length];
 
-    size_t no_indices = st->length;
-    size_t expected[] = {
+    uint32_t no_indices = st->length;
+    uint32_t expected[] = {
         11, 10, 7, 4, 1, 0, 9, 8, 6, 3, 5, 2
     };
 
     st_compute_sa_and_lcp(st, sa, lcp);
-    for (size_t i = 0; i < no_indices; ++i) {
+    for (uint32_t i = 0; i < no_indices; ++i) {
         assert(sa[i] == expected[i]);
     }
-    size_t expected_lcp[] = {
+    uint32_t expected_lcp[] = {
         0, 0, 1, 1, 4, 0, 0, 1, 0, 2, 1, 3
     };
-    for (size_t i = 0; i < no_indices; ++i) {
+    for (uint32_t i = 0; i < no_indices; ++i) {
         assert(lcp[i] == expected_lcp[i]);
     }
 

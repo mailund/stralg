@@ -8,7 +8,7 @@
 int main(int argc, char **argv)
 {
     const char *string = "acagtgtaac";
-    size_t n = strlen(string);
+    uint32_t n = (uint32_t)strlen(string);
     char expected[] = {
         1, 2, 1, 3, 4, 3, 4, 1, 1, 2, 0
     };
@@ -42,15 +42,15 @@ int main(int argc, char **argv)
         }
     }
     
-    for (size_t i = 0; i < table.alphabet_size; ++i) {
+    for (uint32_t i = 0; i < table.alphabet_size; ++i) {
         signed char rev = table.rev_table[i];
         signed char back = table.table[rev];
         assert(i == back);
     }
     
     remap(mapped, string, &table);
-    for (size_t i = 0; i < n + 1; ++i) {
-        printf("mapped[%lu] == %d\n", i, mapped[i]);
+    for (uint32_t i = 0; i < n + 1; ++i) {
+        printf("mapped[%u] == %d\n", i, mapped[i]);
         assert(mapped[i] == expected[i]);
     }
     

@@ -101,7 +101,7 @@ void dequeue(struct queue *queue)
 
 #pragma vector
 
-void init_vector(struct vector *vec, size_t init_size)
+void init_vector(struct vector *vec, uint32_t init_size)
 {
     vec->data = malloc(init_size * sizeof(struct boxed_data));
     vec->size = init_size;
@@ -112,7 +112,7 @@ void dealloc_vector(struct vector *vec)
     free(vec->data);
 }
 
-struct vector *alloc_vector(size_t init_size)
+struct vector *alloc_vector(uint32_t init_size)
 {
     struct vector *vec = malloc(sizeof(struct vector));
     init_vector(vec, init_size);
@@ -125,13 +125,13 @@ void free_vector(struct vector *vec)
 }
 
 
-struct boxed_data vector_get(struct vector *vec, size_t idx)
+struct boxed_data vector_get(struct vector *vec, uint32_t idx)
 {
     assert(idx < vec->used);
     return vec->data[idx];
 }
 
-void vector_set(struct vector *vec, size_t idx,
+void vector_set(struct vector *vec, uint32_t idx,
                 struct boxed_data data)
 {
     assert(idx < vec->used);
@@ -150,7 +150,7 @@ void vector_append(struct vector *vec, struct boxed_data data)
 bool vector_equal(struct vector *v1, struct vector *v2)
 {
     if (v1->used != v2->used) return false;
-    for (size_t i = 0; i < v1->used; ++i) {
+    for (uint32_t i = 0; i < v1->used; ++i) {
         // aliasing -- I expect a compiler to optimise this
         // if it is necessary
         struct boxed_data *b1 = &v1->data[i];
@@ -180,8 +180,8 @@ bool vector_equal(struct vector *v1, struct vector *v2)
 static int index_cmpfunc (const void *void_a, const void *void_b) {
     struct boxed_data *box_a = (struct boxed_data *)void_a;
     struct boxed_data *box_b = (struct boxed_data *)void_b;
-    size_t index_a = box_a->data.index;
-    size_t index_b = box_b->data.index;
+    uint32_t index_a = box_a->data.index;
+    uint32_t index_b = box_b->data.index;
     if (index_a  < index_b) return -1;
     if (index_a == index_b) return  0;
     if (index_a  > index_b) return  1;
@@ -194,8 +194,8 @@ void sort_index_vector(index_vector *vec)
 }
 void print_index_vector(index_vector *vec)
 {
-    for (size_t i = 0; i < vec->used; ++i) {
-        printf("%lu\n", index_vector_get(vec, i));
+    for (uint32_t i = 0; i < vec->used; ++i) {
+        printf("%u\n", index_vector_get(vec, i));
     }
 }
 
@@ -204,7 +204,7 @@ void print_index_vector(index_vector *vec)
 bool string_vector_equal(string_vector *v1, string_vector *v2)
 {
     if (v1->used != v2->used) return false;
-    for (size_t i = 0; i < v1->used; ++i) {
+    for (uint32_t i = 0; i < v1->used; ++i) {
         const char *s1 = string_vector_get(v1, i);
         const char *s2 = string_vector_get(v2, i);
         if (strcmp(s1, s2) != 0) return false;
@@ -227,7 +227,7 @@ void sort_string_vector(index_vector *vec)
 
 void print_string_vector(string_vector *vec)
 {
-    for (size_t i = 0; i < vec->used; ++i) {
+    for (uint32_t i = 0; i < vec->used; ++i) {
         printf("%s\n", string_vector_get(vec, i));
     }
 }
@@ -240,7 +240,7 @@ void split_string_vectors(string_vector *first,
 {
     sort_string_vector(first); sort_string_vector(second);
     
-    size_t i = 0, j = 0;
+    uint32_t i = 0, j = 0;
     while (i < first->used && j < second->used) {
         char *first_front = string_vector_get(first, i);
         char *second_front = string_vector_get(second, j);

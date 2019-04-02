@@ -49,7 +49,7 @@ static void print_out_edges(struct trie *trie, FILE *dot_file) {
 }
 
 static void print_dot(struct trie *trie, const char *filename_prefix) {
-    size_t n = strlen(filename_prefix);
+    uint32_t n = (uint32_t)strlen(filename_prefix);
     char filename[n + 4 + 1];
     strcpy(filename, filename_prefix);
     strcpy(filename + n, ".dot");
@@ -84,7 +84,7 @@ int main(int argc, const char** argv)
     }
 
     printf("Building trie.\n");
-    size_t string_label = 0;
+    uint32_t string_label = 0;
     char buffer[MAX_LINE_SIZE];
     while (fgets(buffer, MAX_LINE_SIZE, infile) != 0)
     {

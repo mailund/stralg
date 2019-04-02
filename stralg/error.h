@@ -7,7 +7,7 @@ enum error_codes {
     
     // I/O
     CANNOT_OPEN_FILE,
-    MALFOREMED_DATA,
+    MALFORMED_FILE,
     
     // Comparisons
     SUFFIX_ARRAYS_DIFFER,
