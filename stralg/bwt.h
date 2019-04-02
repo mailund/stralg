@@ -2,8 +2,9 @@
 #ifndef BWT_H
 #define BWT_H
 
-#include <remap.h>
-#include <suffix_array.h>
+#include "remap.h"
+#include "suffix_array.h"
+
 #include <stdbool.h>
 #include <stdint.h>
 

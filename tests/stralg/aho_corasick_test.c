@@ -1,4 +1,3 @@
-#include <stralg.h>
 
 #include <stdlib.h>
 #include <assert.h>

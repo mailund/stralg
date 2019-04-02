@@ -1,4 +1,4 @@
-#include <generic_data_structures.h>
+#include "generic_data_structures.h"
 
 #include <stdlib.h>
 #include <assert.h>

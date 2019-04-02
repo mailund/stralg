@@ -1,5 +1,6 @@
-#include <suffix_tree.h>
-#include <cigar.h>
+#include "suffix_tree.h"
+#include "cigar.h"
+
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>

@@ -1,7 +1,7 @@
 
-#include <string_utils.h>
-#include <cigar.h>
-#include <bwt.h>
+#include "string_utils.h"
+#include "cigar.h"
+#include "bwt.h"
 
 #include <stdio.h>
 #include <string.h>

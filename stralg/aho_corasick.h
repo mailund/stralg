@@ -1,8 +1,9 @@
 #ifndef AHO_CORASICK_H
 #define AHO_CORASICK_H
 
+#include "trie.h"
+
 #include <stddef.h>
-#include <trie.h>
 #include <stdint.h>
 
 struct ac_iter {

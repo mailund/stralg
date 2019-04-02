@@ -2,7 +2,7 @@
 #ifndef CIGAR_H
 #define CIGAR_H
 
-#include <remap.h>
+#include "remap.h"
 
 // takes a string with cigar encoding and replaces
 // segments of the same symbol to a number plus the symbol.

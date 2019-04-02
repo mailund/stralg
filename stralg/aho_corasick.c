@@ -1,4 +1,4 @@
-#include <aho_corasick.h>
+#include "aho_corasick.h"
 
 #include <assert.h>
 #include <stdio.h>
