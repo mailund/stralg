@@ -25,7 +25,7 @@ static void queue_test(void)
     dequeue_index_queue(queue);
     assert(queue_length(queue) == 0);
     
-    for (long int i = 0; i < 10; i++) {
+    for (uint32_t i = 0; i < 10; i++) {
         enqueue_index(queue, i);
     }
     assert(queue_length(queue) == 10);

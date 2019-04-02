@@ -5,6 +5,7 @@
 #include <error.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 /*
  These functions provide some rudimentary SAM output. Most SAM flags
@@ -15,7 +16,7 @@ void print_sam_line(
     FILE *file,
     const char *qname,
     const char *rname,
-    size_t pos,
+    uint32_t pos,
     const char *cigar,
     const char *seq,
     const char *qual

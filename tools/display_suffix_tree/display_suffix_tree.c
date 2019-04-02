@@ -23,8 +23,8 @@ int main(int argc, const char** argv)
     printf("Building suffix tree.\n");
     struct suffix_tree* st = naive_suffix_tree(string);
     
-    size_t sa[st->length];
-    size_t lcp[st->length];
+    uint32_t sa[st->length];
+    uint32_t lcp[st->length];
     
     st_compute_sa_and_lcp(st, sa, lcp);
     

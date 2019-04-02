@@ -124,15 +124,15 @@ static void display_match(
         exit(EXIT_FAILURE);
     }
 
-    if ((size_t)match_index >= rec.seq_len) {
+    if ((uint32_t)match_index >= rec.seq_len) {
         fprintf(stderr,
                 "The matching index is larger than the sequence length.\n");
         exit(EXIT_FAILURE);
     }
 
     const char *matched_seq =
-        rec.seq + (size_t)match_index - 1; // -1 for zero-termination
-    size_t pattern_length = strlen(pattern);
+        rec.seq + (uint32_t)match_index - 1; // -1 for zero-termination
+    uint32_t pattern_length = (uint32_t)strlen(pattern);
     char pattern_buffer[2 * pattern_length];
     bzero(pattern_buffer, sizeof(pattern_buffer));
     char match_buffer[2 * pattern_length];

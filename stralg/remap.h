@@ -6,7 +6,7 @@
 #include <stdbool.h>
 
 struct remap_table {
-    size_t alphabet_size;
+    uint32_t alphabet_size;
     // I map from unsigned to signed for the table.
     // I do this to have a way of identifying letters
     // that were not found when building the map.

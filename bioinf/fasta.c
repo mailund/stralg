@@ -127,7 +127,7 @@ struct fasta_records *load_fasta_records(
         pack_seq(&pack);
 
         rec->recs = alloc_rec(name, seq,
-                              pack.pack - seq - 1,
+                              (uint32_t)(pack.pack - seq - 1),
                               (rec->recs) ? rec->recs->no_records + 1 : 1,
                               rec->recs);
     }

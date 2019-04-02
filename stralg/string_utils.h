@@ -37,8 +37,8 @@ void str_inplace_rev(char *x);
  **/
 void write_string(FILE *f, const char *str);
 void write_string_fname(const char *fname, const char *str);
-void write_string_len(FILE *f, const char *str, size_t len);
-void write_string_len_fname(const char *fname, const char *str, size_t len);
+void write_string_len(FILE *f, const char *str, uint32_t len);
+void write_string_len_fname(const char *fname, const char *str, uint32_t len);
 
 /**
  * Serialisation: read a string from a file.
@@ -58,7 +58,7 @@ void write_string_len_fname(const char *fname, const char *str, size_t len);
  **/
 char *read_string(FILE *f);
 char *read_string_fname(const char *fname);
-char *read_string_len(FILE *f, size_t *len);
-char *read_string_len_fname(const char *fname, size_t *len);
+char *read_string_len(FILE *f, uint32_t *len);
+char *read_string_len_fname(const char *fname, uint32_t *len);
 
 #endif

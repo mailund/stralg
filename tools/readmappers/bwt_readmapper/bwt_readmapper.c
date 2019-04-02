@@ -1,8 +1,8 @@
 
-#include <stralg.h>
-#include <fasta.h>
-#include <fastq.h>
-#include <sam.h>
+#include "stralg.h"
+#include "fasta.h"
+#include "fastq.h"
+#include "sam.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -16,7 +16,7 @@ static void preprocess(const char *fasta_fname)
 {
     enum error_codes err;
     struct fasta_records *fasta_records =
-        load_fasta_records(fasta_fname, &err);
+    load_fasta_records(fasta_fname, &err);
     switch (err) {
         case NO_ERROR:
             break;
@@ -36,7 +36,7 @@ static void preprocess(const char *fasta_fname)
     
     char preprocessed_fname[strlen(fasta_fname) + 1 + strlen(suffix) + 1];
     sprintf(preprocessed_fname, "%s.%s", fasta_fname, suffix);
-    printf("Preprocessed tables in %s\n", preprocessed_fname);
+    fprintf(stderr, "Preprocessed tables in %s\n", preprocessed_fname);
     
     FILE *outfile = fopen(preprocessed_fname, "wb");
     if (!outfile) {
@@ -51,14 +51,16 @@ static void preprocess(const char *fasta_fname)
     struct fasta_record rec;
     init_fasta_iter(&iter, fasta_records);
     while (next_fasta_record(&iter, &rec)) {
-        printf("Serialising record %s\n", rec.name);
+        fprintf(stderr, "Serialising record %s\n", rec.name);
+        fprintf(stderr, "Length: %u\n", rec.seq_len);
         write_string(outfile, rec.name);
         struct bwt_table *table = build_complete_table(rec.seq);
         write_complete_bwt_info(outfile, table);
         free_complete_bwt_table(table);
+        fprintf(stderr, "Done\n");
     }
     dealloc_fasta_iter(&iter);
-
+    
     fclose(outfile);
     free_fasta_records(fasta_records);
 }
@@ -84,13 +86,13 @@ static struct table_list *read_tables(const char *fasta_fname)
 {
     char preprocessed_fname[strlen(fasta_fname) + 1 + strlen(suffix) + 1];
     sprintf(preprocessed_fname, "%s.%s", fasta_fname, suffix);
-
+    
     FILE *infile = fopen(preprocessed_fname, "rb");
     if (!infile) {
         perror("Could not open output file");
         exit(EXIT_FAILURE);
     }
-
+    
     struct table_list *tables = 0;
     uint32_t no_records;
     fread(&no_records, sizeof(no_records), 1, infile);
@@ -156,6 +158,7 @@ static void print_help(const char *progname)
     printf("Options:\n");
     printf("\t-h | --help:\t\tShow this message.\n");
     printf("\t-p | --preprocess:\tPreprocess the genome.\n");
+    printf("\t-d | --edits:\tThe maximum edit distance for a match.\n");
     printf("\n\n");
 }
 
@@ -166,7 +169,7 @@ int main(int argc, char **argv)
     const char *fasta_fname = 0;
     const char *fastq_fname = 0;
     int edits = -1;
-
+    
     int opt;
     static struct option longopts[] = {
         { "help",       no_argument,       NULL, 'h' },
@@ -215,10 +218,10 @@ int main(int argc, char **argv)
             print_help(progname);
             return EXIT_FAILURE;
         }
-
+        
         fasta_fname = argv[0];
         fastq_fname = argv[1];
-
+        
         FILE *fastq_file = fopen(fastq_fname, "r");
         struct table_list *tables = read_tables(fasta_fname);
         if (!tables) {
@@ -226,7 +229,7 @@ int main(int argc, char **argv)
             return EXIT_FAILURE;
         }
         
-        FILE *samfile = stdout; // FIXME
+        FILE *samfile = stdout; // FIXME: option for writing to a file?
         
         struct fastq_iter reads_iter;
         struct fastq_record fastq_rec;
@@ -236,11 +239,11 @@ int main(int argc, char **argv)
         }
         dealloc_fastq_iter(&reads_iter);
         
-        if (samfile != stdin) fclose(samfile);
+        if (samfile != stdout) fclose(samfile);
         fclose(fastq_file);
         delete_tables(tables);
     }
-
+    
     
     return EXIT_SUCCESS;
 }

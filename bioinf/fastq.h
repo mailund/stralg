@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 
-#define MAX_STRING_LEN 1024
+#define MAX_STRING_LEN 2048
 
 struct fastq_iter {
     FILE *file;

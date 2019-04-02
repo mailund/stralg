@@ -27,8 +27,8 @@ static void test_expected(const struct bwt_table *bwt_table)
     };
     for (unsigned char a = 0; a < remap_table->alphabet_size; ++a) {
         printf("O(%d,-) == ", a);
-        for (size_t i = 0; i < sa->length; ++i) {
-            size_t idx = o_index(a, i, bwt_table);
+        for (uint32_t i = 0; i < sa->length; ++i) {
+            uint32_t idx = o_index(a, i, bwt_table);
             printf("%u ", bwt_table->o_table[idx]);
             assert(bwt_table->o_table[idx] == expected_o[idx]);
         }
@@ -49,11 +49,11 @@ int main(int argc, char **argv)
     struct suffix_array *sa;
     struct bwt_table bwt_table;
     
-    size_t n = strlen(string);
+    uint32_t n = (uint32_t)strlen(string);
     char remapped[n + 1];
     
     // to shut up static analysis
-    for (size_t i = 0; i < n + 1; ++i) {
+    for (uint32_t i = 0; i < n + 1; ++i) {
         remapped[i] = '\0';
     }
     
@@ -61,19 +61,19 @@ int main(int argc, char **argv)
     remap(remapped, string, &remap_table);
     
     printf("remapped = ");
-    for (size_t i = 0; i < n + 1; ++i) {
+    for (uint32_t i = 0; i < n + 1; ++i) {
         printf("%d", (int)remapped[i]);
     }
     printf("\n");
     printf("remapped length == %lu\n", strlen(remapped) + 1);
     
     sa = qsort_sa_construction(remapped);
-    printf("n == %lu\n", n);
+    printf("n == %u\n", n);
     assert(sa->length == n + 1);
     
     for (uint32_t i = 0; i < sa->length; ++i) {
         printf("sa[%2u] = %2u = ", i, sa->array[i]);
-        for (size_t j = sa->array[i]; j < sa->length; ++j) {
+        for (uint32_t j = sa->array[i]; j < sa->length; ++j) {
             printf("%d", remapped[j]);
         }
         printf("\n");

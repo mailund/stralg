@@ -165,7 +165,7 @@ bool identical_remap_tables(const struct remap_table *table1,
     if (table1->alphabet_size != table2->alphabet_size)
         return false;
     
-    for (size_t i = 0; i < table1->alphabet_size; ++i) {
+    for (uint32_t i = 0; i < table1->alphabet_size; ++i) {
         if (table1->table[i] != table2->table[i])
             return false;
     }

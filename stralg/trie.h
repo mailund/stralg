@@ -23,7 +23,7 @@ struct trie {
 
 void init_trie(struct trie *trie);
 void dealloc_trie(struct trie *trie);
-struct trie *alloc_trie();
+struct trie *alloc_trie(void);
 void free_trie(struct trie *trie);
 
 void add_string_to_trie(struct trie *trie, const char *str, int string_label);

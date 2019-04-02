@@ -9,10 +9,10 @@
 #define BUFFER_SIZE 1024
 #define PRINT 0
 
-static char *match_string(size_t idx, const char *cigar)
+static char *match_string(uint32_t idx, const char *cigar)
 {
     char *new_string = malloc(BUFFER_SIZE);
-    sprintf(new_string, "%lu %s", idx, cigar);
+    sprintf(new_string, "%u %s", idx, cigar);
     return new_string;
 }
 
@@ -126,7 +126,7 @@ static void simple_match(struct suffix_tree *st,
                          int edits,
                          string_vector *results)
 {
-    size_t m = strlen(p) + 4*edits + 1; // one edit can max cost four characters
+    uint32_t m = (uint32_t)(strlen(p) + 4*edits + 1); // one edit can max cost four characters
 
     struct search_data data;
     data.st = st;
@@ -222,7 +222,7 @@ static void ld_match(struct suffix_tree *st,
                              int edits,
                              string_vector *results)
 {
-    size_t m = strlen(p) + 4*edits + 1; // one edit can max cost four characters
+    uint32_t m = (uint32_t)(strlen(p) + 4*edits + 1); // one edit can max cost four characters
     
     struct search_data data;
     data.st = st;
@@ -339,7 +339,7 @@ int main(int argc, char **argv)
     const int edits[] = {
         0, 1, 2
     };
-    size_t no_edits = sizeof(edits) / sizeof(*edits);
+    uint32_t no_edits = sizeof(edits) / sizeof(*edits);
 
     if (argc == 3) {
         const char *pattern = argv[1];
@@ -354,7 +354,7 @@ int main(int argc, char **argv)
             // LCOV_EXCL_STOP
         }
         
-        for (size_t k = 0; k < no_edits; ++k)
+        for (uint32_t k = 0; k < no_edits; ++k)
             test_matching(pattern, string, edits[k]);
         
         free(string);
@@ -367,15 +367,15 @@ int main(int argc, char **argv)
             "acacaca",
             "acataca",
         };
-        size_t no_strings = sizeof(strings) / sizeof(const char *);
+        uint32_t no_strings = sizeof(strings) / sizeof(const char *);
         const char *patterns[] = {
             "aca", "ac", "ca", "a", "c", "acg", "cg", "g",
         };
-        size_t no_patterns = sizeof(patterns) / sizeof(const char *);
+        uint32_t no_patterns = sizeof(patterns) / sizeof(const char *);
         
-        for (size_t i = 0; i < no_patterns; ++i) {
-            for (size_t j = 0; j < no_strings; ++j) {
-                for (size_t k = 0; k < no_edits; ++k) {
+        for (uint32_t i = 0; i < no_patterns; ++i) {
+            for (uint32_t j = 0; j < no_strings; ++j) {
+                for (uint32_t k = 0; k < no_edits; ++k) {
 //                    printf("\n\n%s in %s [%d]\n", patterns[i], strings[j], edits[k]);
 //                    printf("=======================================\n\n");
                     test_matching(patterns[i], strings[j], edits[k]);
