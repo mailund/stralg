@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <assert.h>
+#include <stdint.h>
 
 #pragma mark box definitions
 enum data_type {
