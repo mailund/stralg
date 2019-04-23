@@ -106,3 +106,5 @@ tools/readmappers/scripts/.Rproj.user/shared/notebooks/patch-chunk-names
 tools/readmappers/scripts/.Rproj.user/shared/notebooks/paths
 tools/readmappers/data/genomes/test.fa.bwttables
 *.bwttables
+old-fasta.c
+old-fasta_test.c
