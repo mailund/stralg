@@ -30,3 +30,9 @@ add_test(
     cmp test-data/fasta-test-observed.txt test-data/fasta-test-expected.txt
     WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/tests/bioinf"
 )
+add_test(
+    NAME FASTA-io-output
+    COMMAND
+    cmp test-data/ref.fa test-data/ref.out.fa
+    WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/tests/bioinf"
+)
