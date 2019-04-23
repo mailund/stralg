@@ -45,7 +45,7 @@ struct bwt_table *build_complete_table(const char *string);
 struct bwt_exact_match_iter {
     const struct suffix_array *sa;
     uint32_t L;
-    uint32_t i;
+    int64_t i;
     uint32_t R;
 };
 struct bwt_exact_match {

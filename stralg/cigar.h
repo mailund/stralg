@@ -2,6 +2,7 @@
 #ifndef CIGAR_H
 #define CIGAR_H
 
+#include <stdint.h>
 #include "remap.h"
 
 // takes a string with cigar encoding and replaces
