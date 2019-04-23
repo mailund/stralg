@@ -3,12 +3,16 @@
 #include "fasta.h"
 #include "fastq.h"
 #include "sam.h"
+#include "bwt.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
 #include <getopt.h>
+
+// For debugging. Testing if it works without serialisation
+#define NO_PREPROCESSING 1
 
 static const char *suffix = "bwttables";
 
@@ -82,6 +86,56 @@ static struct table_list *prepend_table(char *seq_name,
     return link;
 }
 
+
+#if NO_PREPROCESSING
+struct table_list *build_tables(const char *fasta_fname)
+{
+    enum error_codes err;
+    struct fasta_records *fasta_records = load_fasta_records(fasta_fname, &err);
+    switch (err) {
+        case NO_ERROR:
+            break;
+            
+        case CANNOT_OPEN_FILE:
+            printf("Cannot open fasta file: %s\n", fasta_fname);
+            perror("Error");
+            exit(EXIT_FAILURE);
+            
+        case MALFORMED_FILE:
+            printf("The fasta file is malformed: %s\n", fasta_fname);
+            exit(EXIT_FAILURE);
+            
+        default:
+            assert(false); // this is not an error the function should return
+    }
+    
+    struct table_list *tables = 0;
+    struct fasta_iter iter;
+    struct fasta_record rec;
+    init_fasta_iter(&iter, fasta_records);
+    while (next_fasta_record(&iter, &rec)) {
+        struct bwt_table *table = build_complete_table(rec.seq);
+        tables = prepend_table(str_copy(rec.name), table, tables);
+    }
+    dealloc_fasta_iter(&iter);
+    
+#if 1
+    fprintf(stderr, "THE TABLES:\n");
+    init_fasta_iter(&iter, fasta_records);
+    while (next_fasta_record(&iter, &rec)) {
+        fprintf(stderr, "rec: %s %s %u\n", rec.name, rec.seq, rec.seq_len);
+    }
+    fprintf(stderr, "\n");
+    dealloc_fasta_iter(&iter);
+
+#endif
+    free_fasta_records(fasta_records);
+
+    return tables;
+}
+
+#else
+
 static struct table_list *read_tables(const char *fasta_fname)
 {
     char preprocessed_fname[strlen(fasta_fname) + 1 + strlen(suffix) + 1];
@@ -106,6 +160,9 @@ static struct table_list *read_tables(const char *fasta_fname)
     return tables;
 }
 
+#endif
+
+
 static void delete_tables(struct table_list *tables)
 {
     while (tables) {
@@ -123,8 +180,9 @@ static void map_records(FILE *outfile,
                         struct fastq_record *fastq_rec,
                         int edits)
 {
+    char remap_buf[1000];
     while (records) {
-        
+        remap(remap_buf, records->table->sa->string, records->table->remap_table);
         struct bwt_approx_iter match_iter;
         struct bwt_approx_match match;
         init_bwt_approx_iter(&match_iter, records->table, remapped_seq, edits);
@@ -136,7 +194,6 @@ static void map_records(FILE *outfile,
                            fastq_rec->quality);
         }
         dealloc_bwt_approx_iter(&match_iter);
-        
         records = records->next;
     }
 }
@@ -223,13 +280,18 @@ int main(int argc, char **argv)
         fastq_fname = argv[1];
         
         FILE *fastq_file = fopen(fastq_fname, "r");
+#if NO_PREPROCESSING
+        struct table_list *tables = build_tables(fasta_fname);
+#else
         struct table_list *tables = read_tables(fasta_fname);
+#endif
         if (!tables) {
             printf("No FASTA records found in file %s\n", fasta_fname);
             return EXIT_FAILURE;
         }
         
         FILE *samfile = stdout; // FIXME: option for writing to a file?
+        
         
         struct fastq_iter reads_iter;
         struct fastq_record fastq_rec;
@@ -238,7 +300,7 @@ int main(int argc, char **argv)
             map_read(samfile, &fastq_rec, tables, edits);
         }
         dealloc_fastq_iter(&reads_iter);
-        
+
         if (samfile != stdout) fclose(samfile);
         fclose(fastq_file);
         delete_tables(tables);

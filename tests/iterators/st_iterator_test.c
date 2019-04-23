@@ -6,7 +6,7 @@
 #include <string.h>
 #include <assert.h>
 
-#define BUFFER_SIZE 1024
+#define BUFFER_SIZE 2048
 #define PRINT 0
 
 static char *match_string(uint32_t idx, const char *cigar)
