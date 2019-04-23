@@ -3,6 +3,7 @@
 #define CIGAR_H
 
 #include <remap.h>
+#include <stdint.h>
 
 // takes a string with cigar encoding and replaces
 // segments of the same symbol to a number plus the symbol.
