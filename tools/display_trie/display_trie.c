@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+
 static void print_out_edges(struct trie *trie, FILE *dot_file) {
     // node attributes
     if (trie->string_label >= 0) {

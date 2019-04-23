@@ -2,6 +2,7 @@
 #define TRIE_H
 
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
 
 struct output_list {
