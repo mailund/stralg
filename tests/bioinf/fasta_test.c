@@ -9,9 +9,7 @@
 int main(int argc, char **argv)
 {
     // A test where everything should work out with no errors.
-    
     const char *fname = "test-data/ref.fa";
-    //const char *fname = "/Users/mailund/Projects/stralg/tests/bioinf/test-data/ref.fa";
     enum error_codes err;
     struct fasta_records *fasta_file = load_fasta_records(fname, &err);
     if (!fasta_file) {
@@ -21,20 +19,13 @@ int main(int argc, char **argv)
         // LCOV_EXCL_STOP
     }
     assert(err == NO_ERROR);
-
+    
     FILE *outfile = fopen("test-data/fasta-test-observed.txt", "w");
-    //FILE *outfile = fopen("/Users/mailund/Projects/stralg/tests/bioinf/test-data/fasta-test-observed.txt", "w");
-    assert(outfile);
     
     struct fasta_iter iter;
     init_fasta_iter(&iter, fasta_file);
     struct fasta_record rec;
     while (next_fasta_record(&iter, &rec)) {
-        printf("the iterator said there was a record, %p\n", &rec);
-        printf("name: \"%s\"\n", rec.name);
-        printf("seq: \"%s\"\n", rec.seq);
-        printf("seq len %u\n", rec.seq_len);
-        
         fprintf(outfile, "name: \"%s\"\n", rec.name);
         fprintf(outfile, "seq: \"%s\"\n", rec.seq);
         fprintf(outfile, "seq len %u\n", rec.seq_len);
@@ -42,13 +33,15 @@ int main(int argc, char **argv)
     dealloc_fasta_iter(&iter);
     fclose(outfile);
     
-    assert(number_of_fasta_records(fasta_file) == 5);
+    assert(number_of_fasta_records(fasta_file) == 2);
     
     // check that we can look up records.
     const char *ref1 = "ACCTACAGACTACCATGTATCTCCATTTACCTAGTCTAG"
-        "CATACTTTCCACACGCTGTGTGTCACTAGTGTGACTACG"
-        "AAATACGTGTGTACTACGGACTACCTACTACCTA";
-    const char *ref2 = "ACCTACAGACTACCATGTATCTCCATTTACCTAGTCTAGAAATACGTGTGTACTACGGACTACCTACTACCTCATACTTTCCACACGCTGTGTGTCACTAGTGTGACTACG";
+    "CATACTTTCCACACGCTGTGTGTCACTAGTGTGACTACG"
+    "AAATACGTGTGTACTACGGACTACCTACTACCTA";
+    const char *ref2 = "ACCTACAGACTACCATGTATCTCCATTTACCTAGTCTAG"
+    "AAATACGTGTGTACTACGGACTACCTACTACCTA"
+    "CATACTTTCCACACGCTGTGTGTCACTAGTGTGACTACG";
     
     lookup_fasta_record_by_name(fasta_file, "ref1", &rec);
     assert(strcmp(rec.seq, ref1) == 0);
