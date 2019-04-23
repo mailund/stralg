@@ -202,10 +202,14 @@ bool next_fasta_record(
     struct fasta_record *rec
 ) {
     if (iter->rec) {
+        printf("there is a record, %s %s %u\n", iter->rec->name,
+               iter->rec->seq, iter->rec->seq_len);
         rec->name = iter->rec->name;
         rec->seq = iter->rec->seq;
         rec->seq_len = iter->rec->seq_len;
         iter->rec = iter->rec->next;
+        printf("now it is reported record, %s %s %u\n",
+               rec->name, rec->seq, rec->seq_len);
         return true;
     } else {
         return false;
