@@ -127,6 +127,24 @@ struct table_list *build_tables(const char *fasta_fname)
     }
     fprintf(stderr, "\n");
     dealloc_fasta_iter(&iter);
+    /*
+     struct table_list {
+     struct table_list *next;
+     char *seq_name;
+     struct bwt_table *table;
+     };
+     */
+    
+    struct table_list *lst = tables;
+    while (lst) {
+        fprintf(stderr, "mapped table with name %s\n", lst->seq_name);
+        char backmap[strlen(lst->table->sa->string) + 1];
+        rev_remap(backmap, lst->table->sa->string, lst->table->remap_table);
+        fprintf(stderr, "the string is %s\n", backmap);
+        
+        lst = lst->next;
+    }
+    fprintf(stderr, "\n");
 
 #endif
     free_fasta_records(fasta_records);

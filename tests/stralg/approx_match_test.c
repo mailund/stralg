@@ -400,12 +400,15 @@ int main(int argc, char **argv)
         "acacacag",
         "acacaca",
         "acactgaca",
-        "acataca"
+        "acataca",
+        "ccgc",
+        "acgc"
     };
     uint32_t no_strings = sizeof(strings) / sizeof(const char *);
     printf("no strings: %u\n", no_strings);
     const char *patterns[] = {
-        "acg", "ac", "a", "g", "c"
+        "acg", "ac", "a", "g", "c",
+        "acgc", "aaa"
     };
     uint32_t no_patterns = sizeof(patterns) / sizeof(const char *);
     
