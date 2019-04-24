@@ -137,10 +137,10 @@ struct table_list *build_tables(const char *fasta_fname)
     
     struct table_list *lst = tables;
     while (lst) {
-        fprintf(stderr, "mapped table with name %s\n", lst->seq_name);
+        fprintf(stderr, "mapped table with name '%s'\n", lst->seq_name);
         char backmap[strlen(lst->table->sa->string) + 1];
         rev_remap(backmap, lst->table->sa->string, lst->table->remap_table);
-        fprintf(stderr, "the string is %s\n", backmap);
+        fprintf(stderr, "the string is '%s'\n", backmap);
         
         lst = lst->next;
     }
@@ -192,15 +192,93 @@ static void delete_tables(struct table_list *tables)
     }
 }
 
+static void print_remapped(FILE *outfile,
+                           const char *remapped_seq,
+                           struct remap_table *table)
+{
+    int len = strlen(remapped_seq);
+    fprintf(outfile, "len %d: (", len);
+    for (int i = 0; i < len; ++i) {
+        fprintf(outfile, "%d", remapped_seq[i]);
+    }
+    fprintf(outfile, ")");
+}
+
 static void map_records(FILE *outfile,
                         struct table_list *records,
                         const char *remapped_seq,
                         struct fastq_record *fastq_rec,
                         int edits)
 {
+    //char rev_remap_buf[1000];
     char remap_buf[1000];
+    
+    remap(remap_buf, fastq_rec->sequence, records->table->remap_table);
+    
+    fprintf(stderr, "searching for read '%s' -> ", fastq_rec->sequence);
+    print_remapped(stderr, remap_buf, records->table->remap_table);
+    fprintf(stderr, "\n");
+    
+   
     while (records) {
-        remap(remap_buf, records->table->sa->string, records->table->remap_table);
+#if 1 // for debugging
+#warning doing exact matching
+        //remap(remap_buf, records->table->sa->string, records->table->remap_table);
+        //fprintf(stderr, "remapped : %s\n", remap_buf);
+
+        
+        const char alphabet[] = {1,2,3,4};
+        
+        struct edit_iter iter;
+        struct edit_pattern edit_pattern;
+
+        remap(remap_buf, fastq_rec->sequence, records->table->remap_table);
+
+        init_edit_iter(&iter, remap_buf, alphabet, edits);
+        while (next_edit_pattern(&iter, &edit_pattern)) {
+            // Skip matches with flanking deletions.
+            int dummy; char dummy_str[1000];
+            if (sscanf(edit_pattern.cigar, "%dD%s", &dummy, dummy_str) > 1) {
+                continue;
+            }
+            if (sscanf(edit_pattern.cigar, "%s%dD", dummy_str, &dummy) > 1) {
+                continue;
+            }
+            
+            /*
+            fprintf(stderr, "remapped pattern: ");
+            print_remapped(stderr, edit_pattern.pattern, records->table->remap_table);
+            fprintf(stderr, "\n");
+            */
+            
+            struct bwt_exact_match_iter match_iter;
+            struct bwt_exact_match match;
+            init_bwt_exact_match_iter(&match_iter, records->table, remap_buf);
+            while (next_bwt_exact_match_iter(&match_iter, &match)) {
+                fprintf(stderr, "match at %d: ", match.pos + 1);
+                print_remapped(stderr, remap_buf + 1, records->table->remap_table);
+                fprintf(stderr, " agains ");
+                print_remapped(stderr, edit_pattern.pattern, records->table->remap_table);
+                fprintf(stderr, "\n");
+#if 0
+                print_sam_line(outfile,
+                               fastq_rec->name,
+                               records->seq_name,
+                               match.pos + 1,
+                               edit_pattern.cigar,
+                               fastq_rec->sequence,
+                               fastq_rec->quality);
+#endif
+
+            }
+            dealloc_bwt_exact_match_iter(&match_iter);
+            
+            
+        }
+        records = records->next;
+
+        
+#else
         struct bwt_approx_iter match_iter;
         struct bwt_approx_match match;
         init_bwt_approx_iter(&match_iter, records->table, remapped_seq, edits);
@@ -213,6 +291,7 @@ static void map_records(FILE *outfile,
         }
         dealloc_bwt_approx_iter(&match_iter);
         records = records->next;
+#endif
     }
 }
 

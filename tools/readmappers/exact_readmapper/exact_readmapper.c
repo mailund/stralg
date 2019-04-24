@@ -11,7 +11,7 @@
 #include <string.h>
 #include <assert.h>
 
-static const char alphabet[] = "ACGT";
+static const char alphabet[] = "acgt";
 
 static void print_help(const char *progname)
 {
@@ -54,6 +54,8 @@ static void map(struct fasta_records *records,
                 continue;
             }
 
+            //fprintf(stderr, "searching for pattern '%s'\n", edit_pattern.pattern);
+            
             init_fasta_iter(&fasta_iter, records);
             while (next_fasta_record(&fasta_iter, &fasta_record)) {
                 map_func(edit_pattern.pattern, edit_pattern.cigar,

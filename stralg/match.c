@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <stdio.h>
+#include <string.h>
 
 
 
@@ -12,12 +13,6 @@ void init_naive_match_iter(
     const char *text, uint32_t n,
     const char *pattern, uint32_t m
 ) {
-    assert(m > 0);
-    
-    // This is necessary because n and m are unsigned so the
-    // "j < n - m + 1" loop test can suffer from an overflow.
-    assert(m <= n);
-
     iter->text = text;       iter->n = n;
     iter->pattern = pattern; iter->m = m;
     iter->current_index = 0;
@@ -31,6 +26,11 @@ bool next_naive_match(
     const char *text = iter->text;
     const char *pattern = iter->pattern;
 
+    // This is necessary because n and m are unsigned so the
+    // "j < n - m + 1" loop test can suffer from an overflow.
+    if (m > n) return false;
+    if (m == 0) return false;
+    
     for (uint32_t j = iter->current_index; j <= n - m; j++) {
         uint32_t i = 0;
         while (i < m && text[j+i] == pattern[i]) {
@@ -84,7 +84,20 @@ bool next_border_match(
     uint32_t *ba = iter->border_array;
     uint32_t b = iter->b;
     uint32_t m = iter->m;
+    uint32_t n = iter->n;
 
+    // This is necessary because n and m are unsigned so the
+    // "j < n - m + 1" loop test can suffer from an overflow.
+    if (m > n) return false;
+    if (m == 0) return false;
+
+
+    // This is necessary because n and m are unsigned so the
+    // "j < n - m + 1" loop test can suffer from an overflow.
+    if (m > n) return false;
+    if (m == 0) return false;
+
+    
     for (uint32_t i = iter->i; i < iter->n; ++i) {
         while (b > 0 && text[i] != pattern[b])
             b = ba[b - 1];
@@ -113,6 +126,12 @@ static void ba_search(char * key, char * buffer)
     unsigned long m = strlen(key);
     unsigned long ba[m];
 
+    // This is necessary because n and m are unsigned so the
+    // "j < n - m + 1" loop test can suffer from an overflow.
+    if (m > n)) return false;
+    if (m == 0) return false;
+
+    
     ba[0] = 0;
     for (int i = 1; i < m; ++i) {
         int b = ba[i-1];
@@ -138,11 +157,6 @@ void init_kmp_match_iter(
     const char *text, uint32_t n,
     const char *pattern, uint32_t m
 ) {
-    assert(m > 0);
-    
-    // This is necessary because n and m are unsigned so the
-    // "j < n - m + 1" loop test can suffer from an overflow.
-    assert(m <= n);
 
     iter->text = text;       iter->n = n;
     iter->pattern = pattern; iter->m = m;
@@ -180,9 +194,15 @@ bool next_kmp_match(
     uint32_t j = iter->j;
     uint32_t i = iter->i;
     uint32_t m = iter->m;
+    uint32_t n = iter->n;
     uint32_t max_match_index = iter->max_match_len;
     const char *text = iter->text;
     const char *pattern = iter->pattern;
+    
+    // This is necessary because n and m are unsigned so the
+    // "j < n - m + 1" loop test can suffer from an overflow.
+    if (m > n) return false;
+    if (m == 0) return false;
 
     // Remember that j matches the first i
     // items into the string, so + i.
@@ -223,9 +243,6 @@ void init_bmh_match_iter(
     const char *text, uint32_t n,
     const char *pattern, uint32_t m
 ) {
-    assert(m > 0);
-    assert(m <= n);
-    
     iter->j = 0;
     iter->text = text; iter->n = n;
     iter->pattern = pattern; iter->m = m;
@@ -248,6 +265,12 @@ bool next_bmh_match(
     uint32_t m = iter->m;
     uint32_t *jump_table = iter->jump_table;
 
+    // This is necessary because n and m are unsigned so the
+    // "j < n - m + 1" loop test can suffer from an overflow.
+    if (m > strlen(text)) return false;
+    if (m == 0) return false;
+
+    
     for (uint32_t j = iter->j;
          j < n - m + 1;
          j += jump_table[(unsigned char)text[j + m - 1]]) {
