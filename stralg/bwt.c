@@ -128,6 +128,8 @@ void init_bwt_exact_match_iter(struct bwt_exact_match_iter *iter,
     
     while (i >= 0 && L <= R) {
         unsigned char a = remapped_pattern[i];
+        assert(a > 0); // only the sentinel is null
+        assert(a < bwt_table->remap_table->alphabet_size);
         uint32_t o_contrib = 0;
         if (L != 0) {
             uint32_t o_idx = o_index(a, L - 1, bwt_table);
