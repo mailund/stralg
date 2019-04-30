@@ -15,9 +15,9 @@ void init_trie(struct trie *trie)
     trie->parent = 0;
     trie->sibling = 0;
     trie->children = 0;
-    trie->output = 0;
     
     // For Aho-Corasick
+    trie->has_failure_links = false;
     trie->failure_link = 0;
     trie->output = 0;
 }
@@ -195,6 +195,8 @@ static void compute_failure_link_for_node(struct trie *v,
 
 void compute_failure_links(struct trie *trie)
 {
+    if (trie->has_failure_links) return;
+    
     trie->failure_link = trie; // make the root its own failure link.
     
     pointer_queue *nodes = alloc_pointer_queue();
@@ -207,6 +209,7 @@ void compute_failure_links(struct trie *trie)
     }
     
     free_queue(nodes);
+    trie->has_failure_links = true;
 }
 
 static void print_out_edges(struct trie *trie, FILE *dot_file)

@@ -18,6 +18,7 @@ struct trie {
     struct trie *children;
     
     // for Aho-Corasick
+    bool has_failure_links;
     struct trie *failure_link;
     struct output_list *output;
 };
