@@ -1,18 +1,90 @@
-read1	0	one	6	0	1I3M	*	0	0	ACGC	~~~~
-read1	0	one	5	0	4M	*	0	0	ACGC	~~~~
-read1	0	two	1	0	3M1I	*	0	0	ACGC	~~~~
-read1	0	two	1	0	4M	*	0	0	ACGC	~~~~
-read2	0	two	5	0	1I2M	*	0	0	AAA	~~~
-read2	0	two	6	0	1I2M	*	0	0	AAA	~~~
-read2	0	two	7	0	1I2M	*	0	0	AAA	~~~
-read2	0	two	4	0	3M	*	0	0	AAA	~~~
-read2	0	two	5	0	1M1I1M	*	0	0	AAA	~~~
-read2	0	two	6	0	1M1I1M	*	0	0	AAA	~~~
-read2	0	two	7	0	1M1I1M	*	0	0	AAA	~~~
-read2	0	two	5	0	2M1I	*	0	0	AAA	~~~
-read2	0	two	6	0	2M1I	*	0	0	AAA	~~~
-read2	0	two	7	0	2M1I	*	0	0	AAA	~~~
-read2	0	two	5	0	3M	*	0	0	AAA	~~~
-read2	0	two	6	0	3M	*	0	0	AAA	~~~
-read2	0	two	5	0	2M1D1M	*	0	0	AAA	~~~
-read2	0	two	5	0	1M1D2M	*	0	0	AAA	~~~
+now it is reported record, one CCATTCGC 8
+now it is reported record, one CCATTCGC 8
+now it is reported record, one CCATTCGC 8
+now it is reported record, one CCATTCGC 8
+now it is reported record, one CCATTCGC 8
+now it is reported record, one CCATTCGC 8
+now it is reported record, one CCATTCGC 8
+now it is reported record, one CCATTCGC 8
+now it is reported record, one CCATTCGC 8
+now it is reported record, one CCATTCGC 8
+now it is reported record, one CCATTCGC 8
+now it is reported record, one CCATTCGC 8
+now it is reported record, one CCATTCGC 8
+now it is reported record, one CCATTCGC 8
+now it is reported record, one CCATTCGC 8
+now it is reported record, three FOOBAR 6
+now it is reported record, three FOOBAR 6
+now it is reported record, three FOOBAR 6
+now it is reported record, three FOOBAR 6
+now it is reported record, three FOOBAR 6
+now it is reported record, three FOOBAR 6
+now it is reported record, three FOOBAR 6
+now it is reported record, three FOOBAR 6
+now it is reported record, three FOOBAR 6
+now it is reported record, three FOOBAR 6
+now it is reported record, three FOOBAR 6
+now it is reported record, three FOOBAR 6
+now it is reported record, three FOOBAR 6
+now it is reported record, three FOOBAR 6
+now it is reported record, three FOOBAR 6
+now it is reported record, two ACGTAAAA 8
+now it is reported record, two ACGTAAAA 8
+now it is reported record, two ACGTAAAA 8
+now it is reported record, two ACGTAAAA 8
+now it is reported record, two ACGTAAAA 8
+now it is reported record, two ACGTAAAA 8
+now it is reported record, two ACGTAAAA 8
+now it is reported record, two ACGTAAAA 8
+now it is reported record, two ACGTAAAA 8
+now it is reported record, two ACGTAAAA 8
+now it is reported record, two ACGTAAAA 8
+now it is reported record, two ACGTAAAA 8
+now it is reported record, two ACGTAAAA 8
+now it is reported record, two ACGTAAAA 8
+now it is reported record, two ACGTAAAA 8
+there is a record, one CCATTCGC 8
+there is a record, one CCATTCGC 8
+there is a record, one CCATTCGC 8
+there is a record, one CCATTCGC 8
+there is a record, one CCATTCGC 8
+there is a record, one CCATTCGC 8
+there is a record, one CCATTCGC 8
+there is a record, one CCATTCGC 8
+there is a record, one CCATTCGC 8
+there is a record, one CCATTCGC 8
+there is a record, one CCATTCGC 8
+there is a record, one CCATTCGC 8
+there is a record, one CCATTCGC 8
+there is a record, one CCATTCGC 8
+there is a record, one CCATTCGC 8
+there is a record, three FOOBAR 6
+there is a record, three FOOBAR 6
+there is a record, three FOOBAR 6
+there is a record, three FOOBAR 6
+there is a record, three FOOBAR 6
+there is a record, three FOOBAR 6
+there is a record, three FOOBAR 6
+there is a record, three FOOBAR 6
+there is a record, three FOOBAR 6
+there is a record, three FOOBAR 6
+there is a record, three FOOBAR 6
+there is a record, three FOOBAR 6
+there is a record, three FOOBAR 6
+there is a record, three FOOBAR 6
+there is a record, three FOOBAR 6
+there is a record, two ACGTAAAA 8
+there is a record, two ACGTAAAA 8
+there is a record, two ACGTAAAA 8
+there is a record, two ACGTAAAA 8
+there is a record, two ACGTAAAA 8
+there is a record, two ACGTAAAA 8
+there is a record, two ACGTAAAA 8
+there is a record, two ACGTAAAA 8
+there is a record, two ACGTAAAA 8
+there is a record, two ACGTAAAA 8
+there is a record, two ACGTAAAA 8
+there is a record, two ACGTAAAA 8
+there is a record, two ACGTAAAA 8
+there is a record, two ACGTAAAA 8
+there is a record, two ACGTAAAA 8
