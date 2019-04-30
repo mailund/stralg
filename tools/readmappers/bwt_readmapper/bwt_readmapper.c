@@ -433,7 +433,11 @@ void map_read(struct fastq_record *fastq_rec,
     char remap_buf[1000];
     
     while (records) {
-        remap(remap_buf, fastq_rec->sequence, records->bwt_table->remap_table);
+        const char *remapped = remap(remap_buf, fastq_rec->sequence, records->bwt_table->remap_table);
+        if (!remapped) {
+            records = records->next;
+            continue;
+        }
         
         struct bwt_approx_iter  iter;
         struct bwt_approx_match match;
