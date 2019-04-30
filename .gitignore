@@ -108,3 +108,4 @@ tools/readmappers/data/genomes/test.fa.bwttables
 *.bwttables
 old-fasta.c
 old-fasta_test.c
+tools/readmappers/bwt.sam
