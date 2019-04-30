@@ -132,6 +132,8 @@ void init_bwt_exact_match_iter(struct bwt_exact_match_iter *iter,
         assert(a < bwt_table->remap_table->alphabet_size);
         uint32_t o_contrib = 0;
         if (L != 0) {
+            assert(a > 0); // only sentinel is zero
+            assert(a < bwt_table->remap_table->alphabet_size);
             uint32_t o_idx = o_index(a, L - 1, bwt_table);
             o_contrib = bwt_table->o_table[o_idx];
         }

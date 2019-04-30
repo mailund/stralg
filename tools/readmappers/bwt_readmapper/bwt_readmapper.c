@@ -157,12 +157,10 @@ void map_read(struct fastq_record *fastq_rec,
     char remap_buf[1000];
     
     while (records) {
-        char *res = remap(remap_buf, fastq_rec->sequence, records->bwt_table->remap_table);
-        if (!res) {
-            // couldn't map it; happens when the read contains
-            // letters that is not in the record.
+        const char *remapped = remap(remap_buf, fastq_rec->sequence, records->bwt_table->remap_table);
+        if (!remapped) {
             records = records->next;
-            continue; // skip to next record
+            continue;
         }
         
         struct bwt_approx_iter  iter;
@@ -255,7 +253,7 @@ int main(int argc, char **argv)
         fasta_fname = argv[0];
         fastq_fname = argv[1];
         
-#define BUILD_TABLES
+//#define BUILD_TABLES
 #ifdef BUILD_TABLES
         // CURRENT ATTEMPT
         enum error_codes err;
