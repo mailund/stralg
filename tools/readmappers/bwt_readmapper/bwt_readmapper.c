@@ -11,6 +11,9 @@
 #include <stdbool.h>
 #include <getopt.h>
 
+//#define BUILD_TABLES
+
+
 static const char *suffix = "bwttables";
 
 static void preprocess(const char *fasta_fname)
@@ -83,6 +86,7 @@ static struct string_table *new_string_table(const char *name,
     return res;
 }
 
+#if BUILD_TABLES
 static struct string_table *build_string_tables(struct fasta_records *fasta_records)
 {
     struct string_table *tables = 0;
@@ -108,6 +112,7 @@ static struct string_table *build_string_tables(struct fasta_records *fasta_reco
     
     return tables;
 }
+#endif
 
 static struct string_table *read_string_tables(const char *fasta_fname)
 {
@@ -253,7 +258,6 @@ int main(int argc, char **argv)
         fasta_fname = argv[0];
         fastq_fname = argv[1];
         
-//#define BUILD_TABLES
 #ifdef BUILD_TABLES
         // CURRENT ATTEMPT
         enum error_codes err;
