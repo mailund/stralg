@@ -9,6 +9,7 @@
 
 #define PRINT_STACK 0
 
+
 static inline unsigned char bwt(const struct suffix_array *sa, uint32_t i)
 {
     uint32_t suf = sa->array[i];

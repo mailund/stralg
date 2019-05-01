@@ -3,32 +3,8 @@
 #include <assert.h>
 #include <stdio.h>
 
-/*
-void aho_corasick_match(const char *text, uint32_t n, struct trie *patterns,
-                        ac_callback_func callback, void *callback_data) {
-  uint32_t j = 0;
-  struct trie *v = patterns;
 
-  while (j < n) {
-    struct trie *w = out_link(v, text[j]);
-    while (w) {
-      for (struct output_list *hits = w->output; hits != 0; hits = hits->next) {
-        callback(hits->string_label, j, callback_data);
-      }
 
-      v = w;
-      j++;
-      w = out_link(v, text[j]);
-    }
-
-    if (is_trie_root(v)) {
-      j++;
-    } else {
-      v = v->failure_link;
-    }
-  }
-}
-*/
 
 
 void init_ac_iter(struct ac_iter *iter,
@@ -53,6 +29,34 @@ void init_ac_iter(struct ac_iter *iter,
     // we need these for this algorithm
     compute_failure_links(patterns_trie);
 }
+
+
+#if 0
+void aho_corasick_match(const char *text, uint32_t n, struct trie *patterns,
+                        ac_callback_func callback, void *callback_data) {
+    uint32_t j = 0;
+    struct trie *v = patterns;
+    
+    while (j < n) {
+        struct trie *w = out_link(v, text[j]);
+        while (w) {
+            for (struct output_list *hits = w->output; hits != 0; hits = hits->next) {
+                callback(hits->string_label, j, callback_data);
+            }
+            
+            v = w;
+            j++;
+            w = out_link(v, text[j]);
+        }
+        
+        if (is_trie_root(v)) {
+            j++;
+        } else {
+            v = v->failure_link;
+        }
+    }
+}
+#endif
 
 bool next_ac_match(struct ac_iter *iter,
                    struct ac_match *match)
