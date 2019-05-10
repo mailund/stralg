@@ -193,7 +193,7 @@ bool next_edit_pattern(
         // no more pattern to match ... terminate the buffer and call back
         *buffer = '\0';
         *cigar = '\0';
-        simplify_cigar(iter->simplify_cigar_buffer, iter->cigar);
+        correct_cigar(iter->simplify_cigar_buffer, iter->cigar);
         result->pattern = iter->buffer;
         result->cigar = iter->simplify_cigar_buffer;
         free(frame);
@@ -207,7 +207,7 @@ bool next_edit_pattern(
               cigar[i] = 'M';
         }
         buffer[rest] = cigar[rest] = '\0';
-        simplify_cigar(iter->simplify_cigar_buffer, iter->cigar);
+        correct_cigar(iter->simplify_cigar_buffer, iter->cigar);
         result->pattern = iter->buffer;
         result->cigar = iter->simplify_cigar_buffer;
         free(frame);

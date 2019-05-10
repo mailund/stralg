@@ -10,11 +10,11 @@ int main(int argc, char **argv)
 {
     char cigar_buf[1000];
     
-    simplify_cigar(cigar_buf, "IIMDDMM");
+    correct_cigar(cigar_buf, "IIMDDMM");
     printf("%s\n", cigar_buf);
     assert(strcmp(cigar_buf, "2I1M2D2M") == 0);
 
-    simplify_cigar(cigar_buf, "IMMDMM");
+    correct_cigar(cigar_buf, "IMMDMM");
     printf("%s\n", cigar_buf);
     assert(strcmp(cigar_buf, "1I2M1D2M") == 0);
 

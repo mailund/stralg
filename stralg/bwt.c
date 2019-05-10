@@ -405,7 +405,7 @@ bool next_bwt_approx_match_internal_iter
             char buf[strlen(iter->full_cigar_buf) + 1];
             strcpy(buf, iter->full_cigar_buf);
             str_inplace_rev(buf);
-            simplify_cigar(iter->cigar_buf, buf);
+            correct_cigar(iter->cigar_buf, buf);
             
             res->cigar = iter->cigar_buf;
             res->match_length = match_length;

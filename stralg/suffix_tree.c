@@ -535,7 +535,7 @@ bool next_internal_st_approx_match(struct internal_st_approx_iter *iter,
         }
         if (*p == '\0') {
             *cigar = '\0';
-            simplify_cigar(iter->cigar_buf, iter->full_cigar_buf);
+            correct_cigar(iter->cigar_buf, iter->full_cigar_buf);
             match->cigar = iter->cigar_buf;
             match->match_root = v;
             match->match_depth = match_depth;

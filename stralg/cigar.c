@@ -12,7 +12,7 @@ static const char *scan(const char *cigar)
     return p;
 }
 
-void simplify_cigar(char *buffer, const char *cigar)
+void correct_cigar(char *buffer, const char *cigar)
 {
     while (*cigar) {
         const char *next = scan(cigar);
