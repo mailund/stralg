@@ -30,7 +30,7 @@
  or it could the the responsibility of the Burrows-Wheler transform.
  
  If the former, use free_bwt_table() to dealloce the BWT table,
- if the latter, use free_complete_bwt_table().
+ if the latter, use complete_free_bwt_table().
  */
 struct bwt_table {
     struct remap_table  *remap_table;
@@ -95,14 +95,44 @@ void init_bwt_table   (struct bwt_table    *bwt_table,
 struct bwt_table *alloc_bwt_table(struct suffix_array *sa,
                                   struct remap_table  *remap_table);
 
-
+/**
+ Deallocate resources held by a table.
+ 
+ This function deallocates the resources exclusively held
+ by the table, i.e. the O and the C table. It does not
+ deallocate the remap table nor the suffix array. For that,
+ you need to use dealloc_complete
+ */
 void dealloc_bwt_table(struct bwt_table *bwt_table);
+
+/**
+ Deallocate resources and then free the table.
+ 
+ Calls dealloc_bwt_table with the table and then calls free. Do not
+ call this function on a stack allocated table.
+ 
+ @param bwt_table The table to free.
+ */
 void free_bwt_table(struct bwt_table *bwt_table);
 
-// This function frees the remap table and the suffix
-// array as well as the BWT tables.
-void dealloc_complete_bwt_table(struct bwt_table *bwt_table);
-void free_complete_bwt_table(struct bwt_table *bwt_table);
+/**
+ Deallocates all resources the BWT table references.
+ 
+ This function frees the O and C table and then frees
+ the remap table and the suffix array.
+ 
+ @param bwt_table The table to deallocate.
+ */
+void completely_dealloc_bwt_table(struct bwt_table *bwt_table);
+
+/**
+ Completely deallocate all resources a BWT table contains.
+ 
+ Calls completel_dealloc_bwt_table and then frees the bwt_table.
+ 
+ @param bwt_table The table to free.
+ */
+void completely_free_bwt_table(struct bwt_table *bwt_table);
 
 
 /** Build BWT table from a string.
@@ -117,39 +147,156 @@ void free_complete_bwt_table(struct bwt_table *bwt_table);
  */
 struct bwt_table *build_complete_table(const char *string);
 
+/**
+ Iterator for exact search with BWT.
+ 
+ Consider this an opaque data structure. It is only in
+ the header to allow stack allocated iterators.
+ */
 struct bwt_exact_match_iter {
     const struct suffix_array *sa;
     uint32_t L;
     int64_t i;
     uint32_t R;
 };
+/**
+ Struct holding information about the location of a match.
+ 
+ This structure will be filled in by next_bwt_exact_match_iter.
+ You do not need to initialise it nor deallocate it.
+ */
 struct bwt_exact_match {
     uint32_t pos;
 };
+
+/**
+ Initialise a BWT exact search iterator.
+ 
+ Initialise an iterator. If you are reusing an iterator you must
+ deallocate it before you initialise it again; this function will not
+ do it for you.
+ 
+ @param iter The iterator to initialise
+ 
+ @param bwt_table The BWT table that will be used for the search.
+ It holds a reference to the string to search in.
+ 
+ @param remapped_pattern The pattern to search for. It must be
+ remapped with the remap table that the bwt_table holds.
+ */
 void init_bwt_exact_match_iter   (struct bwt_exact_match_iter *iter,
                                   struct bwt_table            *bwt_table,
                                   const char                  *remapped_pattern);
+/**
+ Gets the next match.
+ 
+ Increment the iterator to the next match or discover if there are no matches.
+ If there is a match, the match parameter will be set to the match information.
+ 
+ @param iter The iterator that will be incremeneted to the next match.
+ @param match The match structure that will be filled with information
+ about the next match.
+ 
+ @return If there is a match, it will return true. If there are no more
+ matches, it will return false.
+ */
 bool next_bwt_exact_match_iter   (struct bwt_exact_match_iter *iter,
                                   struct bwt_exact_match      *match);
+/**
+ Deallocate the resources held by an iterator.
+ 
+ This function will free the resources held by the iterator, not the
+ iterator itself. The most common pattern for using iterators involve
+ stack-allocating them, so free them yourself if you have heap-allocated
+ it. To avoid resource leaking you must deallocte the iterator if you have
+ initialised it.
+ 
+ @param iter The iterator whose resources you should deallocate.
+ */
 void dealloc_bwt_exact_match_iter(struct bwt_exact_match_iter *iter);
 
-
+/**
+ Iterator for approximative search.
+ 
+ You should consider this an opaque structure; it is only
+ in the header file so you can stack-allocate it.
+ 
+ Initialise it with init_bwt_approx_iter and deallocate it
+ with dealloc_bwt_approx_iter.
+ 
+ */
 struct bwt_approx_iter {
     struct bwt_approx_match_internal_iter *internal_approx_iter;
     struct bwt_exact_match_iter *internal_exact_iter;
     bool outer;
 };
+
+/**
+ Structure for reporting an approximative match.
+ 
+ The structure will be filled in by next_bwt_approx_match.
+ 
+ It contains a cigar string (this will change with each call
+ to next_bwt_approx_match, so copy it if you need to keep it).
+ 
+ Then it contains the position in the string that the key matches.
+ 
+ It contains the length of the match, i.e. how long the matched
+ string is. You could also obtain this from combining the cigar
+ and the key, but this gives it to you directly. Using the length
+ makes it easier to extract the string that is mached to the key
+ by combining the position and the length.
+ */
 struct bwt_approx_match {
     const char *cigar;
-    uint32_t match_length;
     uint32_t position;
+    uint32_t match_length;
 };
+/**
+ Initialise the data in an approximative iterator.
+ 
+ Sets up an iterator to iterate over all approximative matches.
+ 
+ @param iter             The iterator
+ @param bwt_table        The BWT table that contains the text
+ @param remapped_pattern The search key. It must be remapped
+ with the remap table from the BWT table.
+ @edits edits            The maximum number of edits allowed
+ */
 void init_bwt_approx_iter(struct bwt_approx_iter *iter,
                           struct bwt_table       *bwt_table,
                           const char             *remapped_pattern,
                           int                     edits);
+/**
+ Report an approximative match.
+ 
+ Increment the iterator and put match information into the
+ match structure.
+ 
+ @param iter The iterator. It must have been initialised with
+ init_bwt_approx_iter before you can call this function.
+ 
+ @param match The matching information can be found in
+ this structure if the function returns true.
+ 
+ @return true if there is a match and false if there are
+ no more matches.
+ */
 bool next_bwt_approx_match(struct bwt_approx_iter  *iter,
                            struct bwt_approx_match *match);
+/**
+ Deallocate an iterator.
+ 
+ The iterator must be initialised (with init_bwt_approx_iter)
+ before you can call this function. The function does not free
+ the memory containing the iterator so you will need to
+ do this yourself.
+ 
+ You cannot use the iterator again after deallocating it unless
+ you initialise it again.
+ 
+ @param iter The iterater you want to deallocate.
+ */
 void dealloc_bwt_approx_iter(struct bwt_approx_iter *iter);
 
 
@@ -171,12 +318,7 @@ void print_c_table  (struct bwt_table *table);
 void print_o_table  (struct bwt_table *table);
 void print_bwt_table(struct bwt_table *table);
 
-// FIXME: maybe change the name. I am testing for
-// equivalence, not whether the two tables point to
-// the same object or whether the underlying
-// suffix array and remap tables are the
-// same.
-bool identical_bwt_tables(struct bwt_table *table1,
-                          struct bwt_table *table2);
+bool equivalent_bwt_tables(struct bwt_table *table1,
+                           struct bwt_table *table2);
 
 #endif

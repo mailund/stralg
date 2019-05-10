@@ -60,7 +60,7 @@ static void preprocess(const char *fasta_fname)
         write_string(outfile, rec.name);
         struct bwt_table *table = build_complete_table(rec.seq);
         write_complete_bwt_info(outfile, table);
-        free_complete_bwt_table(table);
+        completely_free_bwt_table(table);
         fprintf(stderr, "Done\n");
     }
     dealloc_fasta_iter(&iter);
@@ -148,7 +148,7 @@ static void free_string_tables(struct string_table *tables)
     struct string_table *next;
     while (tables) {
         next = tables->next;
-        free_complete_bwt_table(tables->bwt_table);
+        completely_free_bwt_table(tables->bwt_table);
         free(tables);
         tables = next;
     }

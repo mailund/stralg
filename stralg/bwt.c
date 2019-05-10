@@ -60,7 +60,7 @@ void dealloc_bwt_table(struct bwt_table *bwt_table)
     free(bwt_table->o_table);
 }
 
-void dealloc_complete_bwt_table(struct bwt_table *bwt_table)
+void completely_dealloc_bwt_table(struct bwt_table *bwt_table)
 {
     free_complete_suffix_array(bwt_table->sa);
     free_remap_table(bwt_table->remap_table);
@@ -81,9 +81,9 @@ void free_bwt_table(struct bwt_table *bwt_table)
     free(bwt_table);
 }
 
-void free_complete_bwt_table(struct bwt_table *bwt_table)
+void completely_free_bwt_table(struct bwt_table *bwt_table)
 {
-    dealloc_complete_bwt_table(bwt_table);
+    completely_dealloc_bwt_table(bwt_table);
     free(bwt_table);
 }
 
@@ -569,7 +569,7 @@ void print_bwt_table(struct bwt_table *table)
     printf("\n\n");
 }
 
-bool identical_bwt_tables(struct bwt_table *table1,
+bool equivalent_bwt_tables(struct bwt_table *table1,
                           struct bwt_table *table2)
 {
     struct suffix_array *sa1 = table1->sa;

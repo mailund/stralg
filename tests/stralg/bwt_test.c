@@ -83,7 +83,7 @@ int main(int argc, char **argv)
     print_bwt_table(&bwt_table);
     test_expected(&bwt_table);
     
-    assert(identical_bwt_tables(&bwt_table, &bwt_table));
+    assert(equivalent_bwt_tables(&bwt_table, &bwt_table));
     
     // get a unique temporary file name...
     const char *temp_template = "/tmp/temp.XXXXXX";
@@ -100,21 +100,21 @@ int main(int argc, char **argv)
     
     struct bwt_table *other_table = read_bwt_table_fname(fname, sa, &remap_table);
 
-    assert(identical_bwt_tables(&bwt_table, other_table));
+    assert(equivalent_bwt_tables(&bwt_table, other_table));
     
     free_bwt_table(other_table);
     
     struct bwt_table *bwt_ptr = alloc_bwt_table(sa, &remap_table);
     test_expected(bwt_ptr);
-    assert(identical_bwt_tables(&bwt_table, bwt_ptr));
+    assert(equivalent_bwt_tables(&bwt_table, bwt_ptr));
     free_bwt_table(bwt_ptr);
     
 
     error_test();
     
     struct bwt_table *yet_another_table = build_complete_table(string);
-    assert(identical_bwt_tables(&bwt_table, yet_another_table));
-    free_complete_bwt_table(yet_another_table);
+    assert(equivalent_bwt_tables(&bwt_table, yet_another_table));
+    completely_free_bwt_table(yet_another_table);
     
     free_suffix_array(sa);
     dealloc_remap_table(&remap_table);

@@ -29,9 +29,9 @@ static void test_complete_bwt(void)
     assert(strlen(bwt_table.sa->string) + 1 == bwt_table.sa->length);
     assert(strlen(other_table->sa->string) + 1 == other_table->sa->length);
     // Now check equality
-    assert(identical_bwt_tables(&bwt_table, other_table));
+    assert(equivalent_bwt_tables(&bwt_table, other_table));
     
-    free_complete_bwt_table(other_table);
+    completely_free_bwt_table(other_table);
     dealloc_bwt_table(&bwt_table);
     free_suffix_array(sa);
     dealloc_remap_table(&remap_table);
