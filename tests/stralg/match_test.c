@@ -10,6 +10,126 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+// the non-iterator versions are for testing
+// them so I can use them to explain the
+// algorithms without introducing iterators
+
+static void naive_search(const char *x, const char *p,
+                         index_vector *res)
+{
+    int n = strlen(x);
+    int m = strlen(p);
+    for (int j = 0; j <= n - m; ++j) {
+        int i = 0;
+        while (i < m && x[j + i] == p[i])
+            ++i;
+        if (i == m) {
+            index_vector_append(res, j);
+        }
+    }
+}
+
+static void border_search(const char *x, const char *p,
+                          index_vector *res)
+{
+    int n = strlen(x);
+    int m = strlen(p);
+    int b = 0;
+    
+    int *ba = malloc(m * sizeof(int));
+    ba[0] = 0;
+    for (int i = 1; i < m; ++i) {
+        int b = ba[i - 1];
+        while (b > 0 && p[i] != p[b])
+            b = ba[b-1];
+        ba[i] = (p[i] == p[b]) ? b + 1 : 0;
+    }
+    
+    for (int i = 0; i < n; ++i) {
+        while (b > 0 && x[i] != p[b])
+            b = ba[b - 1];
+        b = (x[i] == p[b]) ? b + 1 : 0;
+        if (b == m) {
+            index_vector_append(res, i - m + 1);
+        }
+    }
+    
+    free(ba);
+}
+
+static void kmp_search(const char *x, const char *p,
+                       index_vector *res)
+{
+    int n = strlen(x);
+    int m = strlen(p);
+    
+    // Build prefix border array -- I allocate with calloc
+    // because the static analyser otherwise think it can contain
+    // garbage values after the initialisation.
+    uint32_t *prefixtab = calloc(m, sizeof(uint32_t));
+    prefixtab[0] = 0;
+    for (uint32_t i = 1; i < m; ++i) {
+        uint32_t k = prefixtab[i - 1];
+        while (k > 0 && p[i] != p[k])
+            k = prefixtab[k - 1];
+        prefixtab[i] = (p[i] == p[k]) ? k + 1 : 0;
+    }
+    
+    // Modify it so the we avoid borders where the following
+    // letters match
+    for (uint32_t i = 0; i < m - 1; i++) {
+        prefixtab[i] =
+        (p[prefixtab[i]] != p[i + 1] || prefixtab[i] == 0) ?
+        prefixtab[i] : prefixtab[prefixtab[i] - 1];
+    }
+    
+    int j = 0, i = 0;
+    while (j <= n - m + i) {
+        // Match as far as we can
+        while (i < m && x[j] == p[i]) {
+            i++; j++;
+        }
+        
+        if (i == m) {
+            index_vector_append(res, j - m);
+        }
+        if (i == 0) j++;
+        else i = prefixtab[i - 1];
+    }
+
+    free(prefixtab);
+}
+
+static void bmh_search(const char *x, const char *p,
+                       index_vector *res)
+{
+    int n = strlen(x);
+    int m = strlen(p);
+    
+    int jump_table[256];
+    
+    for (int k = 0; k < 256; k++) {
+        jump_table[k] = m;
+    }
+    for (int k = 0; k < m - 1; k++) {
+        jump_table[(unsigned char)p[k]] = m - k - 1;
+    }
+    
+    for (int j = 0;
+         j < n - m + 1;
+         j += jump_table[(unsigned char)x[j + m - 1]]) {
+        
+        int i = m - 1;
+        while (i > 0 && p[i] == x[j + i])
+            --i;
+        if (i == 0 && p[0] == x[j]) {
+            index_vector_append(res, j);
+        }
+    }
+}
+
+
+
 
 typedef bool (*iteration_func)(
     void *iter,
@@ -72,7 +192,55 @@ static void simple_exact_matchers(index_vector *naive,
     index_vector border; init_index_vector(&border, 10);
     index_vector kmp;    init_index_vector(&kmp, 10);
     index_vector bmh;    init_index_vector(&bmh, 10);
+    
+    index_vector real_naive; init_index_vector(&real_naive, 10);
+    
+    naive_search(string, pattern, &real_naive);
+    printf("naive:\n");
+    for (int i = 0; i < naive->used; ++i) {
+        printf("%d ", index_vector_get(naive, i));
+    }
+    printf("\n");
+    printf("real naive:\n");
+    for (int i = 0; i < real_naive.used; ++i) {
+        printf("%d ", index_vector_get(&real_naive, i));
+    }
+    printf("\n");
+    assert(index_vector_equal(&real_naive, naive));
+    dealloc_vector(&real_naive);
 
+    // reusing vector for the other tests...
+    init_index_vector(&real_naive, 10);
+    border_search(string, pattern, &real_naive);
+    printf("border naive:\n");
+    for (int i = 0; i < real_naive.used; ++i) {
+        printf("%d ", index_vector_get(&real_naive, i));
+    }
+    printf("\n");
+    assert(index_vector_equal(&real_naive, naive));
+    dealloc_vector(&real_naive);
+
+    init_index_vector(&real_naive, 10);
+    kmp_search(string, pattern, &real_naive);
+    printf("kmp naive:\n");
+    for (int i = 0; i < real_naive.used; ++i) {
+        printf("%d ", index_vector_get(&real_naive, i));
+    }
+    printf("\n");
+    assert(index_vector_equal(&real_naive, naive));
+    dealloc_vector(&real_naive);
+
+    init_index_vector(&real_naive, 10);
+    bmh_search(string, pattern, &real_naive);
+    printf("bmh naive:\n");
+    for (int i = 0; i < real_naive.used; ++i) {
+        printf("%d ", index_vector_get(&real_naive, i));
+    }
+    printf("\n");
+    assert(index_vector_equal(&real_naive, naive));
+    dealloc_vector(&real_naive);
+
+    
     printf("border algorithm.\n");
     struct border_match_iter border_iter;
     iter_test(

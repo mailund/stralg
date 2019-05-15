@@ -2,6 +2,9 @@
 #ifndef ERROR_H
 #define ERROR_H
 
+/**
+ List of error codes for all the various functions.
+ */
 enum error_codes {
     NO_ERROR,
     

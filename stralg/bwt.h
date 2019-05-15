@@ -99,7 +99,7 @@ struct bwt_table *alloc_bwt_table(struct suffix_array *sa,
  Deallocate resources held by a table.
  
  This function deallocates the resources exclusively held
- by the table, i.e. the O and the C table. It does not
+ by the table, i.e., the O and the C table. It does not
  deallocate the remap table nor the suffix array. For that,
  you need to use dealloc_complete
  */
@@ -184,9 +184,9 @@ struct bwt_exact_match {
  @param remapped_pattern The pattern to search for. It must be
  remapped with the remap table that the bwt_table holds.
  */
-void init_bwt_exact_match_iter   (struct bwt_exact_match_iter *iter,
-                                  struct bwt_table            *bwt_table,
-                                  const char                  *remapped_pattern);
+void init_bwt_exact_match_iter(struct bwt_exact_match_iter *iter,
+                               struct bwt_table            *bwt_table,
+                               const char                  *remapped_pattern);
 /**
  Gets the next match.
  
@@ -200,8 +200,8 @@ void init_bwt_exact_match_iter   (struct bwt_exact_match_iter *iter,
  @return If there is a match, it will return true. If there are no more
  matches, it will return false.
  */
-bool next_bwt_exact_match_iter   (struct bwt_exact_match_iter *iter,
-                                  struct bwt_exact_match      *match);
+bool next_bwt_exact_match_iter(struct bwt_exact_match_iter *iter,
+                               struct bwt_exact_match      *match);
 /**
  Deallocate the resources held by an iterator.
  
