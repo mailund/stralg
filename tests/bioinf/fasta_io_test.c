@@ -87,6 +87,7 @@ int main(int argc, const char **argv)
         line_length = 39;
         outfile = fopen("test-data/ref.out.fa", "w");
     } else if (argc != 4) {
+        // LCOV_EXCL_START
         fprintf(stderr,
                 "This program takes three argument, "
                 "a fasta file, the line length for the "
@@ -96,18 +97,23 @@ int main(int argc, const char **argv)
         fastafn = argv[1];
         line_length = atoi(argv[2]);
         outfile = fopen(argv[3], "w");
+        // LCOV_EXCL_STOP
     }
     
     if (!outfile) {
+        // LCOV_EXCL_START
         fprintf(stderr, "couldn't open output file.\n");
         return EXIT_FAILURE;
+        // LCOV_EXCL_STOP
     }
     
     enum error_codes err;
     struct fasta_records *records = load_fasta_records(fastafn, &err);
     if (err != NO_ERROR) {
+        // LCOV_EXCL_START
         fprintf(stderr, "Couldn't read fasta file %s\n", fastafn);
         return EXIT_FAILURE;
+        // LCOV_EXCL_STOP
     }
     
     struct record_link *list = 0;
