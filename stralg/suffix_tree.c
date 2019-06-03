@@ -166,14 +166,11 @@ struct suffix_tree *naive_suffix_tree(const char *string)
 static void append_child(struct suffix_tree_node *v, struct suffix_tree_node *w)
 {
     struct suffix_tree_node *child = v->child;
-    if (child == 0) {
-        v->child = w;
-    } else {
-        while (child->sibling) {
-            child = child->sibling;
-        }
-        child->sibling = w;
+    assert(child != 0); // all inner nodes should have at least one child
+    while (child->sibling) {
+        child = child->sibling;
     }
+    child->sibling = w;
     w->parent = v;
 }
 
