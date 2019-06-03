@@ -342,22 +342,22 @@ int main(int argc, char **argv)
     uint32_t no_edits = sizeof(edits) / sizeof(*edits);
 
     if (argc == 3) {
+        // LCOV_EXCL_START
         const char *pattern = argv[1];
         const char *fname = argv[2];
         
         char *string = load_file(fname);
         printf("did I get this far?\n");
         if (!string) {
-            // LCOV_EXCL_START
             printf("Couldn't read file %s\n", fname);
             return EXIT_FAILURE;
-            // LCOV_EXCL_STOP
         }
         
         for (uint32_t k = 0; k < no_edits; ++k)
             test_matching(pattern, string, edits[k]);
         
         free(string);
+        // LCOV_EXCL_STOP
     } else {
 
         char *strings[] = {
@@ -376,8 +376,6 @@ int main(int argc, char **argv)
         for (uint32_t i = 0; i < no_patterns; ++i) {
             for (uint32_t j = 0; j < no_strings; ++j) {
                 for (uint32_t k = 0; k < no_edits; ++k) {
-//                    printf("\n\n%s in %s [%d]\n", patterns[i], strings[j], edits[k]);
-//                    printf("=======================================\n\n");
                     test_matching(patterns[i], strings[j], edits[k]);
 
                 }
