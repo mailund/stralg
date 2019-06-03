@@ -27,7 +27,8 @@ static char *cigar_alignment_internal(const char *cigar,
                                       const char *matched_seq,
                                       const signed char *tbl,
                                       char *pattern_buffer,
-                                      char *match_buffer)
+                                      char *match_buffer,
+                                      enum error_codes *err)
 {
     int count;
     char op;
@@ -35,8 +36,10 @@ static char *cigar_alignment_internal(const char *cigar,
         int no_chars_scanned;
         int matched_tokens =
         sscanf(cigar, "%d%c%n", &count, &op, &no_chars_scanned);
-        if (matched_tokens != 2)
-            break;
+        if (matched_tokens != 2) {
+            if (err) *err = MALFORMED_CIGAR;
+            return 0;
+        }
         cigar += no_chars_scanned;
         switch (op) {
             case '=':
@@ -70,7 +73,7 @@ static char *cigar_alignment_internal(const char *cigar,
                 break;
                 
             default:
-                fprintf(stderr, "Unknown CIGAR code '%c'\n", op);
+                if (err) *err = MALFORMED_CIGAR;
                 return 0;
         }
     }
@@ -82,11 +85,13 @@ static char *cigar_alignment_internal(const char *cigar,
 
 char *cigar_alignment(const char *cigar, const char *pattern,
                       const char *matched_seq,
-                      char *pattern_buffer, char *match_buffer)
+                      char *pattern_buffer, char *match_buffer,
+                      enum error_codes *err)
 {
     return cigar_alignment_internal(cigar, pattern, matched_seq,
                                     0, // identity map
-                                    pattern_buffer, match_buffer);
+                                    pattern_buffer, match_buffer,
+                                    err);
 }
 
 char *remapped_cigar_alignment(const char *cigar,
@@ -94,9 +99,11 @@ char *remapped_cigar_alignment(const char *cigar,
                                const char *matched_seq,
                                const struct remap_table *tbl,
                                char *pattern_buffer,
-                               char *match_buffer)
+                               char *match_buffer,
+                               enum error_codes *err)
 {
     return cigar_alignment_internal(cigar, pattern, matched_seq,
                                     tbl->rev_table,
-                                    pattern_buffer, match_buffer);
+                                    pattern_buffer, match_buffer,
+                                    err);
 }

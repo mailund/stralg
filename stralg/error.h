@@ -15,7 +15,10 @@ enum error_codes {
     // Comparisons
     SUFFIX_ARRAYS_DIFFER,
     REMAP_TABLES_DIFFER,
-    BWT_TABLES_DIFFER
+    BWT_TABLES_DIFFER,
+    
+    // Format errors
+    MALFORMED_CIGAR
 };
 
 #endif

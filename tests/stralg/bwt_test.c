@@ -98,11 +98,11 @@ int main(int argc, char **argv)
     printf("file name: %s\n", fname);
     write_bwt_table_fname(fname, &bwt_table);
     
-    struct bwt_table *other_table = read_bwt_table_fname(fname, sa, &remap_table);
+    struct bwt_table *another_table = read_bwt_table_fname(fname, sa, &remap_table);
 
-    assert(equivalent_bwt_tables(&bwt_table, other_table));
+    assert(equivalent_bwt_tables(&bwt_table, another_table));
     
-    free_bwt_table(other_table);
+    free_bwt_table(another_table);
     
     struct bwt_table *bwt_ptr = alloc_bwt_table(sa, &remap_table);
     test_expected(bwt_ptr);

@@ -2,7 +2,9 @@
 #ifndef CIGAR_H
 #define CIGAR_H
 
+#include <error.h>
 #include <remap.h>
+
 #include <stdint.h>
 
 /**
@@ -41,7 +43,8 @@ void correct_cigar(char *to, const char *from);
  */
 char *cigar_alignment(const char *cigar, const char *pattern,
                       const char *matched_seq,
-                      char *pattern_buffer, char *match_buffer);
+                      char *pattern_buffer, char *match_buffer,
+                      enum error_codes *err);
 
 /**
  Build an alignment from remapped strings.
@@ -71,6 +74,7 @@ char *remapped_cigar_alignment(const char *cigar,
                                const char *matched_seq,
                                const struct remap_table *remap_table,
                                char *pattern_buffer,
-                               char *match_buffer);
+                               char *match_buffer,
+                               enum error_codes *err);
 
 #endif

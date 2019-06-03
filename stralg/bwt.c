@@ -570,7 +570,7 @@ void print_bwt_table(struct bwt_table *table)
 }
 
 bool equivalent_bwt_tables(struct bwt_table *table1,
-                          struct bwt_table *table2)
+                           struct bwt_table *table2)
 {
     struct suffix_array *sa1 = table1->sa;
     struct suffix_array *sa2 = table2->sa;
