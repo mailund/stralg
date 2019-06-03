@@ -86,8 +86,8 @@ int main(int argc, const char **argv)
         fastafn = "test-data/ref.fa";
         line_length = 39;
         outfile = fopen("test-data/ref.out.fa", "w");
-    } else if (argc != 4) {
         // LCOV_EXCL_START
+    } else if (argc != 4) {
         fprintf(stderr,
                 "This program takes three argument, "
                 "a fasta file, the line length for the "
