@@ -460,7 +460,7 @@ int main(int argc, char * argv[])
         uint32_t no_strings = sizeof(strings) / sizeof(const char *);
         const char *patterns[] = {
             "aca", "ac", "ca", "a", "c", "acg", "cg", "g",
-            "cgc", "acgc", "aaa"
+            "cgc", "acgc", "aaa", "aaccaac"
         };
         uint32_t no_patterns = sizeof(patterns) / sizeof(const char *);
         

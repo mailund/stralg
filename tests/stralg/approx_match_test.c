@@ -408,7 +408,10 @@ int main(int argc, char **argv)
     printf("no strings: %u\n", no_strings);
     const char *patterns[] = {
         "acg", "ac", "a", "g", "c",
-        "acgc", "aaa"
+        "acgc", "aaa",
+        // last to check what happens when the pattern is
+        // longer than the string
+        "acggc"
     };
     uint32_t no_patterns = sizeof(patterns) / sizeof(const char *);
     
