@@ -21,6 +21,7 @@ struct suffix_tree_node {
     struct suffix_tree_node *parent;
     struct suffix_tree_node *sibling;
     struct suffix_tree_node *child;
+    struct suffix_tree_node *suffix;
 };
 static inline uint32_t edge_length(struct suffix_tree_node *n) {
     return range_length(n->range);
@@ -35,6 +36,9 @@ struct suffix_tree {
 struct suffix_tree *naive_suffix_tree(const char *string);
 struct suffix_tree *lcp_suffix_tree(const char *string,
                                     uint32_t *sa, uint32_t *lcp);
+
+void annotate_suffix_links(struct suffix_tree *st);
+
 
 void free_suffix_tree(struct suffix_tree *st);
 
@@ -69,6 +73,11 @@ void dealloc_st_leaf_iter(
 
 //  Searching
 struct suffix_tree_node *st_search(struct suffix_tree *st, const char *pattern);
+
+// FIXME: make an iterator for a search; or rather
+// make a function that initialises a leaf iterator
+// from a search.
+
 
 
 struct st_approx_frame {
@@ -128,18 +137,15 @@ bool next_st_approx_match(struct st_approx_match_iter *iter,
                           struct st_approx_match *match);
 void dealloc_st_approx_iter(struct st_approx_match_iter *iter);
 
-// FIXME: make an iterator for a search; or rather
-// make a function that initialises a leaf iterator
-// from a search.
 
 uint32_t get_string_depth(struct suffix_tree *st,
-                        struct suffix_tree_node *v);
-void get_edge_label    (struct suffix_tree *st,
-                        struct suffix_tree_node *node,
-                        char *buffer);
-void get_path_string   (struct suffix_tree *st,
-                        struct suffix_tree_node *v,
-                        char *buffer);
+                          struct suffix_tree_node *v);
+void get_edge_label      (struct suffix_tree *st,
+                          struct suffix_tree_node *node,
+                          char *buffer);
+void get_path_string     (struct suffix_tree *st,
+                          struct suffix_tree_node *v,
+                          char *buffer);
 
 
 // Debugging/visualisation help

@@ -19,6 +19,7 @@ new_node(uint32_t from, uint32_t to)
     node->parent = 0;
     node->sibling = 0;
     node->child = 0;
+    node->suffix = 0;
     
     return node;
 }
@@ -108,8 +109,8 @@ static void naive_split_edge(const char *s, struct suffix_tree *st,
     }
 }
 
-void naive_insert(struct suffix_tree *st, uint32_t suffix,
-                  struct suffix_tree_node *v, const char *x)
+static void naive_insert(struct suffix_tree *st, uint32_t suffix,
+                         struct suffix_tree_node *v, const char *x)
 {
     const char *s = st->string;
     
@@ -240,6 +241,74 @@ struct suffix_tree *lcp_suffix_tree(const char *string,
 
     return st;
 }
+
+
+static struct suffix_tree_node * fast_scan(
+                                           struct suffix_tree *st,
+                                           struct suffix_tree_node *v,
+                                           const char *x, const char *xend)
+{
+    // find child that matches *x
+    struct suffix_tree_node * w = find_outgoing_edge(st->string, v, x);
+    assert(w); // must be here when we search for a suffix
+    
+    // jump down the edge
+    const char *new_x = x + w->range.to - w->range.from;
+    assert(new_x <= xend); // we shouldn't be able to jump too far
+    
+    // Found the node we end in
+    if (new_x == xend) {
+        return w; // we are done now
+    }
+    
+    // We made it through the edge, so continue from the next node.
+    // The call is tail-recursive, so the compiler will optimise
+    // it to a loop, at least gcc and LLVM based, so clang as well.
+    return fast_scan(st, w, new_x, xend);
+}
+
+static void set_suffix_links(struct suffix_tree *st,
+                             struct suffix_tree_node *v)
+{
+    // thee cases for a node:
+    // node's parent is the root and the edge has length one
+    if (v->parent == st->root && v->range.to - v->range.from == 1) {
+        // it is a special case because I don't want to deal with
+        // the empty string in find_node()
+        v->suffix = st->root;
+        
+    } else if (v->parent == st->root) {
+        // the edge is longer than one and the parent is the root
+        const char *x = st->string + v->range.from + 1;
+        const char *xend = st->string + v->range.to;
+        v->suffix = fast_scan(st, st->root, x, xend);
+        
+    } else {
+        // the general case
+        const char *x = st->string + v->range.from;
+        const char *xend = st->string + v->range.to;
+        v->suffix = fast_scan(st, v->parent->suffix, x, xend);
+    }
+    
+    // recursion
+    struct suffix_tree_node *child = v->child;
+    while (child) {
+        set_suffix_links(st, child);
+        child = child->sibling;
+    }
+}
+
+void annotate_suffix_links(struct suffix_tree *st)
+{
+    st->root->suffix = st->root;
+    struct suffix_tree_node *child = st->root->child;
+    while (child) {
+        set_suffix_links(st, child);
+        child = child->sibling;
+    }
+}
+
+
 
 #pragma mark free
 
@@ -700,6 +769,10 @@ static void print_out_edges(FILE *f,
                 from, child, label_buffer, child->range.from, child->range.to);
         fprintf(f, "\"%p\" -> \"%p\" [style=\"dashed\"];\n",
                 child, child->parent);
+        if (child->suffix) {
+            fprintf(f, "\"%p\" -> \"%p\" [style=\"dotted\", color=blue];\n",
+                    child, child->suffix);
+        }
         print_out_edges(f, st, child, label_buffer);
         child = child->sibling;
     }
@@ -711,9 +784,13 @@ void st_print_dot(struct suffix_tree *st,
 {
     struct suffix_tree_node *root = n ? n : st->root;
     char buffer[strlen(st->string) + 2]; // + 1 for the sentinel and +1 for '\0' I think
-    
+
     fprintf(file, "digraph {\n");
     fprintf(file, "node[shape=circle];\n");
+    // root special case (rest handled in recursion)
+    if (root->suffix)
+        fprintf(file, "\"%p\" -> \"%p\" [style=\"dotted\", color=blue];\n",
+                root, root->suffix);
     print_out_edges(file, st, root, buffer);
     fprintf(file, "}\n");
 }
