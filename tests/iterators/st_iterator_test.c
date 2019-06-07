@@ -109,11 +109,10 @@ static void search_children(struct search_data *data,
                             char *cigar,
                             const char *p, int edits)
 {
-    struct suffix_tree *st = data->st;
     struct suffix_tree_node *child = v->child;
     while (child) {
-        const char *x = st->string + child->range.from;
-        const char *end = st->string + child->range.to;
+        const char *x = child->range.from;
+        const char *end = child->range.to;
         search_edge(data, child, x, end, p, cigar, edits);
         child = child->sibling;
     }
@@ -205,11 +204,10 @@ static void ld_search_children(struct search_data *data,
                                char *cigar,
                                const char *p, int edits)
 {
-    struct suffix_tree *st = data->st;
     struct suffix_tree_node *child = v->child;
     while (child) {
-        const char *x = st->string + child->range.from;
-        const char *end = st->string + child->range.to;
+        const char *x = child->range.from;
+        const char *end = child->range.to;
         ld_search_edge(data, child, leading, x, end, p, cigar, edits);
         child = child->sibling;
     }

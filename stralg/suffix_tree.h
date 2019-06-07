@@ -6,10 +6,11 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <assert.h>
 
 struct range {
-    uint32_t from;
-    uint32_t to;
+    const char *from;
+    const char *to;
 };
 static inline uint32_t range_length(struct range r) {
     return r.to - r.from;

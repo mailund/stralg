@@ -76,13 +76,13 @@ static void check_suffix_tree(struct suffix_tree *st)
     char buffer[st->length];
     init_st_leaf_iter(&iter, st, st->root);
     while (next_st_leaf(&iter, &res)) {
-//        printf("suffix %2lu: \"%s\"\n",
-//               res.leaf->leaf_label,
-//               st->string + res.leaf->leaf_label);
+        printf("suffix %2u: \"%s\"\n",
+               res.leaf->leaf_label,
+               st->string + res.leaf->leaf_label);
         get_path_string(st, res.leaf, buffer);
-//        printf("suffix path string: %2lu: \"%s\"\n",
-//               res.leaf->leaf_label,
-//               buffer);
+        printf("suffix path string: %2u: \"%s\"\n",
+               res.leaf->leaf_label,
+               buffer);
         assert(strcmp(buffer, st->string + res.leaf->leaf_label) == 0);
     }
     dealloc_st_leaf_iter(&iter);
@@ -99,6 +99,13 @@ int main(int argc, const char **argv)
 {
     const char *string = "mississippi";
     struct suffix_tree *st = naive_suffix_tree(string);
+    
+    printf("Printing tree.\n");
+    FILE *f = fopen("tree.dot", "w");
+    st_print_dot(st, 0, f);
+    fclose(f);
+
+    
     check_suffix_tree(st);
 
     uint32_t sa[st->length];
@@ -124,10 +131,6 @@ int main(int argc, const char **argv)
     
     st = lcp_suffix_tree(string, sa, lcp);
     
-    printf("Printing tree.\n");
-    FILE *f = fopen("tree.dot", "w");
-    st_print_dot(st, 0, f);
-    fclose(f);
     
     
     check_suffix_tree(st);
