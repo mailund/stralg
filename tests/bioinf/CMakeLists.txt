@@ -17,7 +17,7 @@ foreach(test_c ${test_sources})
     )
 endforeach(test_c)
 
-# TESTING!!!
+# -- TESTING ------------------------
 add_test(
     NAME FASTQ-iterator-compare
     COMMAND

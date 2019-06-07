@@ -75,8 +75,8 @@ static void insert_child(struct suffix_tree *st,
 }
 
 static void naive_split_edge(const char *s, struct suffix_tree *st,
-                       uint32_t suffix, struct suffix_tree_node *w,
-                       const char *x)
+                             uint32_t suffix, struct suffix_tree_node *w,
+                             const char *x)
 {
     uint32_t split_point = (uint32_t)(s - st->string);
     struct suffix_tree_node *split = new_node(split_point, w->range.to);
@@ -175,14 +175,17 @@ static void append_child(struct suffix_tree_node *v, struct suffix_tree_node *w)
     w->parent = v;
 }
 
-static void lcp_split_edge(struct suffix_tree_node *v, struct suffix_tree_node *w, uint32_t k)
+static void lcp_split_edge(struct suffix_tree_node *v,
+                           struct suffix_tree_node *w,
+                           uint32_t k)
 {
     uint32_t j = v->range.to;
     struct suffix_tree_node *split_node = new_node(j - k, j);
     split_node->leaf_label = v->leaf_label; // if v is a leaf, we need this
     split_node->child = v->child;
     v->range.to = j - k;
-    v->child = split_node; split_node->parent = v;
+    v->child = split_node;
+    split_node->parent = v;
     split_node->sibling = w; w->parent = v;
     
     // update the original children
@@ -242,9 +245,31 @@ struct suffix_tree *lcp_suffix_tree(const char *string,
     return st;
 }
 
+static struct suffix_tree_node * fast_scan_split_edge(struct suffix_tree *st,
+                                                      const char *x,
+                                                      const char *xend,
+                                                      struct suffix_tree_node *w)
+{
+    uint32_t l = xend - x;
+    uint32_t s = w->range.from;
+    uint32_t t = w->range.to;
+    
+    struct suffix_tree_node *r = new_node(s + l, t);
+    r->parent = w;
+    struct suffix_tree_node *child = w->child;
+    while (child) {
+        child->parent = r;
+        child = child->sibling;
+    }
 
-static struct suffix_tree_node * fast_scan(
-                                           struct suffix_tree *st,
+    w->range.from = st->string - x;
+    w->range.to = st->string - xend;
+    w->child = r;
+    
+    return r;
+}
+
+static struct suffix_tree_node * fast_scan(struct suffix_tree *st,
                                            struct suffix_tree_node *v,
                                            const char *x, const char *xend)
 {
@@ -254,17 +279,20 @@ static struct suffix_tree_node * fast_scan(
     
     // jump down the edge
     const char *new_x = x + w->range.to - w->range.from;
-    assert(new_x <= xend); // we shouldn't be able to jump too far
-    
-    // Found the node we end in
     if (new_x == xend) {
+        // Found the node we should end in
         return w; // we are done now
+    } else if (new_x > xend) {
+        // We stop before we reach the end node, so we
+        // need to split the edge
+        //naive_split_edge(s, st, 0, w, x);
+        return fast_scan_split_edge(st, x, xend, w);
+    } else {
+        // We made it through the edge, so continue from the next node.
+        // The call is tail-recursive, so the compiler will optimise
+        // it to a loop, at least gcc and LLVM based, so clang as well.
+        return fast_scan(st, w, new_x, xend);
     }
-    
-    // We made it through the edge, so continue from the next node.
-    // The call is tail-recursive, so the compiler will optimise
-    // it to a loop, at least gcc and LLVM based, so clang as well.
-    return fast_scan(st, w, new_x, xend);
 }
 
 static void set_suffix_links(struct suffix_tree *st,
@@ -762,7 +790,11 @@ static void print_out_edges(FILE *f,
     }
     
     // inner node
-    fprintf(f, "\"%p\" [shape=point];\n", from);
+    if (from == st->root)
+        fprintf(f, "\"%p\" [shape=point, size=5, color=red];\n", from);
+    else
+        fprintf(f, "\"%p\" [shape=point];\n", from);
+    
     while (child) {
         get_edge_label(st, child, label_buffer);
         fprintf(f, "\"%p\" -> \"%p\" [label=\"%s (%u,%u)\"];\n",

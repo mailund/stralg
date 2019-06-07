@@ -46,11 +46,9 @@ static void check_suffix_tree_annotation(const char *string)
 {
     struct suffix_tree *st = naive_suffix_tree(string);
     annotate_suffix_links(st);
-    
-#if 0
+
+    // mostly print to get the printing code in the coverage.
     st_print_dot_name(st, st->root, "tree.dot");
-#endif
-    
     compare_suffix_path_labels(st, st->root);
     
     free_suffix_tree(st);
@@ -63,6 +61,7 @@ int main(int argc, const char **argv)
     check_suffix_tree_annotation("mississippi");
     check_suffix_tree_annotation("aaaaaaaaaaaaa");
     check_suffix_tree_annotation("abababababab");
+    check_suffix_tree_annotation("abbabb");
     
     return EXIT_SUCCESS;
 }
