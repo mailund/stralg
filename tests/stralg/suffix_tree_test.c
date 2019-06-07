@@ -73,7 +73,7 @@ static void check_suffix_tree(struct suffix_tree *st)
         assert(indices->data[i].data.index == expected[i]);
     }
     
-    char buffer[st->length];
+    char buffer[st->length + 1];
     init_st_leaf_iter(&iter, st, st->root);
     while (next_st_leaf(&iter, &res)) {
 //        printf("suffix %2lu: \"%s\"\n",

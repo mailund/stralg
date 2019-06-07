@@ -375,7 +375,7 @@ void get_path_string(struct suffix_tree *st,
 {
     uint32_t offset = get_string_depth(st, v);
     
-    char edge_buffer[st->length + 1];
+    char edge_buffer[st->length + 1]; // need this?
     char *s = buffer + offset; *s = 0;
     // We need *s = 0 for inner nodes. Leaves
     // have paths that are '\0' terminated, so
@@ -386,7 +386,7 @@ void get_path_string(struct suffix_tree *st,
         uint32_t n = range_length(v->range);
         s -= n;
         strncpy(s, st->string + v->range.from, n);
-        get_edge_label(st, v, edge_buffer);
+        get_edge_label(st, v, edge_buffer); // need this?
         
         v = v->parent;
     }
