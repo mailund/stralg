@@ -8,22 +8,37 @@
 
 #pragma helpers
 
+static void check_nodes(struct suffix_tree *st, struct suffix_tree_node *v)
+{
+    if (v->parent != v) { // not the root
+        assert(v->range.from >= st->string);
+        assert(v->range.from < st->string + st->length);
+        assert(v->range.to > st->string);
+        assert(v->range.to <= st->string + st->length);
+        assert(v->range.to > v->range.from);
+    }
+    struct suffix_tree_node *w = v->child;
+    while (w) {
+        check_nodes(st, w);
+        w = w->sibling;
+    }
+}
+
+
 static struct suffix_tree_node *
 new_node(const char *from, const char *to)
 {
-    struct suffix_tree_node *node = malloc(sizeof(struct suffix_tree_node));
+    struct suffix_tree_node *v = malloc(sizeof(struct suffix_tree_node));
     
-    node->leaf_label = 0;
-    node->range.from = from;
-    node->range.to = to;
-    node->parent = 0;
-    node->sibling = 0;
-    node->child = 0;
-    node->suffix = 0;
+    v->leaf_label = 0;
+    v->range.from = from;
+    v->range.to = to;
+    v->parent = 0;
+    v->sibling = 0;
+    v->child = 0;
+    v->suffix = 0;
     
-    printf("new node %p with edge length %u\n", node, edge_length(node));
-    
-    return node;
+    return v;
 }
 
 void free_node(struct suffix_tree_node *node)
@@ -80,6 +95,12 @@ static void naive_split_edge(const char *s, struct suffix_tree *st,
                              uint32_t suffix, struct suffix_tree_node *w,
                              const char *x)
 {
+    assert(w->range.from >= st->string);
+    assert(w->range.from < st->string + st->length);
+    assert(w->range.to > st->string);
+    assert(w->range.to <= st->string + st->length);
+    assert(w->range.to > w->range.from);
+
     struct suffix_tree_node *split = new_node(s, w->range.to);
     split->leaf_label = w->leaf_label; // in case w was a leaf
     
@@ -108,23 +129,6 @@ static void naive_split_edge(const char *s, struct suffix_tree *st,
         w->child = leaf;
         leaf->sibling = split;
     }
-    
-    printf("split edge, the first has length %u\n", edge_length(w));
-    printf("  the next has length %u\n", edge_length(split));
-    
-    if (w->parent != w) { // not the root
-        assert(w->range.from >= st->string);
-        assert(w->range.from < st->string + st->length);
-        assert(w->range.to > st->string);
-        assert(w->range.to <= st->string + st->length);
-        assert(w->range.to > w->range.from);
-    }
-    assert(split->range.from >= st->string);
-    assert(split->range.from < st->string + st->length);
-    assert(split->range.to > st->string);
-    assert(split->range.to <= st->string + st->length);
-    assert(split->range.to > split->range.from);
-
 }
 
 static void naive_insert(struct suffix_tree *st, uint32_t suffix,
@@ -140,8 +144,6 @@ static void naive_insert(struct suffix_tree *st, uint32_t suffix,
         insert_child(st, suffix, v, x);
         
     } else {
-        printf("searching along edge %p (length %u)\n", w, range_length(w->range));
-        
         // we have an edge to follow!
         const char *s = w->range.from;
         const char *t = w->range.to;
@@ -385,10 +387,17 @@ void get_edge_label(struct suffix_tree *st,
 
 uint32_t get_string_depth(struct suffix_tree *st, struct suffix_tree_node *v)
 {
+    if (v->parent != v) { // not the root
+        assert(v->range.from >= st->string);
+        assert(v->range.from < st->string + st->length);
+        assert(v->range.to > st->string);
+        assert(v->range.to <= st->string + st->length);
+        assert(v->range.to > v->range.from);
+    }
+
     uint32_t depth = 0;
     while (v->parent != v) {
         depth += range_length(v->range);
-        depth2 += v->range.to - v->range.from;
         printf("v == %p ", v);
         printf("depth is now %u\n", depth);
         v = v->parent;
@@ -396,30 +405,12 @@ uint32_t get_string_depth(struct suffix_tree *st, struct suffix_tree_node *v)
     return depth;
 }
 
+
 void get_path_string(struct suffix_tree *st,
                      struct suffix_tree_node *v,
                      char *buffer)
 {
-    // disable these again
-    if (v->parent != v) { // not the root
-        assert(v->range.from >= st->string);
-        assert(v->range.from < st->string + st->length);
-        assert(v->range.to > st->string);
-        assert(v->range.to <= st->string + st->length);
-        assert(v->range.to > v->range.from);
-    }
-    
     uint32_t offset = get_string_depth(st, v);
-    
-    // disable these again
-    if (v->parent != v) { // not the root
-        assert(v->range.from >= st->string);
-        assert(v->range.from < st->string + st->length);
-        assert(v->range.to > st->string);
-        assert(v->range.to <= st->string + st->length);
-        assert(v->range.to > v->range.from);
-    }
-
 
     char edge_buffer[st->length + 1];
     char *s = buffer + offset; *s = 0;
