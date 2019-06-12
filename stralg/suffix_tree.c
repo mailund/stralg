@@ -58,7 +58,7 @@ inline static char out_letter(struct suffix_tree *st, struct suffix_tree_node *v
 #pragma mark naive suffix tree construction
 
 static struct suffix_tree_node *
-find_outgoing_edge(const char *s, struct suffix_tree_node *v, const char *x)
+find_outgoing_edge(struct suffix_tree_node *v, const char *x)
 {
     struct suffix_tree_node *w = v->child;
     while (w) {
@@ -143,10 +143,8 @@ static void naive_insert(struct suffix_tree *st, uint32_t suffix,
         assert(v->range.to > v->range.from);
     }
 
-    const char *s = st->string;
-    
     // find child that matches *x
-    struct suffix_tree_node * w = find_outgoing_edge(s, v, x);
+    struct suffix_tree_node * w = find_outgoing_edge(v, x);
     
     if (!w) {
         // there is no outgoing edge that matches so we must insert here
@@ -278,8 +276,7 @@ struct suffix_tree *lcp_suffix_tree(const char *string,
     return st;
 }
 
-static struct suffix_tree_node * fast_scan_split_edge(struct suffix_tree *st,
-                                                      const char *x,
+static struct suffix_tree_node * fast_scan_split_edge(const char *x,
                                                       const char *xend,
                                                       struct suffix_tree_node *w)
 {
@@ -308,7 +305,7 @@ static struct suffix_tree_node * fast_scan(struct suffix_tree *st,
                                            const char *x, const char *xend)
 {
     // find child that matches *x
-    struct suffix_tree_node * w = find_outgoing_edge(st->string, v, x);
+    struct suffix_tree_node * w = find_outgoing_edge(v, x);
     assert(w); // must be here when we search for a suffix
     
     // jump down the edge
@@ -320,7 +317,7 @@ static struct suffix_tree_node * fast_scan(struct suffix_tree *st,
         // We stop before we reach the end node, so we
         // need to split the edge
         //naive_split_edge(s, st, 0, w, x);
-        return fast_scan_split_edge(st, x, xend, w);
+        return fast_scan_split_edge(x, xend, w);
     } else {
         // We made it through the edge, so continue from the next node.
         // The call is tail-recursive, so the compiler will optimise
