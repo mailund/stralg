@@ -49,7 +49,7 @@ void free_node(struct suffix_tree_node *node)
     free(node);
 }
 
-inline static char out_letter(struct suffix_tree *st, struct suffix_tree_node *v)
+inline static char out_letter(struct suffix_tree_node *v)
 {
     assert(v != 0);
     return *(v->range.from);
@@ -79,13 +79,13 @@ static void insert_child(struct suffix_tree *st,
     leaf->parent = v;
     
     struct suffix_tree_node *p = v->child;
-    if (*x < out_letter(st, p)) { // special case for the first child
+    if (*x < out_letter(p)) { // special case for the first child
         leaf->sibling = v->child;
         v->child = leaf;
     } else {
         // find p such that it is the last chain with an outgoing
         // edge that is larger than the new
-        while (p->sibling && *x > out_letter(st, p->sibling))
+        while (p->sibling && *x > out_letter(p->sibling))
             p = p->sibling;
         leaf->sibling = p->sibling;
         p->sibling = leaf;
@@ -121,8 +121,8 @@ static void naive_split_edge(const char *s, struct suffix_tree *st,
     leaf->parent = w;
     
     // get the children in the right (lex) order.
-    char split_letter = out_letter(st, split);
-    char leaf_letter = out_letter(st, leaf);
+    char split_letter = out_letter(split);
+    char leaf_letter = out_letter(leaf);
     if (split_letter < leaf_letter) {
         w->child = split;
         split->sibling = leaf;
@@ -323,6 +323,14 @@ static struct suffix_tree_node * fast_scan(struct suffix_tree_node *v,
         // it to a loop, at least gcc and LLVM based, so clang as well.
         return fast_scan(w, new_x, xend);
     }
+}
+
+#warning Implement this
+static struct suffix_tree_node *slow_scan(struct suffix_tree_node *v,
+                                          const char *x, const char *xend,
+                                          const char **final_match)
+{
+    return 0;
 }
 
 static void set_suffix_links(struct suffix_tree *st,
