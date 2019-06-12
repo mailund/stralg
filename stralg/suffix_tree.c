@@ -8,20 +8,38 @@
 
 #pragma helpers
 
-static struct suffix_tree_node *
-new_node(uint32_t from, uint32_t to)
+/*
+static void check_nodes(struct suffix_tree *st, struct suffix_tree_node *v)
 {
-    struct suffix_tree_node *node = malloc(sizeof(struct suffix_tree_node));
+    if (v->parent != v) { // not the root
+        assert(v->range.from >= st->string);
+        assert(v->range.from < st->string + st->length);
+        assert(v->range.to > st->string);
+        assert(v->range.to <= st->string + st->length);
+        assert(v->range.to > v->range.from);
+    }
+    struct suffix_tree_node *w = v->child;
+    while (w) {
+        check_nodes(st, w);
+        w = w->sibling;
+    }
+}
+*/
+
+static struct suffix_tree_node *
+new_node(const char *from, const char *to)
+{
+    struct suffix_tree_node *v = malloc(sizeof(struct suffix_tree_node));
     
-    node->leaf_label = 0;
-    node->range.from = from;
-    node->range.to = to;
-    node->parent = 0;
-    node->sibling = 0;
-    node->child = 0;
-    node->suffix = 0;
+    v->leaf_label = 0;
+    v->range.from = from;
+    v->range.to = to;
+    v->parent = 0;
+    v->sibling = 0;
+    v->child = 0;
+    v->suffix = 0;
     
-    return node;
+    return v;
 }
 
 void free_node(struct suffix_tree_node *node)
@@ -34,7 +52,7 @@ void free_node(struct suffix_tree_node *node)
 inline static char out_letter(struct suffix_tree *st, struct suffix_tree_node *v)
 {
     assert(v != 0);
-    return st->string[v->range.from];
+    return *(v->range.from);
 }
 
 #pragma mark naive suffix tree construction
@@ -44,7 +62,7 @@ find_outgoing_edge(const char *s, struct suffix_tree_node *v, const char *x)
 {
     struct suffix_tree_node *w = v->child;
     while (w) {
-        if (s[w->range.from] == *x) break;
+        if (*(w->range.from) == *x) break;
         w = w->sibling;
     }
     return w;
@@ -56,7 +74,7 @@ static void insert_child(struct suffix_tree *st,
                          struct suffix_tree_node *v,
                          const char *x)
 {
-    struct suffix_tree_node *leaf = new_node((uint32_t)(x - st->string), st->length);
+    struct suffix_tree_node *leaf = new_node(x, st->string + st->length);
     leaf->leaf_label = suffix;
     leaf->parent = v;
     
@@ -78,11 +96,16 @@ static void naive_split_edge(const char *s, struct suffix_tree *st,
                              uint32_t suffix, struct suffix_tree_node *w,
                              const char *x)
 {
-    uint32_t split_point = (uint32_t)(s - st->string);
-    struct suffix_tree_node *split = new_node(split_point, w->range.to);
+    assert(w->range.from >= st->string);
+    assert(w->range.from < st->string + st->length);
+    assert(w->range.to > st->string);
+    assert(w->range.to <= st->string + st->length);
+    assert(w->range.to > w->range.from);
+
+    struct suffix_tree_node *split = new_node(s, w->range.to);
     split->leaf_label = w->leaf_label; // in case w was a leaf
     
-    w->range.to = split_point;
+    w->range.to = s;
     split->child = w->child;
     split->parent = w;
 
@@ -93,7 +116,7 @@ static void naive_split_edge(const char *s, struct suffix_tree *st,
         child = child->sibling;
     }
     
-    struct suffix_tree_node *leaf = new_node((uint32_t)(x - st->string), st->length);
+    struct suffix_tree_node *leaf = new_node(x, st->string + st->length);
     leaf->leaf_label = suffix;
     leaf->parent = w;
     
@@ -112,6 +135,14 @@ static void naive_split_edge(const char *s, struct suffix_tree *st,
 static void naive_insert(struct suffix_tree *st, uint32_t suffix,
                          struct suffix_tree_node *v, const char *x)
 {
+    if (v->parent != v) {
+        assert(v->range.from >= st->string);
+        assert(v->range.from < st->string + st->length);
+        assert(v->range.to > st->string);
+        assert(v->range.to <= st->string + st->length);
+        assert(v->range.to > v->range.from);
+    }
+
     const char *s = st->string;
     
     // find child that matches *x
@@ -122,9 +153,10 @@ static void naive_insert(struct suffix_tree *st, uint32_t suffix,
         insert_child(st, suffix, v, x);
         
     } else {
+        
         // we have an edge to follow!
-        const char *s = st->string + w->range.from;
-        const char *t = st->string + w->range.to;
+        const char *s = w->range.from;
+        const char *t = w->range.to;
         for (; s != t; ++s, ++x) {
             if (*s != *x) {
                 naive_split_edge(s, st, suffix, w, x);
@@ -154,7 +186,7 @@ struct suffix_tree *naive_suffix_tree(const char *string)
     // for the first suffix otherwise,
     // and I don't want to deal with that
     // in the rest of the code.
-    struct suffix_tree_node *first = new_node(0, slen + 1);
+    struct suffix_tree_node *first = new_node(st->string, st->string + slen + 1);
     st->root->child = first;
     first->parent = st->root;
     for (uint32_t i = 1; i < slen + 1; ++i) {
@@ -175,15 +207,16 @@ static void append_child(struct suffix_tree_node *v, struct suffix_tree_node *w)
     w->parent = v;
 }
 
-static void lcp_split_edge(struct suffix_tree_node *v,
+static void lcp_split_edge(struct suffix_tree *st,
+                           struct suffix_tree_node *v,
                            struct suffix_tree_node *w,
                            uint32_t k)
 {
-    uint32_t j = v->range.to;
-    struct suffix_tree_node *split_node = new_node(j - k, j);
+    uint32_t j = v->range.to - st->string;
+    struct suffix_tree_node *split_node = new_node(st->string + j - k, st->string + j);
     split_node->leaf_label = v->leaf_label; // if v is a leaf, we need this
     split_node->child = v->child;
-    v->range.to = j - k;
+    v->range.to = st->string + j - k;
     v->child = split_node;
     split_node->parent = v;
     split_node->sibling = w; w->parent = v;
@@ -202,7 +235,7 @@ lcp_insert(struct suffix_tree *st,
            uint32_t *sa, uint32_t *lcp,
            struct suffix_tree_node *v)
 {
-    struct suffix_tree_node *new_leaf = new_node(sa[i] + lcp[i], st->length);
+    struct suffix_tree_node *new_leaf = new_node(st->string + sa[i] + lcp[i], st->string + st->length);
     new_leaf->leaf_label = sa[i];
     uint32_t length_up = st->length - sa[i-1] - lcp[i];
     uint32_t v_edge_len = range_length(v->range);
@@ -215,7 +248,7 @@ lcp_insert(struct suffix_tree *st,
     if (length_up == 0) {
         append_child(v, new_leaf);
     } else {
-        lcp_split_edge(v, new_leaf, length_up);
+        lcp_split_edge(st, v, new_leaf, length_up);
     }
     
     return new_leaf;
@@ -229,11 +262,11 @@ struct suffix_tree *lcp_suffix_tree(const char *string,
     uint32_t slen = (uint32_t)strlen(string);
     st->length = slen + 1; // I am using '\0' as sentinel
     
-    st->root = new_node(0, 0);
+    st->root = new_node(st->string, st->string);
     st->root->parent = st->root;
     
     uint32_t first_label = sa[0];
-    struct suffix_tree_node *v = new_node(first_label, slen + 1);
+    struct suffix_tree_node *v = new_node(st->string + sa[0], st->string + slen + 1);
     v->leaf_label = first_label;
     st->root->child = v;
     v->parent = st->root;
@@ -251,8 +284,9 @@ static struct suffix_tree_node * fast_scan_split_edge(struct suffix_tree *st,
                                                       struct suffix_tree_node *w)
 {
     uint32_t l = xend - x;
-    uint32_t s = w->range.from;
-    uint32_t t = w->range.to;
+    const char *s = w->range.from;
+    const char *t = w->range.to;
+    
     
     struct suffix_tree_node *r = new_node(s + l, t);
     r->parent = w;
@@ -262,8 +296,8 @@ static struct suffix_tree_node * fast_scan_split_edge(struct suffix_tree *st,
         child = child->sibling;
     }
 
-    w->range.from = st->string - x;
-    w->range.to = st->string - xend;
+    w->range.from = x;
+    w->range.to = xend;
     w->child = r;
     
     return r;
@@ -278,7 +312,7 @@ static struct suffix_tree_node * fast_scan(struct suffix_tree *st,
     assert(w); // must be here when we search for a suffix
     
     // jump down the edge
-    const char *new_x = x + w->range.to - w->range.from;
+    const char *new_x = x + range_length(w->range);
     if (new_x == xend) {
         // Found the node we should end in
         return w; // we are done now
@@ -300,21 +334,21 @@ static void set_suffix_links(struct suffix_tree *st,
 {
     // thee cases for a node:
     // node's parent is the root and the edge has length one
-    if (v->parent == st->root && v->range.to - v->range.from == 1) {
+    if (v->parent == st->root && range_length(v->range) == 1) {
         // it is a special case because I don't want to deal with
         // the empty string in find_node()
         v->suffix = st->root;
         
     } else if (v->parent == st->root) {
         // the edge is longer than one and the parent is the root
-        const char *x = st->string + v->range.from + 1;
-        const char *xend = st->string + v->range.to;
+        const char *x = v->range.from + 1;
+        const char *xend = v->range.to;
         v->suffix = fast_scan(st, st->root, x, xend);
         
     } else {
         // the general case
-        const char *x = st->string + v->range.from;
-        const char *xend = st->string + v->range.to;
+        const char *x = v->range.from;
+        const char *xend = v->range.to;
         v->suffix = fast_scan(st, v->parent->suffix, x, xend);
     }
     
@@ -355,12 +389,20 @@ void get_edge_label(struct suffix_tree *st,
                     char *buffer)
 {
     uint32_t n = range_length(node->range);
-    strncpy(buffer, st->string + node->range.from, n);
+    strncpy(buffer, node->range.from, n);
     buffer[n] = '\0';
 }
 
 uint32_t get_string_depth(struct suffix_tree *st, struct suffix_tree_node *v)
 {
+    if (v->parent != v) { // not the root
+        assert(v->range.from >= st->string);
+        assert(v->range.from < st->string + st->length);
+        assert(v->range.to > st->string);
+        assert(v->range.to <= st->string + st->length);
+        assert(v->range.to > v->range.from);
+    }
+
     uint32_t depth = 0;
     while (v->parent != v) {
         depth += range_length(v->range);
@@ -369,13 +411,14 @@ uint32_t get_string_depth(struct suffix_tree *st, struct suffix_tree_node *v)
     return depth;
 }
 
+
 void get_path_string(struct suffix_tree *st,
                      struct suffix_tree_node *v,
                      char *buffer)
 {
     uint32_t offset = get_string_depth(st, v);
-    
-    char edge_buffer[st->length + 1]; // need this?
+
+    char edge_buffer[st->length + 1];
     char *s = buffer + offset; *s = 0;
     // We need *s = 0 for inner nodes. Leaves
     // have paths that are '\0' terminated, so
@@ -385,8 +428,8 @@ void get_path_string(struct suffix_tree *st,
     while (v->parent != v) {
         uint32_t n = range_length(v->range);
         s -= n;
-        strncpy(s, st->string + v->range.from, n);
-        get_edge_label(st, v, edge_buffer); // need this?
+        strncpy(s, v->range.from, n);
+        get_edge_label(st, v, edge_buffer);
         
         v = v->parent;
     }
@@ -482,14 +525,14 @@ static struct suffix_tree_node *st_search_internal(struct suffix_tree *st,
         // We might be able to exploit that the lists are sorted
         // but it requires lookups in the string, so it might not be
         // worthwhile.
-        if (st->string[w->range.from] == *x) break;
+        if (*(w->range.from) == *x) break;
         w = w->sibling;
     }
     if (!w) return 0; // the pattern is not here.
 
     // we have an edge to follow!
-    const char *s = st->string + w->range.from;
-    const char *t = st->string + w->range.to;
+    const char *s = w->range.from;
+    const char *t = w->range.to;
     for (; s != t; ++s, ++x) {
         if (*x == '\0') return w; // end of the pattern
         if (*s != *x)   return 0; // mismatch
@@ -562,8 +605,8 @@ static void push_children(struct internal_st_approx_iter *iter,
 {
     struct suffix_tree_node *child = v->child;
     while (child) {
-        const char *x = st->string + child->range.from;
-        const char *end = st->string + child->range.to;
+        const char *x = child->range.from;
+        const char *end = child->range.to;
         push_frame(&iter->sentinel, child,
                    leading,
                    x, end, match_depth,
@@ -797,8 +840,10 @@ static void print_out_edges(FILE *f,
     
     while (child) {
         get_edge_label(st, child, label_buffer);
+        uint32_t from_idx = child->range.from - st->string;
+        uint32_t to_idx = child->range.to - st->string;
         fprintf(f, "\"%p\" -> \"%p\" [label=\"%s (%u,%u)\"];\n",
-                from, child, label_buffer, child->range.from, child->range.to);
+                from, child, label_buffer, from_idx, to_idx);
         fprintf(f, "\"%p\" -> \"%p\" [style=\"dashed\"];\n",
                 child, child->parent);
         if (child->suffix) {

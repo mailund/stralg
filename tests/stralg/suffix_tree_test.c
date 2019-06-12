@@ -6,6 +6,23 @@
 #include <stdio.h>
 #include <string.h>
 
+static void check_nodes(struct suffix_tree *st, struct suffix_tree_node *v)
+{
+    if (v->parent != v) { // not the root
+        assert(v->range.from >= st->string);
+        assert(v->range.from < st->string + st->length);
+        assert(v->range.to > st->string);
+        assert(v->range.to <= st->string + st->length);
+        assert(v->range.to > v->range.from);
+    }
+    struct suffix_tree_node *w = v->child;
+    while (w) {
+        check_nodes(st, w);
+        w = w->sibling;
+    }
+}
+
+
 static void check_parent_pointers(struct suffix_tree_node *v)
 {
     struct suffix_tree_node *w = v->child;
@@ -73,16 +90,21 @@ static void check_suffix_tree(struct suffix_tree *st)
         assert(indices->data[i].data.index == expected[i]);
     }
     
+    int xx = 0;
     char buffer[st->length + 1];
     init_st_leaf_iter(&iter, st, st->root);
     while (next_st_leaf(&iter, &res)) {
-//        printf("suffix %2lu: \"%s\"\n",
-//               res.leaf->leaf_label,
-//               st->string + res.leaf->leaf_label);
+        
+        printf("checking in iteration %d\n", xx);
+        check_nodes(st, st->root);
+        
+        printf("suffix %2u: \"%s\"\n",
+               res.leaf->leaf_label,
+               st->string + res.leaf->leaf_label);
         get_path_string(st, res.leaf, buffer);
-//        printf("suffix path string: %2lu: \"%s\"\n",
-//               res.leaf->leaf_label,
-//               buffer);
+        printf("suffix path string: %2u: \"%s\"\n",
+               res.leaf->leaf_label,
+               buffer);
         assert(strcmp(buffer, st->string + res.leaf->leaf_label) == 0);
     }
     dealloc_st_leaf_iter(&iter);
@@ -99,7 +121,11 @@ int main(int argc, const char **argv)
 {
     const char *string = "mississippi";
     struct suffix_tree *st = naive_suffix_tree(string);
+    check_nodes(st, st->root);
+    
+    
     check_suffix_tree(st);
+    printf("made it through the naive test\n");
 
     uint32_t sa[st->length];
     uint32_t lcp[st->length];
@@ -128,8 +154,8 @@ int main(int argc, const char **argv)
     FILE *f = fopen("tree.dot", "w");
     st_print_dot(st, 0, f);
     fclose(f);
-    
-    
+
+    printf("checking LCP construction\n");
     check_suffix_tree(st);
     free_suffix_tree(st);
 
