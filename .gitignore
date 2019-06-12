@@ -110,3 +110,8 @@ old-fasta.c
 old-fasta_test.c
 tools/readmappers/bwt.sam
 tools/readmappers/exact.sam
+tests/stralg/dot.pdf
+tests/stralg/st_suffix_links_test
+tests/stralg/tree.pdf
+tree.dot
+tree.pdf

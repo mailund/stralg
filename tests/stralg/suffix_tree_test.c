@@ -123,10 +123,6 @@ int main(int argc, const char **argv)
     struct suffix_tree *st = naive_suffix_tree(string);
     check_nodes(st, st->root);
     
-    printf("Printing tree.\n");
-    FILE *f = fopen("tree.dot", "w");
-    st_print_dot(st, 0, f);
-    fclose(f);
     
     check_suffix_tree(st);
     printf("made it through the naive test\n");
@@ -154,7 +150,11 @@ int main(int argc, const char **argv)
     
     st = lcp_suffix_tree(string, sa, lcp);
     
-    
+    printf("Printing tree.\n");
+    FILE *f = fopen("tree.dot", "w");
+    st_print_dot(st, 0, f);
+    fclose(f);
+
     printf("checking LCP construction\n");
     check_suffix_tree(st);
     free_suffix_tree(st);

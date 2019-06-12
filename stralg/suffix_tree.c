@@ -8,6 +8,7 @@
 
 #pragma helpers
 
+/*
 static void check_nodes(struct suffix_tree *st, struct suffix_tree_node *v)
 {
     if (v->parent != v) { // not the root
@@ -23,7 +24,7 @@ static void check_nodes(struct suffix_tree *st, struct suffix_tree_node *v)
         w = w->sibling;
     }
 }
-
+*/
 
 static struct suffix_tree_node *
 new_node(const char *from, const char *to)
@@ -134,6 +135,14 @@ static void naive_split_edge(const char *s, struct suffix_tree *st,
 static void naive_insert(struct suffix_tree *st, uint32_t suffix,
                          struct suffix_tree_node *v, const char *x)
 {
+    if (v->parent != v) {
+        assert(v->range.from >= st->string);
+        assert(v->range.from < st->string + st->length);
+        assert(v->range.to > st->string);
+        assert(v->range.to <= st->string + st->length);
+        assert(v->range.to > v->range.from);
+    }
+
     const char *s = st->string;
     
     // find child that matches *x
@@ -144,6 +153,7 @@ static void naive_insert(struct suffix_tree *st, uint32_t suffix,
         insert_child(st, suffix, v, x);
         
     } else {
+        
         // we have an edge to follow!
         const char *s = w->range.from;
         const char *t = w->range.to;
@@ -202,8 +212,7 @@ static void lcp_split_edge(struct suffix_tree *st,
                            struct suffix_tree_node *w,
                            uint32_t k)
 {
-#warning don't use the suffix tree for the indices; use pointers
-    uint32_t j = st->string - v->range.to;
+    uint32_t j = v->range.to - st->string;
     struct suffix_tree_node *split_node = new_node(st->string + j - k, st->string + j);
     split_node->leaf_label = v->leaf_label; // if v is a leaf, we need this
     split_node->child = v->child;
@@ -226,7 +235,6 @@ lcp_insert(struct suffix_tree *st,
            uint32_t *sa, uint32_t *lcp,
            struct suffix_tree_node *v)
 {
-#warning use pointers instead of the indices here
     struct suffix_tree_node *new_leaf = new_node(st->string + sa[i] + lcp[i], st->string + st->length);
     new_leaf->leaf_label = sa[i];
     uint32_t length_up = st->length - sa[i-1] - lcp[i];
@@ -398,8 +406,6 @@ uint32_t get_string_depth(struct suffix_tree *st, struct suffix_tree_node *v)
     uint32_t depth = 0;
     while (v->parent != v) {
         depth += range_length(v->range);
-        printf("v == %p ", v);
-        printf("depth is now %u\n", depth);
         v = v->parent;
     }
     return depth;
