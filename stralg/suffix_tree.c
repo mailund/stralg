@@ -300,8 +300,7 @@ static struct suffix_tree_node * fast_scan_split_edge(const char *x,
     return r;
 }
 
-static struct suffix_tree_node * fast_scan(struct suffix_tree *st,
-                                           struct suffix_tree_node *v,
+static struct suffix_tree_node * fast_scan(struct suffix_tree_node *v,
                                            const char *x, const char *xend)
 {
     // find child that matches *x
@@ -322,7 +321,7 @@ static struct suffix_tree_node * fast_scan(struct suffix_tree *st,
         // We made it through the edge, so continue from the next node.
         // The call is tail-recursive, so the compiler will optimise
         // it to a loop, at least gcc and LLVM based, so clang as well.
-        return fast_scan(st, w, new_x, xend);
+        return fast_scan(w, new_x, xend);
     }
 }
 
@@ -340,13 +339,13 @@ static void set_suffix_links(struct suffix_tree *st,
         // the edge is longer than one and the parent is the root
         const char *x = v->range.from + 1;
         const char *xend = v->range.to;
-        v->suffix = fast_scan(st, st->root, x, xend);
+        v->suffix = fast_scan(st->root, x, xend);
         
     } else {
         // the general case
         const char *x = v->range.from;
         const char *xend = v->range.to;
-        v->suffix = fast_scan(st, v->parent->suffix, x, xend);
+        v->suffix = fast_scan(v->parent->suffix, x, xend);
     }
     
     // recursion
