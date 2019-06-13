@@ -29,7 +29,7 @@ int main(int argc, const char** argv)
     st_compute_sa_and_lcp(st, sa, lcp);
 
     for (size_t i = 0; i < st->length; ++i) {
-        printf("%3lu: %3lu %3lu %s\n",
+        printf("%3zu: %3zu %3zu %s\n",
                i, sa[i], lcp[i], st->string + sa[i]);
     }
 

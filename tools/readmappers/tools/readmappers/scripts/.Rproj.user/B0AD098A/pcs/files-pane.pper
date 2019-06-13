@@ -1,0 +1,9 @@
+{
+    "path" : "~/Projects/stralg/tools/readmappers/scripts",
+    "sortOrder" : [
+        {
+            "ascending" : true,
+            "columnIndex" : 2
+        }
+    ]
+}

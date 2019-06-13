@@ -2,8 +2,10 @@
 #ifndef SAM_H
 #define SAM_H
 
+#include <error.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 /*
  These functions provide some rudimentary SAM output. Most SAM flags
@@ -28,7 +30,7 @@ void parse_sam_line(
     int *match_index,
     char *cigar_buffer,
     char *pattern_buffer,
-    bool *error
+    enum error_codes *error
 );
 
 #endif

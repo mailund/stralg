@@ -1,0 +1,13 @@
+read1	0	one	1	0	4M	*	0	0	acgc	~~~~
+read1	0	one	2	0	1I3M	*	0	0	acgc	~~~~
+read1	0	two	1	0	3M1I	*	0	0	acgc	~~~~
+read1	0	two	1	0	4M	*	0	0	acgc	~~~~
+read1	0	two	2	0	1I3M	*	0	0	acgc	~~~~
+read3	0	one	1	0	1M1D2M	*	0	0	cgc	~~~
+read3	0	one	1	0	1M1I1M	*	0	0	cgc	~~~
+read3	0	one	2	0	2M1I	*	0	0	cgc	~~~
+read3	0	one	2	0	3M	*	0	0	cgc	~~~
+read3	0	one	3	0	1I2M	*	0	0	cgc	~~~
+read3	0	two	2	0	2M1I	*	0	0	cgc	~~~
+read3	0	two	2	0	3M	*	0	0	cgc	~~~
+read3	0	two	3	0	1I2M	*	0	0	cgc	~~~

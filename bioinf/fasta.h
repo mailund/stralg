@@ -2,22 +2,18 @@
 #ifndef FASTA_H
 #define FASTA_H
 
+#include <error.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 // opaque structures.
 struct fasta_records;
 struct fasta_record_impl;
 
-enum fasta_errors {
-    NO_FASTA_ERRORS,
-    CANNOT_OPEN_FASTA_FILE,
-    MALFORMED_FASTA_RECORD_ERROR
-};
-
 struct fasta_records *load_fasta_records(
     const char *fname,
-    enum fasta_errors *err
+    enum error_codes *err
 );
 void free_fasta_records(
     struct fasta_records *file
@@ -28,6 +24,8 @@ struct fasta_record {
     const char *seq;
     size_t seq_len;
 };
+
+size_t number_of_fasta_records(struct fasta_records *records);
 
 bool lookup_fasta_record_by_name(
     struct fasta_records *file,

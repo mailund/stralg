@@ -7,7 +7,9 @@ add_library(stralg_bioinf SHARED
 	sam.h sam.c
 )
 target_link_libraries(stralg_bioinf stralg)
-
+set_target_properties(
+	stralg_bioinf PROPERTIES FOLDER Libraries/Bioinformatics
+)
 target_include_directories(stralg_bioinf
   PUBLIC
     # Headers used from source/build location:
@@ -20,6 +22,6 @@ target_include_directories(stralg_bioinf
 install(TARGETS stralg_bioinf DESTINATION lib)
 install(
 	DIRECTORY .
-	DESTINATION include/stralg/
+	DESTINATION include/stralg_bioinf/
 	FILES_MATCHING PATTERN "*.h"
 )

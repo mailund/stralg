@@ -1,4 +1,4 @@
-#include <generic_data_structures.h>
+#include "generic_data_structures.h"
 
 #include <stdlib.h>
 #include <assert.h>
@@ -192,6 +192,14 @@ void sort_index_vector(index_vector *vec)
 {
     qsort(vec->data, vec->used, sizeof(struct boxed_data), index_cmpfunc);
 }
+void print_index_vector(index_vector *vec)
+{
+    for (size_t i = 0; i < vec->used; ++i) {
+        printf("%zu\n", index_vector_get(vec, i));
+    }
+}
+
+
 
 bool string_vector_equal(string_vector *v1, string_vector *v2)
 {
@@ -215,4 +223,50 @@ static int string_cmpfunc (const void *void_a, const void *void_b) {
 void sort_string_vector(index_vector *vec)
 {
     qsort(vec->data, vec->used, sizeof(struct boxed_data), string_cmpfunc);
+}
+
+void print_string_vector(string_vector *vec)
+{
+    for (size_t i = 0; i < vec->used; ++i) {
+        printf("%s\n", string_vector_get(vec, i));
+    }
+}
+
+
+void split_string_vectors(string_vector *first,
+                          string_vector *second,
+                          string_vector *unique_first,
+                          string_vector *unique_second)
+{
+    sort_string_vector(first); sort_string_vector(second);
+    
+    size_t i = 0, j = 0;
+    while (i < first->used && j < second->used) {
+        char *first_front = string_vector_get(first, i);
+        char *second_front = string_vector_get(second, j);
+        int cmp = strcmp(first_front, second_front);
+        if (cmp == 0) {
+            i++;
+            j++;
+        } else if (cmp < 0) {
+            string_vector_append(unique_first, string_vector_get(first, i));
+            i++;
+        } else {
+            string_vector_append(unique_second, string_vector_get(second, j));
+            j++;
+        }
+    }
+    
+    if (i == first->used) {
+        // copy the last of second to unique_second.
+        for (; j < second->used; ++j) {
+            string_vector_append(unique_second, string_vector_get(second, j));
+        }
+    }
+    if (j == second->used) {
+        // copy the last of first to unique_first.
+        for (; i < first->used; ++i) {
+            string_vector_append(unique_first, string_vector_get(first, i));
+        }
+    }
 }

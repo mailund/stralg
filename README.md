@@ -3,8 +3,7 @@
 
 [![TravisCI Status](https://travis-ci.org/mailund/stralg.svg?branch=master)](https://travis-ci.org/mailund/stralg)
 [![codecov](https://codecov.io/gh/mailund/stralg/branch/master/graph/badge.svg)](https://codecov.io/gh/mailund/stralg)
-[![Coverage Status](https://coveralls.io/repos/github/mailund/stralg/badge.svg?branch=improve-tests)](https://coveralls.io/github/mailund/stralg?branch=improve-tests)
-[![TODO board](https://imdone.io/api/1.0/projects/5c02e1cddfdd1c0ebf0c438f/badge)](https://imdone.io/app#/board/mailund/stralg)
+[![Coverage Status](https://coveralls.io/repos/github/mailund/stralg/badge.svg?branch=master)](https://coveralls.io/github/mailund/stralg?branch=master)
 
 Small library of string algorithms
 
@@ -110,7 +109,7 @@ Whenever a function can reasonably fail, e.g. with I/O, functions should take an
 
 Always use a non-zero value for `err` if no error occurs and put it at zero if all went well. Never leave it uninitialised after a call.
 
-For example, 
+For example,
 
 ```c
 struct fasta_file *load_fasta_file(

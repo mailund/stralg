@@ -15,9 +15,9 @@ void init_trie(struct trie *trie)
     trie->parent = 0;
     trie->sibling = 0;
     trie->children = 0;
-    trie->output = 0;
     
     // For Aho-Corasick
+    trie->has_failure_links = false;
     trie->failure_link = 0;
     trie->output = 0;
 }
@@ -53,8 +53,10 @@ void free_trie(struct trie *trie)
 }
 
 
-static struct trie *string_to_trie(const char *str, int string_label)
+static struct trie *string_to_trie(const char *str, long long string_label)
 {
+    assert(str && strlen(str) > 0);
+    
     const char *s = str;
     while (*s) s++;
     
@@ -87,8 +89,10 @@ struct trie *out_link(struct trie *v, char label)
 }
 
 
-void add_string_to_trie(struct trie *trie, const char *str, int string_label)
+void add_string_to_trie(struct trie *trie, const char *str, long long string_label)
 {
+    assert(str && strlen(str) > 0);
+    
     if (!trie->children) { // first string is a special case (FIXME: check if I can avoid this)
         trie->children = string_to_trie(str, string_label);
         trie->children->parent = trie;
@@ -144,7 +148,7 @@ static void enqueue_siblings(pointer_queue *queue, struct trie *siblings)
 }
 
 
-static struct output_list *new_output_link(int label, struct output_list *next)
+static struct output_list *new_output_link(long long label, struct output_list *next)
 {
     assert(label >= 0);
     
@@ -191,6 +195,8 @@ static void compute_failure_link_for_node(struct trie *v,
 
 void compute_failure_links(struct trie *trie)
 {
+    if (trie->has_failure_links) return;
+    
     trie->failure_link = trie; // make the root its own failure link.
     
     pointer_queue *nodes = alloc_pointer_queue();
@@ -203,13 +209,14 @@ void compute_failure_links(struct trie *trie)
     }
     
     free_queue(nodes);
+    trie->has_failure_links = true;
 }
 
 static void print_out_edges(struct trie *trie, FILE *dot_file)
 {
     // node attributes
     if (trie->string_label >= 0) {
-        fprintf(dot_file, "\"%p\" [label=\"%d\"];\n",
+        fprintf(dot_file, "\"%p\" [label=\"%lld\"];\n",
                 trie, trie->string_label);
     } else {
         fprintf(dot_file, "\"%p\" [label=\"\"];\n", (void*)trie);
@@ -232,11 +239,11 @@ static void print_out_edges(struct trie *trie, FILE *dot_file)
     if (trie->output) {
         fprintf(dot_file, "\"%p\" [color=blue, shape=point];\n",
                 trie->output);
-        fprintf(dot_file, "\"%p\" -> \"%p\" [style=\"dashed\", color=blue, label=%d];\n",
+        fprintf(dot_file, "\"%p\" -> \"%p\" [style=\"dashed\", color=blue, label=%lld];\n",
                 trie, trie->output, trie->output->string_label);
         struct output_list *list = trie->output;
         while (list->next) {
-            fprintf(dot_file, "\"%p\" -> \"%p\" [style=\"dashed\", color=blue, label=%d];\n",
+            fprintf(dot_file, "\"%p\" -> \"%p\" [style=\"dashed\", color=blue, label=%lld];\n",
                     list, list->next, list->next->string_label);
             list = list->next;
         }
@@ -258,4 +265,11 @@ void trie_print_dot(struct trie *trie, FILE *file)
         print_out_edges(trie, file); // children
     }
     fprintf(file, "}\n");
+}
+
+void trie_print_dot_fname(struct trie *trie, const char *fname)
+{
+    FILE *f = fopen(fname, "w");
+    trie_print_dot(trie, f);
+    fclose(f);
 }

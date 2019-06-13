@@ -1,9 +1,10 @@
-#include "stralg.h"
+
+#include "match.h"
 
 #include <stdlib.h>
 #include <assert.h>
 #include <stdio.h>
-#include <match.h>
+#include <string.h>
 
 
 
@@ -12,10 +13,6 @@ void init_naive_match_iter(
     const char *text, size_t n,
     const char *pattern, size_t m
 ) {
-    // This is necessary because n and m are unsigned so the
-    // "j < n - m + 1" loop test can suffer from an overflow.
-    assert(m <= n);
-
     iter->text = text;       iter->n = n;
     iter->pattern = pattern; iter->m = m;
     iter->current_index = 0;
@@ -29,6 +26,11 @@ bool next_naive_match(
     const char *text = iter->text;
     const char *pattern = iter->pattern;
 
+    // This is necessary because n and m are unsigned so the
+    // "j < n - m + 1" loop test can suffer from an overflow.
+    if (m > n) return false;
+    if (m == 0) return false;
+    
     for (size_t j = iter->current_index; j <= n - m; j++) {
         size_t i = 0;
         while (i < m && text[j+i] == pattern[i]) {
@@ -56,16 +58,18 @@ void init_border_match_iter(
     const char *text, size_t n,
     const char *pattern, size_t m
 ) {
+    assert(m > 0);
+    
     iter->text = text; iter->n = n;
     iter->pattern = pattern; iter->m = m;
     iter->i = iter->b = 0;
 
     size_t *ba = malloc(m * sizeof(size_t));
     ba[0] = 0;
-    for (int i = 1; i < m; ++i) {
-        int b = ba[i-1];
+    for (size_t i = 1; i < m; ++i) {
+        size_t b = ba[i - 1];
         while (b > 0 && pattern[i] != pattern[b])
-            b = ba[b-1];
+            b = ba[b - 1];
         ba[i] = (pattern[i] == pattern[b]) ? b + 1 : 0;
     }
     iter->border_array = ba;
@@ -80,13 +84,26 @@ bool next_border_match(
     size_t *ba = iter->border_array;
     size_t b = iter->b;
     size_t m = iter->m;
+    size_t n = iter->n;
 
+    // This is necessary because n and m are unsigned so the
+    // "j < n - m + 1" loop test can suffer from an overflow.
+    if (m > n) return false;
+    if (m == 0) return false;
+
+
+    // This is necessary because n and m are unsigned so the
+    // "j < n - m + 1" loop test can suffer from an overflow.
+    if (m > n) return false;
+    if (m == 0) return false;
+
+    
     for (size_t i = iter->i; i < iter->n; ++i) {
         while (b > 0 && text[i] != pattern[b])
             b = ba[b - 1];
         b = (text[i] == pattern[b]) ? b + 1 : 0;
         if (b == m) {
-            iter->i = i;
+            iter->i = i + 1;
             iter->b = b;
             match->pos = i - m + 1;
             return true;
@@ -109,6 +126,12 @@ static void ba_search(char * key, char * buffer)
     unsigned long m = strlen(key);
     unsigned long ba[m];
 
+    // This is necessary because n and m are unsigned so the
+    // "j < n - m + 1" loop test can suffer from an overflow.
+    if (m > n)) return false;
+    if (m == 0) return false;
+
+    
     ba[0] = 0;
     for (int i = 1; i < m; ++i) {
         int b = ba[i-1];
@@ -134,14 +157,11 @@ void init_kmp_match_iter(
     const char *text, size_t n,
     const char *pattern, size_t m
 ) {
-    // This is necessary because n and m are unsigned so the
-    // "j < n - m + 1" loop test can suffer from an overflow.
-    assert(m <= n);
 
     iter->text = text;       iter->n = n;
     iter->pattern = pattern; iter->m = m;
-    iter->j = 0;             iter->q = 0;
-    iter->max_match_len = n - m + 1;
+    iter->j = 0;             iter->i = 0;
+    iter->max_match_len = n - m;
 
     // Build prefix border array -- I allocate with calloc
     // because the static analyser otherwise think it can contain
@@ -170,33 +190,42 @@ bool next_kmp_match(
     struct kmp_match_iter *iter,
     struct match *match
 ) {
-    // aliases to make the code easier to read... but
-    // remember to update the actual integers before
-    // yielding to the caller...
+    // aliases to make the code easier to read...
     size_t j = iter->j;
-    size_t q = iter->q;
+    size_t i = iter->i;
     size_t m = iter->m;
+    size_t n = iter->n;
     size_t max_match_index = iter->max_match_len;
     const char *text = iter->text;
     const char *pattern = iter->pattern;
+    
+    // This is necessary because n and m are unsigned so the
+    // "j < n - m + 1" loop test can suffer from an overflow.
+    if (m > n) return false;
+    if (m == 0) return false;
 
-    // here we compensate for j pointing q into match
-    while (j < max_match_index + q) {
-        while (q < m && text[j] == pattern[q]) {
-            q++; j++;
+    // Remember that j matches the first i
+    // items into the string, so + i.
+    while (j <= max_match_index + i) {
+        // Match as far as we can
+        while (i < m && text[j] == pattern[i]) {
+            i++; j++;
         }
-        if (q == m) {
-            // yield
-            if (q == 0) j++;
-            else q = iter->prefixtab[q - 1];
-            iter->j = j; iter->q = q;
+        
+        // We need to check this
+        // before we update i.
+        bool we_have_a_match = i == m;
+        
+        // Update indices
+        if (i == 0) j++;
+        else i = iter->prefixtab[i - 1];
+        
+        // If we have a hit...
+        if (we_have_a_match) {
+            // ...yield new match
+            iter->j = j; iter->i = i;
             match->pos = j - m;
             return true;
-        }
-        if (q == 0) {
-            j++;
-        } else {
-            q = iter->prefixtab[q - 1];
         }
     }
     return false;
@@ -214,17 +243,15 @@ void init_bmh_match_iter(
     const char *text, size_t n,
     const char *pattern, size_t m
 ) {
-    assert(m <= n);
     iter->j = 0;
     iter->text = text; iter->n = n;
     iter->pattern = pattern; iter->m = m;
-    for (size_t i = 0; i < 256; i++) {
-        iter->jump_table[i] = m;
+    for (size_t k = 0; k < 256; k++) {
+        iter->jump_table[k] = m;
     }
-    for (size_t i = 0; i < m - 1; i++) {
-        iter->jump_table[(unsigned char)pattern[i]] = m - i - 1;
+    for (size_t k = 0; k < m - 1; k++) {
+        iter->jump_table[(unsigned char)pattern[k]] = m - k - 1;
     }
-
 }
 
 bool next_bmh_match(
@@ -238,6 +265,12 @@ bool next_bmh_match(
     size_t m = iter->m;
     size_t *jump_table = iter->jump_table;
 
+    // This is necessary because n and m are unsigned so the
+    // "j < n - m + 1" loop test can suffer from an overflow.
+    if (m > strlen(text)) return false;
+    if (m == 0) return false;
+
+    
     for (size_t j = iter->j;
          j < n - m + 1;
          j += jump_table[(unsigned char)text[j + m - 1]]) {

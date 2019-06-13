@@ -3,10 +3,11 @@
 #include <stdlib.h>
 #include <string.h>
 
+
 static void print_out_edges(struct trie *trie, FILE *dot_file) {
     // node attributes
     if (trie->string_label >= 0) {
-        fprintf(dot_file, "\"%p\" [label=\"%d\"];\n", (void *)trie,
+        fprintf(dot_file, "\"%p\" [label=\"%lld\"];\n", (void *)trie,
                 trie->string_label);
     } else {
         fprintf(dot_file, "\"%p\" [label=\"\"];\n", (void *)trie);
@@ -28,13 +29,13 @@ static void print_out_edges(struct trie *trie, FILE *dot_file) {
         fprintf(dot_file, "\"%p\" [color=blue, shape=point];\n",
                 (void *)trie->output);
         fprintf(dot_file,
-                "\"%p\" -> \"%p\" [style=\"dashed\", color=blue, label=%d];\n",
+                "\"%p\" -> \"%p\" [style=\"dashed\", color=blue, label=%lld];\n",
                 (void *)trie, (void *)trie->output, trie->output->string_label);
         struct output_list *list = trie->output;
         while (list->next) {
             fprintf(
                 dot_file,
-                "\"%p\" -> \"%p\" [style=\"dashed\", color=blue, label=%d];\n",
+                    "\"%p\" -> \"%p\" [style=\"dashed\", color=blue, label=%lld];\n",
                 (void *)list, (void *)list->next, list->next->string_label);
             list = list->next;
         }
@@ -49,7 +50,7 @@ static void print_out_edges(struct trie *trie, FILE *dot_file) {
 }
 
 static void print_dot(struct trie *trie, const char *filename_prefix) {
-    size_t n = strlen(filename_prefix);
+    size_t n = (size_t)strlen(filename_prefix);
     char filename[n + 4 + 1];
     strcpy(filename, filename_prefix);
     strcpy(filename + n, ".dot");

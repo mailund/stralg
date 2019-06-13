@@ -3,6 +3,7 @@
 
 #include <stddef.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 struct match {
     size_t pos;
@@ -50,7 +51,7 @@ struct kmp_match_iter {
     const char *pattern; size_t m;
     size_t *prefixtab;
     size_t max_match_len;
-    size_t j, q;
+    size_t j, i;
 };
 void init_kmp_match_iter(
     struct kmp_match_iter *iter,
