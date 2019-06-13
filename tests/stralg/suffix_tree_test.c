@@ -33,6 +33,7 @@ static void check_parent_pointers(struct suffix_tree_node *v)
     }
 }
 
+#ifndef NDEBUG
 static bool has_leaf(struct suffix_tree *st, struct suffix_tree_node *v, size_t leaf)
 {
     struct st_leaf_iter iter;
@@ -50,6 +51,7 @@ static bool has_leaf(struct suffix_tree *st, struct suffix_tree_node *v, size_t 
     
     return false;
 }
+#endif
 
 static void check_leaf_search(struct suffix_tree *st)
 {
