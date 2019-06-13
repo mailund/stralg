@@ -76,9 +76,7 @@ static void insert_child(struct suffix_tree_node *parent,
     // simplified?
     const char x = *child->range.from;
     struct suffix_tree_node *w = parent->child;
-    if (w == 0) {
-        parent->child = child;
-    } else if (x < out_letter(w)) { // special case for the first child
+    if (x < out_letter(w)) { // special case for the first child
         child->sibling = parent->child;
         parent->child = child;
     } else {
@@ -92,45 +90,27 @@ static void insert_child(struct suffix_tree_node *parent,
     child->parent = parent;
 }
 
-static void naive_split_edge(const char *s, struct suffix_tree *st,
-                             size_t suffix, struct suffix_tree_node *w,
-                             const char *x)
+static struct suffix_tree_node *naive_split_edge(struct suffix_tree_node *w, const char *split)
 {
-    assert(w->range.from >= st->string);
-    assert(w->range.from < st->string + st->length);
-    assert(w->range.to > st->string);
-    assert(w->range.to <= st->string + st->length);
-    assert(w->range.to > w->range.from);
-
-    struct suffix_tree_node *split = new_node(s, w->range.to);
-    split->leaf_label = w->leaf_label; // in case w was a leaf
+    struct suffix_tree_node *u = new_node(split, w->range.to);
+    u->leaf_label = w->leaf_label; // in case w was a leaf
     
-    w->range.to = s;
-    split->child = w->child;
-    split->parent = w;
+    w->range.to = split;
+    u->child = w->child;
+    u->parent = w;
+    w->child = u;
 
     // update the original children
-    struct suffix_tree_node *child = split->child;
+    struct suffix_tree_node *child = u->child;
     while (child) {
-        child->parent = split;
+        child->parent = u;
         child = child->sibling;
     }
     
-    struct suffix_tree_node *leaf = new_node(x, st->string + st->length);
-    leaf->leaf_label = suffix;
-    leaf->parent = w;
-    
-    // get the children in the right (lex) order.
-    char split_letter = out_letter(split);
-    char leaf_letter = out_letter(leaf);
-    if (split_letter < leaf_letter) {
-        w->child = split;
-        split->sibling = leaf;
-    } else {
-        w->child = leaf;
-        leaf->sibling = split;
-    }
+    return w;
 }
+
+
 
 static void naive_insert(struct suffix_tree *st, size_t suffix,
                          struct suffix_tree_node *v, const char *x)
@@ -159,7 +139,11 @@ static void naive_insert(struct suffix_tree *st, size_t suffix,
         const char *t = w->range.to;
         for (; s != t; ++s, ++x) {
             if (*s != *x) {
-                naive_split_edge(s, st, suffix, w, x);
+                struct suffix_tree_node *u = naive_split_edge(w, s);
+                struct suffix_tree_node *leaf = new_node(x, st->string + st->length);
+                leaf->leaf_label = suffix;
+                insert_child(u, leaf);
+
                 return; // we are done now
             }
         }
