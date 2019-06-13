@@ -69,27 +69,27 @@ find_outgoing_edge(struct suffix_tree_node *v, const char *x)
 }
 
 // Insert sorted (lex order)
-static void insert_child(struct suffix_tree *st,
-                         size_t suffix,
-                         struct suffix_tree_node *v,
-                         const char *x)
+static void insert_child(struct suffix_tree_node *parent,
+                         struct suffix_tree_node *child)
 {
-    struct suffix_tree_node *leaf = new_node(x, st->string + st->length);
-    leaf->leaf_label = suffix;
-    leaf->parent = v;
-    
-    struct suffix_tree_node *p = v->child;
-    if (*x < out_letter(p)) { // special case for the first child
-        leaf->sibling = v->child;
-        v->child = leaf;
+    // FIXME: many special cases here... can it be
+    // simplified?
+    const char x = *child->range.from;
+    struct suffix_tree_node *w = parent->child;
+    if (w == 0) {
+        parent->child = child;
+    } else if (x < out_letter(w)) { // special case for the first child
+        child->sibling = parent->child;
+        parent->child = child;
     } else {
         // find p such that it is the last chain with an outgoing
         // edge that is larger than the new
-        while (p->sibling && *x > out_letter(p->sibling))
-            p = p->sibling;
-        leaf->sibling = p->sibling;
-        p->sibling = leaf;
+        while (w->sibling && x > out_letter(w->sibling))
+            w = w->sibling;
+        child->sibling = w->sibling;
+        w->sibling = child;
     }
+    child->parent = parent;
 }
 
 static void naive_split_edge(const char *s, struct suffix_tree *st,
@@ -148,7 +148,9 @@ static void naive_insert(struct suffix_tree *st, size_t suffix,
     
     if (!w) {
         // there is no outgoing edge that matches so we must insert here
-        insert_child(st, suffix, v, x);
+        struct suffix_tree_node *leaf = new_node(x, st->string + st->length);
+        leaf->leaf_label = suffix;
+        insert_child(v, leaf);
         
     } else {
         
