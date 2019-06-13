@@ -189,8 +189,7 @@ static void append_child(struct suffix_tree_node *v, struct suffix_tree_node *w)
 
 static struct suffix_tree_node *
 lcp_insert(struct suffix_tree *st,
-           size_t i,
-           size_t *sa, size_t *lcp,
+           size_t i, size_t *sa, size_t *lcp,
            struct suffix_tree_node *v)
 {
     struct suffix_tree_node *new_leaf = new_node(st->string + sa[i] + lcp[i], st->string + st->length);
@@ -221,7 +220,7 @@ struct suffix_tree *lcp_suffix_tree(const char *string,
     struct suffix_tree *st = malloc(sizeof(struct suffix_tree));
     st->string = string;
     size_t slen = (size_t)strlen(string);
-    st->length = slen + 1; // I am using '\0' as sentinel
+    st->length = slen + 1;
     
     st->root = new_node(st->string, st->string);
     st->root->parent = st->root;
