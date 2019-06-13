@@ -90,9 +90,12 @@ static void insert_child(struct suffix_tree_node *parent,
     child->parent = parent;
 }
 
-static struct suffix_tree_node *naive_split_edge(struct suffix_tree_node *w,
-                                                 const char *split)
+static struct suffix_tree_node *split_edge(struct suffix_tree_node *w,
+                                           const char *split)
 {
+    assert(split < w->range.to);
+    assert(w->range.from < split);
+    
     struct suffix_tree_node *u = new_node(split, w->range.to);
     u->leaf_label = w->leaf_label; // in case w was a leaf
     
@@ -132,7 +135,7 @@ static struct suffix_tree_node *naive_insert(struct suffix_tree_node *v,
         const char *t = w->range.to;
         for (; s != t; ++s, ++x) {
             if (*s != *x) {
-                struct suffix_tree_node *u = naive_split_edge(w, s);
+                struct suffix_tree_node *u = split_edge(w, s);
                 struct suffix_tree_node *leaf = new_node(x, xend);
                 insert_child(u, leaf);
                 return leaf;
@@ -184,32 +187,9 @@ static void append_child(struct suffix_tree_node *v, struct suffix_tree_node *w)
     w->parent = v;
 }
 
-static void lcp_split_edge(struct suffix_tree *st,
-                           struct suffix_tree_node *v,
-                           struct suffix_tree_node *w,
-                           size_t k)
-{
-    size_t j = v->range.to - st->string;
-    struct suffix_tree_node *split_node = new_node(st->string + j - k, st->string + j);
-    split_node->leaf_label = v->leaf_label; // if v is a leaf, we need this
-    split_node->child = v->child;
-    v->range.to = st->string + j - k;
-    v->child = split_node;
-    split_node->parent = v;
-    split_node->sibling = w; w->parent = v;
-    
-    // update the original children
-    struct suffix_tree_node *child = split_node->child;
-    while (child) {
-        child->parent = split_node;
-        child = child->sibling;
-    }
-}
-
 static struct suffix_tree_node *
 lcp_insert(struct suffix_tree *st,
-           size_t i,
-           size_t *sa, size_t *lcp,
+           size_t i, size_t *sa, size_t *lcp,
            struct suffix_tree_node *v)
 {
     struct suffix_tree_node *new_leaf = new_node(st->string + sa[i] + lcp[i], st->string + st->length);
@@ -225,7 +205,10 @@ lcp_insert(struct suffix_tree *st,
     if (length_up == 0) {
         append_child(v, new_leaf);
     } else {
-        lcp_split_edge(st, v, new_leaf, length_up);
+        struct suffix_tree_node *u = split_edge(v, v->range.to - length_up);
+        // append leaf to the new node (it has one other child)
+        u->child->sibling = new_leaf;
+        new_leaf->parent = u;
     }
     
     return new_leaf;
@@ -237,7 +220,7 @@ struct suffix_tree *lcp_suffix_tree(const char *string,
     struct suffix_tree *st = malloc(sizeof(struct suffix_tree));
     st->string = string;
     size_t slen = (size_t)strlen(string);
-    st->length = slen + 1; // I am using '\0' as sentinel
+    st->length = slen + 1;
     
     st->root = new_node(st->string, st->string);
     st->root->parent = st->root;
