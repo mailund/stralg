@@ -206,7 +206,7 @@ lcp_insert(struct suffix_tree *st,
         append_child(v, new_leaf);
     } else {
         struct suffix_tree_node *u = split_edge(v, v->range.to - length_up);
-        // append leaf to the new node (it has one other child)
+        // append leaf to the new node (it has exactly one other child)
         u->child->sibling = new_leaf;
         new_leaf->parent = u;
     }
@@ -238,30 +238,6 @@ struct suffix_tree *lcp_suffix_tree(const char *string,
     return st;
 }
 
-static struct suffix_tree_node * fast_scan_split_edge(const char *x,
-                                                      const char *xend,
-                                                      struct suffix_tree_node *w)
-{
-    size_t l = xend - x;
-    const char *s = w->range.from;
-    const char *t = w->range.to;
-    
-    
-    struct suffix_tree_node *r = new_node(s + l, t);
-    r->parent = w;
-    struct suffix_tree_node *child = w->child;
-    while (child) {
-        child->parent = r;
-        child = child->sibling;
-    }
-
-    w->range.from = x;
-    w->range.to = xend;
-    w->child = r;
-    
-    return r;
-}
-
 static struct suffix_tree_node * fast_scan(struct suffix_tree_node *v,
                                            const char *x, const char *xend)
 {
@@ -270,15 +246,25 @@ static struct suffix_tree_node * fast_scan(struct suffix_tree_node *v,
     assert(w); // must be here when we search for a suffix
     
     // jump down the edge
-    const char *new_x = x + range_length(w->range);
+    size_t n = range_length(w->range);
+    const char *new_x = x + n;
     if (new_x == xend) {
         // Found the node we should end in
         return w; // we are done now
     } else if (new_x > xend) {
         // We stop before we reach the end node, so we
-        // need to split the edge
-        //naive_split_edge(s, st, 0, w, x);
-        return fast_scan_split_edge(x, xend, w);
+        // need to split the edge.
+        
+        // We need to split at this distance above w:
+        //
+        //          n
+        //    v |--------| w (s,t)
+        //     x|---|xend       (but x and xend might not be in (s,t))
+        //        k
+        size_t k = xend - x;
+        const char *split_point = w->range.to - (n - k);
+        return split_edge(w, split_point);
+        
     } else {
         // We made it through the edge, so continue from the next node.
         // The call is tail-recursive, so the compiler will optimise
