@@ -58,3 +58,4 @@ tools/st_build_lcp/st_build_lcp
 tests/tree.dot
 tests/remap_test
 tests/bwt_test
+makefilebuild

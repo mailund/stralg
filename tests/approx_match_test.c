@@ -277,7 +277,7 @@ static void approx_test(char *pattern, char *string, const char *alphabet)
 int main(int argc, char **argv)
 {
     char *alphabet = "acgt";
-    char *string = "acacacgaccatagca";
+    char *string = "acacacg";
     char *pattern = "aca";
     
     test_exact(pattern, string, alphabet);
