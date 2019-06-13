@@ -69,86 +69,61 @@ find_outgoing_edge(struct suffix_tree_node *v, const char *x)
 }
 
 // Insert sorted (lex order)
-static void insert_child(struct suffix_tree *st,
-                         size_t suffix,
-                         struct suffix_tree_node *v,
-                         const char *x)
+static void insert_child(struct suffix_tree_node *parent,
+                         struct suffix_tree_node *child)
 {
-    struct suffix_tree_node *leaf = new_node(x, st->string + st->length);
-    leaf->leaf_label = suffix;
-    leaf->parent = v;
-    
-    struct suffix_tree_node *p = v->child;
-    if (*x < out_letter(p)) { // special case for the first child
-        leaf->sibling = v->child;
-        v->child = leaf;
+    // FIXME: many special cases here... can it be
+    // simplified?
+    const char x = *child->range.from;
+    struct suffix_tree_node *w = parent->child;
+    if (x < out_letter(w)) { // special case for the first child
+        child->sibling = parent->child;
+        parent->child = child;
     } else {
         // find p such that it is the last chain with an outgoing
         // edge that is larger than the new
-        while (p->sibling && *x > out_letter(p->sibling))
-            p = p->sibling;
-        leaf->sibling = p->sibling;
-        p->sibling = leaf;
+        while (w->sibling && x > out_letter(w->sibling))
+            w = w->sibling;
+        child->sibling = w->sibling;
+        w->sibling = child;
     }
+    child->parent = parent;
 }
 
-static void naive_split_edge(const char *s, struct suffix_tree *st,
-                             size_t suffix, struct suffix_tree_node *w,
-                             const char *x)
+static struct suffix_tree_node *naive_split_edge(struct suffix_tree_node *w,
+                                                 const char *split)
 {
-    assert(w->range.from >= st->string);
-    assert(w->range.from < st->string + st->length);
-    assert(w->range.to > st->string);
-    assert(w->range.to <= st->string + st->length);
-    assert(w->range.to > w->range.from);
-
-    struct suffix_tree_node *split = new_node(s, w->range.to);
-    split->leaf_label = w->leaf_label; // in case w was a leaf
+    struct suffix_tree_node *u = new_node(split, w->range.to);
+    u->leaf_label = w->leaf_label; // in case w was a leaf
     
-    w->range.to = s;
-    split->child = w->child;
-    split->parent = w;
+    w->range.to = split;
+    u->child = w->child;
+    u->parent = w;
+    w->child = u;
 
     // update the original children
-    struct suffix_tree_node *child = split->child;
+    struct suffix_tree_node *child = u->child;
     while (child) {
-        child->parent = split;
+        child->parent = u;
         child = child->sibling;
     }
     
-    struct suffix_tree_node *leaf = new_node(x, st->string + st->length);
-    leaf->leaf_label = suffix;
-    leaf->parent = w;
-    
-    // get the children in the right (lex) order.
-    char split_letter = out_letter(split);
-    char leaf_letter = out_letter(leaf);
-    if (split_letter < leaf_letter) {
-        w->child = split;
-        split->sibling = leaf;
-    } else {
-        w->child = leaf;
-        leaf->sibling = split;
-    }
+    return w;
 }
 
-static void naive_insert(struct suffix_tree *st, size_t suffix,
-                         struct suffix_tree_node *v, const char *x)
-{
-    if (v->parent != v) {
-        assert(v->range.from >= st->string);
-        assert(v->range.from < st->string + st->length);
-        assert(v->range.to > st->string);
-        assert(v->range.to <= st->string + st->length);
-        assert(v->range.to > v->range.from);
-    }
 
+
+static struct suffix_tree_node *naive_insert(struct suffix_tree_node *v,
+                                             const char *x, const char *xend)
+{
     // find child that matches *x
     struct suffix_tree_node * w = find_outgoing_edge(v, x);
     
     if (!w) {
         // there is no outgoing edge that matches so we must insert here
-        insert_child(st, suffix, v, x);
+        struct suffix_tree_node *leaf = new_node(x, xend);
+        insert_child(v, leaf);
+        return leaf;
         
     } else {
         
@@ -157,14 +132,16 @@ static void naive_insert(struct suffix_tree *st, size_t suffix,
         const char *t = w->range.to;
         for (; s != t; ++s, ++x) {
             if (*s != *x) {
-                naive_split_edge(s, st, suffix, w, x);
-                return; // we are done now
+                struct suffix_tree_node *u = naive_split_edge(w, s);
+                struct suffix_tree_node *leaf = new_node(x, xend);
+                insert_child(u, leaf);
+                return leaf;
             }
         }
         // We made it through the edge, so continue from the next node.
         // The call is tail-recursive, so the compiler will optimise
         // it to a loop, at least gcc and LLVM based, so clang as well.
-        naive_insert(st, suffix, w, x);
+        return naive_insert(w, x, xend);
     }
 }
 
@@ -187,8 +164,10 @@ struct suffix_tree *naive_suffix_tree(const char *string)
     struct suffix_tree_node *first = new_node(st->string, st->string + slen + 1);
     st->root->child = first;
     first->parent = st->root;
+    const char *xend = st->string + st->length;
     for (size_t i = 1; i < slen + 1; ++i) {
-        naive_insert(st, i, st->root, string + i);
+        struct suffix_tree_node *leaf = naive_insert(st->root, string + i, xend);
+        leaf->leaf_label = i;
     }
 
     return st;
