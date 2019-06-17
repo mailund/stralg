@@ -67,6 +67,7 @@ static void check_leaf_search(struct suffix_tree *st)
 
 static void check_suffix_tree(struct suffix_tree *st)
 {
+    // FIXME: hardwired to mississippi
     size_t expected[] = {
         11, 10, 7, 4, 1, 0, 9, 8, 6, 3, 5, 2
     };
@@ -80,13 +81,13 @@ static void check_suffix_tree(struct suffix_tree *st)
     init_st_leaf_iter(&iter, st, st->root);
     while (next_st_leaf(&iter, &res)) {
         index_vector_append(indices, res.leaf->leaf_label);
-//        printf("suffix %2lu: \"%s\"\n",
-//               res.leaf->leaf_label,
-//               st->string + res.leaf->leaf_label);
+        printf("suffix %2lu: \"%s\"\n",
+               res.leaf->leaf_label,
+               st->string + res.leaf->leaf_label);
     }
     dealloc_st_leaf_iter(&iter);
     
-//    printf("testing indices\n");
+    printf("testing indices\n");
     assert(indices->used == no_indices);
     for (size_t i = 0; i < no_indices; ++i) {
         assert(indices->data[i].data.index == expected[i]);
@@ -122,9 +123,15 @@ static void check_suffix_tree(struct suffix_tree *st)
 int main(int argc, const char **argv)
 {
     const char *string = "mississippi";
+    //const char *string = "aaaa";
     struct suffix_tree *st = naive_suffix_tree(string);
     check_nodes(st, st->root);
     
+    printf("Printing tree.\n");
+    FILE *f = fopen("tree.dot", "w");
+    st_print_dot(st, 0, f);
+    fclose(f);
+
     
     check_suffix_tree(st);
     printf("made it through the naive test\n");
@@ -164,14 +171,9 @@ int main(int argc, const char **argv)
     
     st = mccreight_suffix_tree(string);
     
-    printf("Printing tree.\n");
-    FILE *f = fopen("tree.dot", "w");
-    st_print_dot(st, 0, f);
-    fclose(f);
     
     printf("checking McCreight construction\n");
-#warning Enable this test again.
-    //check_suffix_tree(st); FIXME
+    check_suffix_tree(st);
     free_suffix_tree(st);
 
     

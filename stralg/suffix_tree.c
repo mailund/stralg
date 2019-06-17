@@ -119,8 +119,11 @@ static struct suffix_tree_node *split_edge(struct suffix_tree_node *w,
 static struct suffix_tree_node *naive_insert(struct suffix_tree_node *v,
                                              const char *x, const char *xend)
 {
+    assert(v);
+    assert(xend > x); // we should never insert empty strings
+    
     // find child that matches *x
-    struct suffix_tree_node * w = find_outgoing_edge(v, x);
+    struct suffix_tree_node *w = find_outgoing_edge(v, x);
     
     if (!w) {
         // there is no outgoing edge that matches so we must insert here
@@ -251,6 +254,7 @@ static struct suffix_tree_node * fast_scan(struct suffix_tree_node *v,
     if (new_x == xend) {
         // Found the node we should end in
         return w; // we are done now
+        
     } else if (new_x > xend) {
         // We stop before we reach the end node, so we
         // need to split the edge.
@@ -262,6 +266,7 @@ static struct suffix_tree_node * fast_scan(struct suffix_tree_node *v,
         //     x|---|xend       (but x and xend might not be in (s,t))
         //        k
         size_t k = xend - x;
+        assert(k > 0);
         const char *split_point = w->range.from + k;
         return split_edge(w, split_point);
         
@@ -271,31 +276,6 @@ static struct suffix_tree_node * fast_scan(struct suffix_tree_node *v,
         // it to a loop, at least gcc and LLVM based, so clang as well.
         return fast_scan(w, new_x, xend);
     }
-}
-
-#warning Implement this
-static struct suffix_tree_node *slow_scan(struct suffix_tree_node *v,
-                                          const char *x, const char *xend,
-                                          const char **final_match)
-{
-    return 0;
-}
-
-
-struct suffix_tree *mccreight_suffix_tree(const char *string)
-{
-    struct suffix_tree *st = malloc(sizeof(struct suffix_tree));
-    st->string = string;
-    size_t slen = (size_t)strlen(string);
-    st->length = slen + 1; // I am using '\0' as sentinel
-    
-    st->root = new_node(0, 0);
-    st->root->parent = st->root;
-    
-    struct suffix_tree_node *v = new_node(string, string + slen);
-    v->parent = st->root; st->root->child = v;
-    
-    return st;
 }
 
 static struct suffix_tree_node *suffix_link(struct suffix_tree *st,
@@ -341,6 +321,46 @@ static void set_suffix_links(struct suffix_tree *st,
 void annotate_suffix_links(struct suffix_tree *st)
 {
     set_suffix_links(st, st->root);
+}
+
+
+struct suffix_tree *mccreight_suffix_tree(const char *string)
+{
+    struct suffix_tree *st = malloc(sizeof(struct suffix_tree));
+    st->string = string;
+    size_t slen = (size_t)strlen(string);
+    st->length = slen + 1; // I am using '\0' as sentinel
+    
+    st->root = new_node(0, 0);
+    st->root->parent = st->root;
+    st->root->suffix = st->root;
+    
+    struct suffix_tree_node *leaf = new_node(string, string + st->length);
+    leaf->parent = st->root; st->root->child = leaf;
+    leaf->leaf_label = 0;
+    
+    const char *xend = st->string + st->length;
+    for (size_t i = 1; i < slen + 1; ++i) {
+        
+        struct suffix_tree_node *p = leaf->parent;
+        struct suffix_tree_node *v = suffix_link(st, p);
+        p = leaf->parent; // need to reset this since suffix_link can change the parent
+        p->suffix = v;
+
+        assert(p->suffix); // please don't be null
+        assert(p->suffix->child); // please be an inner node
+        
+        if (leaf->parent == st->root) {
+            leaf = naive_insert(p->suffix, string + i, st->string + st->length);
+        } else {
+            leaf = naive_insert(p->suffix, leaf->range.from, leaf->range.to);
+        }
+        
+        leaf->leaf_label = i;
+
+    }
+    
+    return st;
 }
 
 
