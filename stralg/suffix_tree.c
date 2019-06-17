@@ -262,7 +262,7 @@ static struct suffix_tree_node * fast_scan(struct suffix_tree_node *v,
         //     x|---|xend       (but x and xend might not be in (s,t))
         //        k
         size_t k = xend - x;
-        const char *split_point = w->range.to - (n - k);
+        const char *split_point = w->range.from + k;
         return split_edge(w, split_point);
         
     } else {
@@ -281,28 +281,54 @@ static struct suffix_tree_node *slow_scan(struct suffix_tree_node *v,
     return 0;
 }
 
-static void set_suffix_links(struct suffix_tree *st,
-                             struct suffix_tree_node *v)
+
+struct suffix_tree *mccreight_suffix_tree(const char *string)
 {
-    // thee cases for a node:
-    // node's parent is the root and the edge has length one
-    if (v->parent == st->root && range_length(v->range) == 1) {
+    struct suffix_tree *st = malloc(sizeof(struct suffix_tree));
+    st->string = string;
+    size_t slen = (size_t)strlen(string);
+    st->length = slen + 1; // I am using '\0' as sentinel
+    
+    st->root = new_node(0, 0);
+    st->root->parent = st->root;
+    
+    struct suffix_tree_node *v = new_node(string, string + slen);
+    v->parent = st->root; st->root->child = v;
+    
+    return st;
+}
+
+static struct suffix_tree_node *suffix_link(struct suffix_tree *st,
+                                            struct suffix_tree_node *v)
+{
+    // two special cases to deal with empty strings (either in
+    // v or its parent's suffix).
+    if (v == st->root) {
+        return v;
+        
+    } else if (v->parent == st->root && range_length(v->range) == 1) {
         // it is a special case because I don't want to deal with
         // the empty string in find_node()
-        v->suffix = st->root;
+        return st->root;
         
     } else if (v->parent == st->root) {
         // the edge is longer than one and the parent is the root
         const char *x = v->range.from + 1;
         const char *xend = v->range.to;
-        v->suffix = fast_scan(st->root, x, xend);
+        return fast_scan(st->root, x, xend);
         
     } else {
         // the general case
         const char *x = v->range.from;
         const char *xend = v->range.to;
-        v->suffix = fast_scan(v->parent->suffix, x, xend);
+        return fast_scan(v->parent->suffix, x, xend);
     }
+}
+
+static void set_suffix_links(struct suffix_tree *st,
+                             struct suffix_tree_node *v)
+{
+    v->suffix = suffix_link(st, v);
     
     // recursion
     struct suffix_tree_node *child = v->child;
@@ -314,12 +340,7 @@ static void set_suffix_links(struct suffix_tree *st,
 
 void annotate_suffix_links(struct suffix_tree *st)
 {
-    st->root->suffix = st->root;
-    struct suffix_tree_node *child = st->root->child;
-    while (child) {
-        set_suffix_links(st, child);
-        child = child->sibling;
-    }
+    set_suffix_links(st, st->root);
 }
 
 

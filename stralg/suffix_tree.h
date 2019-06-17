@@ -35,6 +35,7 @@ struct suffix_tree {
 };
 
 struct suffix_tree *naive_suffix_tree(const char *string);
+struct suffix_tree *mccreight_suffix_tree(const char *string);
 struct suffix_tree *lcp_suffix_tree(const char *string,
                                     size_t *sa, size_t *lcp);
 
