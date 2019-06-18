@@ -72,8 +72,12 @@ find_outgoing_edge(struct suffix_tree_node *v, const char *x)
 static void insert_child(struct suffix_tree_node *parent,
                          struct suffix_tree_node *child)
 {
-    // FIXME: many special cases here... can it be
-    // simplified?
+    // we need this when we split edges
+    if (!parent->child) {
+        parent->child = child;
+        return;
+    }
+    
     const char x = *child->range.from;
     struct suffix_tree_node *w = parent->child;
     if (x < out_letter(w)) { // special case for the first child
@@ -118,13 +122,14 @@ static struct suffix_tree_node *split_edge(struct suffix_tree_node *w,
 
     struct suffix_tree_node *v = w->parent;
     struct suffix_tree_node *u = new_node(w->range.from, split);
-    u->parent = v; u->child = w;
+    u->parent = v;
+    u->child = w;
     w->range.from = split;
     w->parent = u;
     
     remove_child(v, w);
     insert_child(v, u);
-
+    
     return u;
 }
 
@@ -343,7 +348,7 @@ struct suffix_tree *mccreight_suffix_tree(const char *string)
     struct suffix_tree *st = malloc(sizeof(struct suffix_tree));
     st->string = string;
     size_t slen = (size_t)strlen(string);
-    st->length = slen + 1; // I am using '\0' as sentinel
+    st->length = slen + 1; // Including '\0' sentinel
     
     st->root = new_node(0, 0);
     st->root->parent = st->root;
