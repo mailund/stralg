@@ -265,6 +265,19 @@ static void test_exact(const char *pattern, const char *string,
     free_suffix_tree(st);
     printf("OK\n");
     printf("----------------------------------------------------\n");
+
+    printf("McCreight suffix tree\t");
+    st = mccreight_suffix_tree(string);
+    init_string_vector(&st_results, 10);
+    st_match(st, pattern, string, 0, &st_results);
+    sort_string_vector(&st_results);
+    assert(string_vector_equal(&exact_results, &st_results));
+    free_strings(&st_results);
+    dealloc_string_vector(&st_results);
+    free_suffix_tree(st);
+    printf("OK\n");
+    printf("----------------------------------------------------\n");
+
     
     // FIXME: add searches using the lcp construction
     // FIXME: make all the matches work with the remapped string

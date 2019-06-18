@@ -284,7 +284,7 @@ static bool first_unique(string_vector *first, string_vector *second)
     return res;
 }
 
-static void test_matching(const char *pattern, const char *string, int edits)
+static void test_matching(struct suffix_tree *st, const char *string, const char *pattern, int edits)
 {
     string_vector simple_results;
     init_string_vector(&simple_results, 100);
@@ -293,7 +293,6 @@ static void test_matching(const char *pattern, const char *string, int edits)
     string_vector iter_results;
     init_string_vector(&iter_results, 100);
 
-    struct suffix_tree *st = naive_suffix_tree(string);
     simple_match(st, pattern, string, edits, &simple_results);
     ld_match(st, pattern, string, edits, &ld_results);
     iter_match(st, pattern, string, edits, &iter_results);
@@ -351,8 +350,11 @@ int main(int argc, char **argv)
             return EXIT_FAILURE;
         }
         
-        for (size_t k = 0; k < no_edits; ++k)
-            test_matching(pattern, string, edits[k]);
+        for (size_t k = 0; k < no_edits; ++k) {
+            struct suffix_tree *st = naive_suffix_tree(string);
+            test_matching(st, string, pattern, edits[k]);
+        }
+        
         
         free(string);
         // LCOV_EXCL_STOP
@@ -374,7 +376,8 @@ int main(int argc, char **argv)
         for (size_t i = 0; i < no_patterns; ++i) {
             for (size_t j = 0; j < no_strings; ++j) {
                 for (size_t k = 0; k < no_edits; ++k) {
-                    test_matching(patterns[i], strings[j], edits[k]);
+                    struct suffix_tree *st = naive_suffix_tree(strings[j]);
+                    test_matching(st, strings[j], patterns[i], edits[k]);
 
                 }
             }

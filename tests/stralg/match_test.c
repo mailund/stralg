@@ -310,6 +310,11 @@ static void general_suffix_test(index_vector *naive,
     struct suffix_tree *st = naive_suffix_tree(string);
     //st_print_dot_name(st, st->root, "tree.dot");
     test_suffix_tree_match(naive, pattern, st, string);
+    free_suffix_tree(st);
+    
+    st = mccreight_suffix_tree(string);
+    //st_print_dot_name(st, st->root, "tree.dot");
+    test_suffix_tree_match(naive, pattern, st, string);
     
     size_t sorted_suffixes[st->length];
     size_t lcp[st->length];
