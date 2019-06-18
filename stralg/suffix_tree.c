@@ -90,28 +90,42 @@ static void insert_child(struct suffix_tree_node *parent,
     child->parent = parent;
 }
 
+static void remove_child(struct suffix_tree_node *v,
+                         struct suffix_tree_node *w)
+{
+    if (!v->child) return;
+    if (v->child == w) {
+        v->child = w->sibling;
+        w->sibling = 0;
+    } else {
+        struct suffix_tree_node *u = v->child;
+        while (u->sibling) {
+            if (u->sibling == w) {
+                u->sibling = w->sibling;
+                w->sibling = 0;
+                return;
+            }
+            u = u->sibling;
+        }
+    }
+}
+
 static struct suffix_tree_node *split_edge(struct suffix_tree_node *w,
                                            const char *split)
 {
     assert(split < w->range.to);
     assert(w->range.from < split);
-    
-    struct suffix_tree_node *u = new_node(split, w->range.to);
-    u->leaf_label = w->leaf_label; // in case w was a leaf
-    
-    w->range.to = split;
-    u->child = w->child;
-    u->parent = w;
-    w->child = u;
 
-    // update the original children
-    struct suffix_tree_node *child = u->child;
-    while (child) {
-        child->parent = u;
-        child = child->sibling;
-    }
+    struct suffix_tree_node *v = w->parent;
+    struct suffix_tree_node *u = new_node(w->range.from, split);
+    u->parent = v; u->child = w;
+    w->range.from = split;
+    w->parent = u;
     
-    return w;
+    remove_child(v, w);
+    insert_child(v, u);
+
+    return u;
 }
 
 
@@ -339,12 +353,10 @@ struct suffix_tree *mccreight_suffix_tree(const char *string)
     leaf->parent = st->root; st->root->child = leaf;
     leaf->leaf_label = 0;
     
-    const char *xend = st->string + st->length;
     for (size_t i = 1; i < slen + 1; ++i) {
         
         struct suffix_tree_node *p = leaf->parent;
         struct suffix_tree_node *v = suffix_link(st, p);
-        p = leaf->parent; // need to reset this since suffix_link can change the parent
         p->suffix = v;
 
         assert(p->suffix); // please don't be null
@@ -357,7 +369,6 @@ struct suffix_tree *mccreight_suffix_tree(const char *string)
         }
         
         leaf->leaf_label = i;
-
     }
     
     return st;
