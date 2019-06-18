@@ -116,3 +116,6 @@ tests/stralg/tree.pdf
 tree.dot
 tree.pdf
 makefilebuild/
+.Rproj.user
+performance/suffix_tree_construction
+performance/suffix_tree_construction.txt

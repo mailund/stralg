@@ -46,4 +46,4 @@ add_subdirectory(stralg)
 add_subdirectory(bioinf)
 add_subdirectory(tests)
 add_subdirectory(tools)
-
+add_subdirectory(performance)
