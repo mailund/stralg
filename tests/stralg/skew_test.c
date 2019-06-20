@@ -8,35 +8,43 @@
 #include <stdbool.h>
 
 
-/*
-static unsigned char alphabet_size(const char *string)
-{
-    char table[256];
-    for (int i = 0; i < 256; ++i) {
-        table[i] = 0;
-    }
-    
-    unsigned const char *x = (unsigned const char *)string;
-    char alphabet_size = 1; // start with 1 for sentinel
-    
-    // I use '\0' as a sentinel, as always,
-    // so I won't map that to anything here, but
-    // I will have it in the table, just mapped to zero
-    for (; *x; ++x) {
-        if (table[*x] == 0) {
-            table[*x] = 1;
-            alphabet_size++;
-        }
-    }
-    
-    return alphabet_size;
-}*/
 
-static void radix_sort_3(uint32_t *s, size_t n, size_t *sa12, size_t m, uint32_t alph_size)
+static void set_12_3_sizes(size_t n, size_t *m12, size_t *m3)
+{
+    *m3 = (n - 1) / 3 + 1; // n - 1 to adjust for 0 indexing and + 1 to pick zero
+    *m12 = n - *m3;
+}
+
+// Map from indices in s to indices in s12
+static size_t map_s_s12(size_t k) {
+    return 2 * (k / 3) + (k % 3) - 1;
+}
+
+// map from an index in s12 to an index in s
+static size_t map_s12_s(size_t k)
+{
+    return k + k / 2 + 1;
+}
+
+// map from an index in u to an index in s12
+static size_t map_u_s12(size_t i, size_t m)
+{
+    return (i < m) ? (2 * i) : (2 * (i - m) + 1);
+}
+
+// map from an index in u to an index in s
+static size_t map_u_s(size_t i, size_t m)
+{
+    size_t k = map_u_s12(i, m);
+    return map_s12_s(k);
+}
+
+
+static void radix_sort_3(uint16_t *s, size_t n, size_t *sa12, size_t m, uint16_t alph_size)
 {
     index_vector buckets[alph_size];
     for (int i = 0; i < alph_size; ++i) {
-        init_index_vector(&buckets[i], 10 + n / alph_size); // expected n/alp but I don't want zero so +10
+        init_index_vector(&buckets[i], 10 + n / alph_size); // expected n/alph but I don't want zero so +10
     }
     
     for (int offset = 2; offset >= 0; --offset) {
@@ -64,7 +72,7 @@ static void radix_sort_3(uint32_t *s, size_t n, size_t *sa12, size_t m, uint32_t
     }
 }
 
-static bool equal3(uint32_t *s, size_t n, size_t i, size_t j)
+static bool equal3(uint16_t *s, size_t n, size_t i, size_t j)
 {
     for (int k = 0; k < 3; ++k) {
         if (i + k >= n) return false;
@@ -74,14 +82,9 @@ static bool equal3(uint32_t *s, size_t n, size_t i, size_t j)
     return true;
 }
 
-static void set_12_3_sizes(size_t n, size_t *m12, size_t *m3)
-{
-    *m3 = (n - 1) / 3 + 1; // n - 1 to adjust for 0 indexing and + 1 to pick zero
-    *m12 = n - *m3;
-}
 
-static short lex3sort(uint32_t *s, size_t n, uint32_t alphabet_size,
-                      size_t *sa12, size_t *s12_lex3_numbers)
+static uint16_t lex3sort(uint16_t *s, size_t n, uint16_t alphabet_size,
+                         size_t *sa12, uint16_t *s12_lex3_numbers)
 {
     size_t m12, m3;
     set_12_3_sizes(n, &m12, &m3);
@@ -96,7 +99,7 @@ static short lex3sort(uint32_t *s, size_t n, uint32_t alphabet_size,
     radix_sort_3(s, n, sa12, m12, alphabet_size);
 
     // collect the lex numbers from the sorted list
-    size_t *sorted_lex3_numbers = malloc(m12 * sizeof(*s12_lex3_numbers));
+    uint16_t *sorted_lex3_numbers = malloc(m12 * sizeof(*sorted_lex3_numbers));
     sorted_lex3_numbers[0] = 0;
     short no = 0;
     
@@ -111,7 +114,7 @@ static short lex3sort(uint32_t *s, size_t n, uint32_t alphabet_size,
     for (size_t i = 0; i < m12; ++i) {
         size_t k = sa12[i];
         size_t h = sorted_lex3_numbers[i];
-        s12_lex3_numbers[2 * (k / 3) + (k % 3) - 1] = h;
+        s12_lex3_numbers[map_s_s12(k)] = h;
     }
     
     free(sorted_lex3_numbers);
@@ -127,13 +130,18 @@ int main(int argc, const char **argv)
     size_t m12, m3;
     set_12_3_sizes(n, &m12, &m3);
 
-    uint32_t s[n];
+    // FIXME: get a proper remap that preserves
+    // the input order but reduces the alphabet
+    uint16_t s[n];
     for (size_t i = 0; i < n; ++i) {
         s[i] = x[i];
     }
     
+    for (size_t i = 0; i < n; ++i) {
+        printf("x[%lu] == %c -> s[%lu] == %u\n", i, x[i], i, s[i]);
+    }
+    // only for debug...
     size_t j = 0;
-    
     size_t s12[m12];
     for (size_t i = 0; i < n; ++i) {
         if (i % 3 != 0) {
@@ -142,12 +150,12 @@ int main(int argc, const char **argv)
         }
     }
     
-    size_t lex_nos[m12];
+    uint16_t lex_nos[m12];
     size_t sa12[m12];
-    /*size_t k = */lex3sort(s, n, 256, sa12, lex_nos);
+    /*size_t mapped_alphabet_size =*/ lex3sort(s, n, 256, sa12, lex_nos);
 
     for (size_t i = 0; i < m12; ++i) {
-        printf("s12[%lu] = %lu -> lexno[%lu] -> %lu\n", i, s12[i], i, lex_nos[i]);
+        printf("s12[%lu] = %lu -> lexno[%lu] -> %u\n", i, s12[i], i, lex_nos[i]);
     }
     printf("\n");
     
@@ -157,11 +165,11 @@ int main(int argc, const char **argv)
     for (size_t i = 0; i < m12; ++i) {
         size_t k = sa12[i];
         size_t h = 2 * (k / 3) + k % 3 - 1;
-        printf("idx[%.2lu] == %.2lu\t%lu\t%s\n", i, sa12[i], lex_nos[h], x + sa12[i]);
+        printf("sa[%.2lu] == %.2lu\t%u\t%s\n", i, sa12[i], lex_nos[h], x + sa12[i]);
     }
     printf("\n");
 
-    size_t u[m12]; j = 0;
+    uint16_t u[m12]; j = 0;
     for (size_t i = 0; i < m12; i += 2) {
         u[j++] = lex_nos[i];
     }
@@ -169,6 +177,38 @@ int main(int argc, const char **argv)
         u[j++] = lex_nos[i];
     }
     assert(j == m12);
+    
+    for (size_t i = 0; i < m12; ++i) {
+        printf("u[%lu] = %u\n", i, u[i]);
+    }
+    printf("\n");
+    
+    //lex3sort(s, n, 256, sa12, lex_nos);
+    // (n - 1) / 3 + 1
+    
+    // static void radix_sort_3(uint16_t *s, size_t n, size_t *sa12, size_t m, uint16_t alph_size)
+    size_t sau[m12];
+    for (size_t i = 0; i < m12; ++i) {
+        sau[i] = i;
+    }
+    radix_sort_3(u, m12, sau, m12, 10); // fixme: alphabet size
+    
+    uint16_t mm = m12 - m12 / 2;
+    for (size_t i = 0; i < m12; ++i) {
+        size_t k = map_u_s(sau[i], mm);
+        ;
+        printf("sau[%lu] = %lu -> sa12[%lu] = %lu (%lu)\n", i, sau[i],
+               i, sa12[i], k);
+    }
+
+    /*
+    // mapping back from sau to sa12
+    for (size_t i = 0; i < m12; ++i) {
+        size_t back_i = (i < mm) ? (2 * i) : (2 * (i - mm) + 1);
+        printf("back map %lu -> %lu\n", i, back_i);
+        printf("sau[%lu] == %lu, sa12[%lu] == %lu\n",
+               i, sau[i], back_i, sa12[back_i]);
+    }*/
     
     return EXIT_SUCCESS;
 }
