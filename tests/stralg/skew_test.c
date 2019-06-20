@@ -29,7 +29,8 @@ static size_t map_s12_s(size_t k)
 // map from an index in u to an index in s12
 static size_t map_u_s12(size_t i, size_t m)
 {
-    return (i < m) ? (2 * i) : (2 * (i - m) + 1);
+    assert(i != m); // don't touch sentinel
+    return (i < m) ? (2 * i + 1) : (2 * (i - m - 1));
 }
 
 // map from an index in u to an index in s
@@ -100,8 +101,8 @@ static uint16_t lex3sort(uint16_t *s, size_t n, uint16_t alphabet_size,
 
     // collect the lex numbers from the sorted list
     uint16_t *sorted_lex3_numbers = malloc(m12 * sizeof(*sorted_lex3_numbers));
-    sorted_lex3_numbers[0] = 0;
-    short no = 0;
+    sorted_lex3_numbers[0] = 1;
+    short no = 1; // reserve 0 for sentinel
     
     for (size_t i = 1; i < m12; ++i) {
         if (!equal3(s, n, sa12[i], sa12[i - 1])) {
@@ -124,9 +125,9 @@ static uint16_t lex3sort(uint16_t *s, size_t n, uint16_t alphabet_size,
 
 int main(int argc, const char **argv)
 {
-    const char *x = "attgattga";
+    const char *x = "abbaabbba";
     
-    size_t n = strlen(x); // not including sentinel in this algorithm
+    size_t n = strlen(x); // not including end sentinel in this algorithm
     size_t m12, m3;
     set_12_3_sizes(n, &m12, &m3);
 
@@ -169,16 +170,21 @@ int main(int argc, const char **argv)
     }
     printf("\n");
 
-    uint16_t u[m12]; j = 0;
-    for (size_t i = 0; i < m12; i += 2) {
-        u[j++] = lex_nos[i];
-    }
+    // going through i starting from 1 before 0
+    // ensures that the sentinel is at m/2
+    // so it avoids a +1 problem.
+    uint16_t u[m12 + 1]; j = 0;
     for (size_t i = 1; i < m12; i += 2) {
         u[j++] = lex_nos[i];
     }
-    assert(j == m12);
+    assert(j == m12/2);
+    u[j++] = 0; // add center sentinel
+    for (size_t i = 0; i < m12; i += 2) {
+        u[j++] = lex_nos[i];
+    }
+    assert(j == m12 + 1);
     
-    for (size_t i = 0; i < m12; ++i) {
+    for (size_t i = 0; i < m12 + 1; ++i) {
         printf("u[%lu] = %u\n", i, u[i]);
     }
     printf("\n");
@@ -187,20 +193,21 @@ int main(int argc, const char **argv)
     // (n - 1) / 3 + 1
     
     // static void radix_sort_3(uint16_t *s, size_t n, size_t *sa12, size_t m, uint16_t alph_size)
-    size_t sau[m12];
-    for (size_t i = 0; i < m12; ++i) {
+    size_t sau[m12 + 1];
+    for (size_t i = 0; i < m12 + 1; ++i) {
         sau[i] = i;
     }
-    radix_sort_3(u, m12, sau, m12, 10); // fixme: alphabet size
+    radix_sort_3(u, m12 + 1, sau, m12 + 1, 100); // fixme: alphabet size
     
     uint16_t mm = m12 - m12 / 2;
-    for (size_t i = 0; i < m12; ++i) {
+    for (size_t i = 1; i < m12 + 1; ++i) {
         size_t k = map_u_s(sau[i], mm);
-        ;
         printf("sau[%lu] = %lu -> sa12[%lu] = %lu (%lu)\n", i, sau[i],
-               i, sa12[i], k);
+               i - 1, sa12[i - 1], k);
     }
 
+    
+    
     /*
     // mapping back from sau to sa12
     for (size_t i = 0; i < m12; ++i) {
