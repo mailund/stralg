@@ -290,12 +290,17 @@ static void merge_suffix_arrays(uint16_t *s,
 
 static void skew_rec(uint16_t *s, size_t n, uint16_t alphabet_size, size_t *sa)
 {
+    // we shouldn't hit an empty string, except if we get that as the initial
+    // input, but just in case...
+    if (n == 0) return;
     
     size_t m3 = (n - 1) / 3 + 1; // n - 1 to adjust for 0 indexing and + 1 to pick zero
     size_t m12 = n - m3;
     
     uint16_t *lex_nos = malloc(m12 * sizeof(*lex_nos));
+    assert(lex_nos); // FIXME: better error handling
     size_t *sa12 = malloc(m12 * sizeof(*sa12));
+    assert(sa12); // FIXME: better error handling
     
     size_t mapped_alphabet_size = lex3sort(s, n, alphabet_size, sa12, m12, lex_nos);
     
@@ -320,6 +325,7 @@ static void skew_rec(uint16_t *s, size_t n, uint16_t alphabet_size, size_t *sa)
     }
     
     size_t *sa3 = malloc(m3 * sizeof(*sa3));
+    assert(sa3);
     construct_sa3(m12, m3, n, s, sa12, sa3, alphabet_size);
     
     merge_suffix_arrays(s, sa12, m12, sa3, m3, sa);
