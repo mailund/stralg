@@ -352,6 +352,29 @@ static void general_suffix_test(index_vector *naive,
     dealloc_index_vector(&sa_results);
     
     free_suffix_array(sa);
+
+
+    sa = skew_sa_construction(string);
+    init_index_vector(&sa_results, 10);
+    
+    init_sa_match_iter(&sa_iter, pattern, sa);
+    while (next_sa_match(&sa_iter, &sa_match)) {
+        index_vector_append(&sa_results, sa_match.position);
+    }
+    dealloc_sa_match_iter(&sa_iter);
+    
+    sort_index_vector(&sa_results);
+    
+    printf("naive:\n");
+    print_index_vector(naive);
+    printf("sa:\n");
+    print_index_vector(&sa_results);
+    
+    assert(index_vector_equal(naive, &sa_results));
+    
+    dealloc_index_vector(&sa_results);
+    
+    free_suffix_array(sa);
 }
 
 static void general_match_test(const char *pattern,
