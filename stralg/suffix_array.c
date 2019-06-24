@@ -83,6 +83,7 @@ static void radix_sort_3(uint16_t *s, size_t n, size_t *sa12, size_t m, uint16_t
     for (int offset = 2; offset >= 0; --offset) {
         for (size_t i = 0; i < m; ++i) {
             size_t a = (sa12[i] + offset >= n) ? 0 : s[sa12[i] + offset];
+            assert(a < alph_size);
             index_vector_append(&buckets[a], sa12[i]);
         }
         
@@ -151,6 +152,7 @@ static uint16_t lex3sort(uint16_t *s, size_t n, uint16_t alphabet_size,
             j++;
         }
     }
+    
     radix_sort_3(s, n, sa12, m12, alphabet_size);
     
     // collect the lex numbers from the sorted list
@@ -193,7 +195,9 @@ static void construct_u(uint16_t *lex_nos, size_t m12, uint16_t *u)
     assert(j == m12 + 1);
 }
 
-static void construct_sa3(size_t m12, size_t m3, size_t n, uint16_t *s, size_t *sa12, size_t *sa3)
+static void construct_sa3(size_t m12, size_t m3, size_t n,
+                          uint16_t *s, size_t *sa12, size_t *sa3,
+                          uint16_t alphabet_size)
 {
     size_t j = 0;
     
@@ -212,7 +216,7 @@ static void construct_sa3(size_t m12, size_t m3, size_t n, uint16_t *s, size_t *
     }
     assert(j == m3);
     
-    radix_sort_1(s, n, sa3, m3, 256);
+    radix_sort_1(s, n, sa3, m3, alphabet_size);
 }
 
 static bool less(size_t i, size_t j, uint16_t *s, size_t n, size_t *isa)
@@ -286,6 +290,7 @@ static void merge_suffix_arrays(uint16_t *s,
 
 static void skew_rec(uint16_t *s, size_t n, uint16_t alphabet_size, size_t *sa)
 {
+    
     size_t m3 = (n - 1) / 3 + 1; // n - 1 to adjust for 0 indexing and + 1 to pick zero
     size_t m12 = n - m3;
     
@@ -315,7 +320,7 @@ static void skew_rec(uint16_t *s, size_t n, uint16_t alphabet_size, size_t *sa)
     }
     
     size_t *sa3 = malloc(m3 * sizeof(*sa3));
-    construct_sa3(m12, m3, n, s, sa12, sa3);
+    construct_sa3(m12, m3, n, s, sa12, sa3, alphabet_size);
     
     merge_suffix_arrays(s, sa12, m12, sa3, m3, sa);
     
@@ -336,7 +341,8 @@ static void skew(const char *x, size_t *sa)
     // the input order but reduces the alphabet
     uint16_t *s = malloc(n * sizeof(uint16_t));
     for (size_t i = 0; i < n; ++i) {
-        s[i] = x[i];
+        s[i] = (unsigned char)x[i];
+        assert(s[i] < 256);
     }
     
     skew_rec(s, n, 256, sa + 1); // do not include index zero
