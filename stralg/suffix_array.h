@@ -20,6 +20,7 @@ struct suffix_array {
 };
 
 struct suffix_array *qsort_sa_construction(char *string);
+struct suffix_array *skew_sa_construction(char *string);
 
 // When you free the suffix array, you will not free the
 // underlying string.

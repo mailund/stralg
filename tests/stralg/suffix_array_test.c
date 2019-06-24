@@ -81,14 +81,10 @@ static void test_lcp(struct suffix_array *sa)
 }
 
 
-int main(int argc, char *argv[])
+static void test_sa(struct suffix_array *sa, char *string)
 {
-    char *string = "ababacabac";
-    struct suffix_array *sa = qsort_sa_construction(string);
-
-
     compute_lcp(sa);
-
+    
     for (int i = 0; i < sa->length; ++i)
         printf("sa[%d] == %zu\t%s\n", i, sa->array[i], string + sa->array[i]);
     printf("\n");
@@ -99,12 +95,12 @@ int main(int argc, char *argv[])
         printf("lcp[%2d] == %2zu\t%s\n", i, sa->lcp[i], string + sa->array[i]);
     printf("lcp[%zu] == %zu\n", sa->length, sa->lcp[sa->length]);
     printf("\n");
-
+    
     test_order(sa);
     test_inverse(sa);
     test_lcp(sa);
     test_search(sa);
-
+    
     print_suffix_array(sa);
     
     // get a unique temporary file name...
@@ -126,6 +122,17 @@ int main(int argc, char *argv[])
     assert(identical_suffix_arrays(sa, other_sa));
     
     free_suffix_array(other_sa);
+}
+
+int main(int argc, char *argv[])
+{
+    char *string = "ababacabac";
+    struct suffix_array *sa = qsort_sa_construction(string);
+    test_sa(sa, string);
+    free_suffix_array(sa);
+
+    sa = skew_sa_construction(string);
+    test_sa(sa, string);
     free_suffix_array(sa);
 
     string = "gacacacag";
@@ -135,10 +142,21 @@ int main(int argc, char *argv[])
     printf("\n");
     
     size_t hit = lower_bound_search(sa, "cag");
-    printf("hit: SA[%zu]=%zu\n", hit, sa->array[hit]);
+    printf("hit: SA[%zu]=%lu\n", hit, sa->array[hit]);
     printf("does cag match '%s'?\n", sa->string + sa->array[hit]);
     
     free_suffix_array(sa);
     
+    sa = skew_sa_construction(string);
+    printf("\n");
+    print_suffix_array(sa);
+    printf("\n");
+    
+    hit = lower_bound_search(sa, "cag");
+    printf("hit: SA[%zu]=%zu\n", hit, sa->array[hit]);
+    printf("does cag match '%s'?\n", sa->string + sa->array[hit]);
+    
+    free_suffix_array(sa);
+
     return EXIT_SUCCESS;
 }
