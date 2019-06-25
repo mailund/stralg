@@ -73,62 +73,57 @@ static size_t map_u_s(size_t i, size_t m)
 }
 
 
-static void radix_sort_3(uint16_t *s, size_t n, size_t *sa12, size_t m, uint16_t alph_size)
+static void radix_sort(uint16_t *s, size_t n,
+                       size_t *sa, size_t m, size_t offset,
+                       index_vector *buckets, uint16_t alph_size)
 {
-    index_vector buckets[alph_size];
-    for (int i = 0; i < alph_size; ++i) {
-        init_index_vector(&buckets[i], 10 + n / alph_size); // expected n/alph but I don't want zero so +10
-    }
+    uint16_t mask = (1 << 8) - 1;
     
-    for (int offset = 2; offset >= 0; --offset) {
-        for (size_t i = 0; i < m; ++i) {
-            size_t a = (sa12[i] + offset >= n) ? 0 : s[sa12[i] + offset];
-            assert(a < alph_size);
-            index_vector_append(&buckets[a], sa12[i]);
-        }
-        
-        size_t k = 0;
-        for (size_t i = 0; i < alph_size; ++i) {
-            for (size_t j = 0; j < buckets[i].used; ++j) {
-                sa12[k++] = index_vector_get(&buckets[i], j);
-            }
-        }
-        assert(k == m);
-        
-        for (int i = 0; i < alph_size; ++i) {
-            buckets[i].used = 0;
-        }
-        
-    }
-    
-    for (int i = 0; i < alph_size; ++i) {
-        dealloc_index_vector(&buckets[i]);
-    }
-}
-
-static void radix_sort_1(uint16_t *s, size_t n, size_t *sa3, size_t m, uint16_t alph_size)
-{
-    index_vector buckets[alph_size];
-    for (int i = 0; i < alph_size; ++i) {
-        init_index_vector(&buckets[i], 10 + n / alph_size); // expected n/alph but I don't want zero so +10
-    }
-    
+    // --- First byte ---------
     for (size_t i = 0; i < m; ++i) {
-        size_t a = (sa3[i] >= n) ? 0 : s[sa3[i]];
-        index_vector_append(&buckets[a], sa3[i]);
+        size_t a = (sa[i] + offset >= n) ? 0 : s[sa[i] + offset];
+        size_t bucket = a & mask;
+        index_vector_append(&buckets[bucket], sa[i]);
     }
     
     size_t k = 0;
-    for (size_t i = 0; i < alph_size; ++i) {
+    for (size_t i = 0; i < 256; ++i) {
         for (size_t j = 0; j < buckets[i].used; ++j) {
-            sa3[k++] = index_vector_get(&buckets[i], j);
+            sa[k++] = index_vector_get(&buckets[i], j);
         }
+        buckets[i].used = 0; // reset
     }
     assert(k == m);
     
-    for (int i = 0; i < alph_size; ++i) {
-        dealloc_index_vector(&buckets[i]);
+    if (alph_size > 256) {
+    // --- Second byte ---------
+    for (size_t i = 0; i < m; ++i) {
+        size_t a = (sa[i] + offset >= n) ? 0 : s[sa[i] + offset];
+        size_t bucket = (a >> 8) & mask;
+        assert(bucket < 256);
+        index_vector_append(&buckets[bucket], sa[i]);
     }
+    
+    k = 0;
+    for (size_t i = 0; i < 256; ++i) {
+        for (size_t j = 0; j < buckets[i].used; ++j) {
+            sa[k++] = index_vector_get(&buckets[i], j);
+        }
+        buckets[i].used = 0; // reset
+    }
+    assert(k == m);
+    }
+
+}
+
+static void radix_sort_3(uint16_t *s, size_t n,
+                         size_t *sa12, size_t m,
+                         index_vector *buckets,
+                         uint16_t alph_size)
+{
+    radix_sort(s, n, sa12, m, 2, buckets, alph_size);
+    radix_sort(s, n, sa12, m, 1, buckets, alph_size);
+    radix_sort(s, n, sa12, m, 0, buckets, alph_size);
 }
 
 static bool equal3(uint16_t *s, size_t n, size_t i, size_t j)
@@ -142,7 +137,8 @@ static bool equal3(uint16_t *s, size_t n, size_t i, size_t j)
 }
 
 
-static uint16_t lex3sort(uint16_t *s, size_t n, uint16_t alphabet_size,
+static uint16_t lex3sort(uint16_t *s, size_t n,
+                         index_vector *buckets, uint16_t alph_size,
                          size_t *sa12, size_t m12, uint16_t *s12_lex3_numbers)
 {
     // set up s12 and sort s12
@@ -153,7 +149,7 @@ static uint16_t lex3sort(uint16_t *s, size_t n, uint16_t alphabet_size,
         }
     }
     
-    radix_sort_3(s, n, sa12, m12, alphabet_size);
+    radix_sort_3(s, n, sa12, m12, buckets, alph_size);
     
     // collect the lex numbers from the sorted list
     uint16_t *sorted_lex3_numbers = malloc(m12 * sizeof(*sorted_lex3_numbers));
@@ -197,7 +193,7 @@ static void construct_u(uint16_t *lex_nos, size_t m12, uint16_t *u)
 
 static void construct_sa3(size_t m12, size_t m3, size_t n,
                           uint16_t *s, size_t *sa12, size_t *sa3,
-                          uint16_t alphabet_size)
+                          index_vector *buckets, uint16_t alph_size)
 {
     size_t j = 0;
     
@@ -216,7 +212,7 @@ static void construct_sa3(size_t m12, size_t m3, size_t n,
     }
     assert(j == m3);
     
-    radix_sort_1(s, n, sa3, m3, alphabet_size);
+    radix_sort(s, n, sa3, m3, 0, buckets, alph_size);
 }
 
 static bool less(size_t i, size_t j, uint16_t *s, size_t n, size_t *isa)
@@ -288,7 +284,9 @@ static void merge_suffix_arrays(uint16_t *s,
     assert(k == n);
 }
 
-static void skew_rec(uint16_t *s, size_t n, uint16_t alphabet_size, size_t *sa)
+static void skew_rec(uint16_t *s, size_t n,
+                     index_vector *buckets, uint16_t alph_size,
+                     size_t *sa)
 {
     // we shouldn't hit an empty string, except if we get that as the initial
     // input, but just in case...
@@ -302,7 +300,7 @@ static void skew_rec(uint16_t *s, size_t n, uint16_t alphabet_size, size_t *sa)
     size_t *sa12 = malloc(m12 * sizeof(*sa12));
     assert(sa12); // FIXME: better error handling
     
-    size_t mapped_alphabet_size = lex3sort(s, n, alphabet_size, sa12, m12, lex_nos);
+    size_t mapped_alphabet_size = lex3sort(s, n, buckets, alph_size, sa12, m12, lex_nos);
     
     // the +1 here is because we leave space for the sentinel
     if (mapped_alphabet_size != m12 + 1) {
@@ -310,7 +308,7 @@ static void skew_rec(uint16_t *s, size_t n, uint16_t alphabet_size, size_t *sa)
         size_t *sau = malloc((m12 + 1) * sizeof(*sau));
         
         construct_u(lex_nos, m12, u);
-        skew_rec(u, m12 + 1, mapped_alphabet_size, sau);
+        skew_rec(u, m12 + 1, buckets, mapped_alphabet_size, sau);
         
         uint16_t mm = m12 / 2;
         assert(u[mm] == 0);
@@ -326,7 +324,7 @@ static void skew_rec(uint16_t *s, size_t n, uint16_t alphabet_size, size_t *sa)
     
     size_t *sa3 = malloc(m3 * sizeof(*sa3));
     assert(sa3);
-    construct_sa3(m12, m3, n, s, sa12, sa3, alphabet_size);
+    construct_sa3(m12, m3, n, s, sa12, sa3, buckets, alph_size);
     
     merge_suffix_arrays(s, sa12, m12, sa3, m3, sa);
     
@@ -343,16 +341,25 @@ static void skew(const char *x, size_t *sa)
     // but we explicitly set it at index zero in sa. We reserve
     // the sentinel for center points in u strings.
     
-    // FIXME: get a proper remap that preserves
-    // the input order but reduces the alphabet
     uint16_t *s = malloc(n * sizeof(uint16_t));
     for (size_t i = 0; i < n; ++i) {
         s[i] = (unsigned char)x[i];
         assert(s[i] < 256);
     }
+    index_vector buckets[256];
+    for (int i = 0; i < 256; ++i) {
+        // if the input characters are random integers then we expect
+        // this many in each bucket. I add 10 to avoid problems if n < 256
+        init_index_vector(&buckets[i], n / 256 + 10);
+    }
     
-    skew_rec(s, n, 256, sa + 1); // do not include index zero
+    skew_rec(s, n, buckets, 256, sa + 1); // do not include index zero
     sa[0] = n; // but set it to the sentinel here
+    
+    for (size_t i = 0; i < 256; ++i) {
+        dealloc_index_vector(&buckets[i]);
+    }
+
     
     free(s);
 }

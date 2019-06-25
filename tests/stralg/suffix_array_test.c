@@ -93,7 +93,6 @@ static void test_sa(struct suffix_array *sa, char *string)
     printf("\n");
     for (int i = 0; i < sa->length; ++i)
         printf("lcp[%2d] == %2zu\t%s\n", i, sa->lcp[i], string + sa->array[i]);
-    printf("lcp[%zu] == %zu\n", sa->length, sa->lcp[sa->length]);
     printf("\n");
     
     test_order(sa);
@@ -109,7 +108,7 @@ static void test_sa(struct suffix_array *sa, char *string)
     strcpy(fname, temp_template);
     // I am opening the file here, and not closing it,
     // but I will terminate the program soon, so who cares?
-    // Ussing mkstemp() instead of mktemp() shuts up the
+    // Using mkstemp() instead of mktemp() shuts up the
     // static analyser.
     mkstemp(fname);
     
