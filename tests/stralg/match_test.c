@@ -15,7 +15,7 @@
 // algorithms without introducing iterators
 
 static void naive_search(const char *x, const char *p,
-                         index_vector *res)
+                         struct index_vector *res)
 {
     size_t n = strlen(x);
     size_t m = strlen(p);
@@ -36,7 +36,7 @@ static void naive_search(const char *x, const char *p,
 }
 
 static void border_search(const char *x, const char *p,
-                          index_vector *res)
+                          struct index_vector *res)
 {
     size_t n = strlen(x);
     size_t m = strlen(p);
@@ -69,7 +69,7 @@ static void border_search(const char *x, const char *p,
 }
 
 static void kmp_search(const char *x, const char *p,
-                       index_vector *res)
+                       struct index_vector *res)
 {
     size_t n = strlen(x);
     size_t m = strlen(p);
@@ -117,7 +117,7 @@ static void kmp_search(const char *x, const char *p,
 }
 
 static void bmh_search(const char *x, const char *p,
-                       index_vector *res)
+                       struct index_vector *res)
 {
     size_t n = strlen(x);
     size_t m = strlen(p);
@@ -171,7 +171,7 @@ static void iter_test(
     iter_init_func    iter_init,
     iteration_func    iter_func,
     iter_dealloc_func iter_dealloc,
-    index_vector *res
+    struct index_vector *res
 ) {
     size_t n = (size_t)strlen(text);
     size_t m = (size_t)strlen(pattern);
@@ -184,14 +184,14 @@ static void iter_test(
     iter_dealloc(iter);
 }
 
-static void test_suffix_tree_match(index_vector *naive_matches,
+static void test_suffix_tree_match(struct index_vector *naive_matches,
                                    const char *pattern,
                                    struct suffix_tree *st,
                                    const char *string)
 {
     struct st_leaf_iter st_iter;
     struct st_leaf_iter_result res;
-    index_vector *st_matches = alloc_index_vector(100);
+    struct index_vector *st_matches = alloc_index_vector(100);
     
     struct suffix_tree_node *match_root = st_search(st, pattern);
     init_st_leaf_iter(&st_iter, st, match_root);
@@ -201,20 +201,23 @@ static void test_suffix_tree_match(index_vector *naive_matches,
     dealloc_st_leaf_iter(&st_iter);
     sort_index_vector(st_matches);
     
-    assert(vector_equal(naive_matches, st_matches));
+    print_index_vector(naive_matches);
+    print_index_vector(st_matches);
+    
+    assert(index_vector_equal(naive_matches, st_matches));
     
     free_index_vector(st_matches);
 }
 
-static void simple_exact_matchers(index_vector *naive,
+static void simple_exact_matchers(struct index_vector *naive,
                                   const char *pattern,
                                   const char *string)
 {
-    index_vector border; init_index_vector(&border, 10);
-    index_vector kmp;    init_index_vector(&kmp, 10);
-    index_vector bmh;    init_index_vector(&bmh, 10);
+    struct index_vector border; init_index_vector(&border, 10);
+    struct index_vector kmp;    init_index_vector(&kmp, 10);
+    struct index_vector bmh;    init_index_vector(&bmh, 10);
     
-    index_vector real_naive; init_index_vector(&real_naive, 10);
+    struct index_vector real_naive; init_index_vector(&real_naive, 10);
     
     naive_search(string, pattern, &real_naive);
     printf("naive:\n");
@@ -228,7 +231,7 @@ static void simple_exact_matchers(index_vector *naive,
     }
     printf("\n");
     assert(index_vector_equal(&real_naive, naive));
-    dealloc_vector(&real_naive);
+    dealloc_index_vector(&real_naive);
 
     // reusing vector for the other tests...
     init_index_vector(&real_naive, 10);
@@ -239,7 +242,7 @@ static void simple_exact_matchers(index_vector *naive,
     }
     printf("\n");
     assert(index_vector_equal(&real_naive, naive));
-    dealloc_vector(&real_naive);
+    dealloc_index_vector(&real_naive);
 
     init_index_vector(&real_naive, 10);
     kmp_search(string, pattern, &real_naive);
@@ -249,7 +252,7 @@ static void simple_exact_matchers(index_vector *naive,
     }
     printf("\n");
     assert(index_vector_equal(&real_naive, naive));
-    dealloc_vector(&real_naive);
+    dealloc_index_vector(&real_naive);
 
     init_index_vector(&real_naive, 10);
     bmh_search(string, pattern, &real_naive);
@@ -259,7 +262,7 @@ static void simple_exact_matchers(index_vector *naive,
     }
     printf("\n");
     assert(index_vector_equal(&real_naive, naive));
-    dealloc_vector(&real_naive);
+    dealloc_index_vector(&real_naive);
 
     
     printf("border algorithm.\n");
@@ -293,16 +296,16 @@ static void simple_exact_matchers(index_vector *naive,
               &bmh
               );
     
-    assert(vector_equal(naive, &border));
-    assert(vector_equal(naive, &kmp));
-    assert(vector_equal(naive, &bmh));
+    assert(index_vector_equal(naive, &border));
+    assert(index_vector_equal(naive, &kmp));
+    assert(index_vector_equal(naive, &bmh));
     
     dealloc_index_vector(&border);
     dealloc_index_vector(&kmp);
     dealloc_index_vector(&bmh);
 }
 
-static void general_suffix_test(index_vector *naive,
+static void general_suffix_test(struct index_vector *naive,
                                 const char *pattern,
                                 char *string)
 {
@@ -331,7 +334,7 @@ static void general_suffix_test(index_vector *naive,
     
     struct sa_match_iter sa_iter;
     struct sa_match sa_match;
-    index_vector sa_results;
+    struct index_vector sa_results;
     init_index_vector(&sa_results, 10);
     
     init_sa_match_iter(&sa_iter, pattern, sa);
@@ -380,7 +383,7 @@ static void general_suffix_test(index_vector *naive,
 static void general_match_test(const char *pattern,
                                char *string)
 {
-    index_vector naive;  init_index_vector(&naive, 10);
+    struct index_vector naive;  init_index_vector(&naive, 10);
     printf("naive algorithm.\n");
     struct naive_match_iter naive_iter;
     iter_test(
@@ -396,13 +399,13 @@ static void general_match_test(const char *pattern,
     dealloc_index_vector(&naive);
 }
 
-static void bwt_match(index_vector *naive,
+static void bwt_match(struct index_vector *naive,
                       struct remap_table *remap_table,
                       char *remapped_pattern, char *remapped_string)
 {
     struct suffix_array *sa = qsort_sa_construction(remapped_string);
     
-    index_vector bwt; init_index_vector(&bwt, 10);
+    struct index_vector bwt; init_index_vector(&bwt, 10);
     
     struct bwt_table bwt_table;
     init_bwt_table(&bwt_table, sa, remap_table);
@@ -425,7 +428,7 @@ static void bwt_match(index_vector *naive,
     print_index_vector(naive);
     print_index_vector(&bwt);
     
-    assert(vector_equal(naive, &bwt));
+    assert(index_vector_equal(naive, &bwt));
     dealloc_index_vector(&bwt);
     
     free_suffix_array(sa);
@@ -448,7 +451,7 @@ static void remap_match_test(const char *pattern,
     // the text.
     if (!remap(remapped_pattern, pattern, &remap_table)) return;
     
-    index_vector naive;  init_index_vector(&naive, 10);
+    struct index_vector naive;  init_index_vector(&naive, 10);
     printf("naive algorithm.\n");
     struct naive_match_iter naive_iter;
     iter_test(

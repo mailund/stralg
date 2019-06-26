@@ -7,7 +7,7 @@
 
 int main(int argc, const char **argv)
 {
-    index_vector *vec = alloc_index_vector(1);
+    struct index_vector *vec = alloc_index_vector(1);
     
     for (size_t i = 0; i < 10; ++i) {
         index_vector_append(vec, i);

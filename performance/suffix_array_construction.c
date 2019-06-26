@@ -66,7 +66,7 @@ static size_t map_u_s(size_t i, size_t m)
 
 static void radix_sort_3_mark_1(uint16_t *s, size_t n, size_t *sa12, size_t m, uint16_t alph_size)
 {
-    index_vector buckets[alph_size];
+    struct index_vector buckets[alph_size];
     for (int i = 0; i < alph_size; ++i) {
         init_index_vector(&buckets[i], 10 + n / alph_size); // expected n/alph but I don't want zero so +10
     }
@@ -99,7 +99,7 @@ static void radix_sort_3_mark_1(uint16_t *s, size_t n, size_t *sa12, size_t m, u
 
 static void radix_sort_1_mark_1(uint16_t *s, size_t n, size_t *sa3, size_t m, uint16_t alph_size)
 {
-    index_vector buckets[alph_size];
+    struct index_vector buckets[alph_size];
     for (int i = 0; i < alph_size; ++i) {
         init_index_vector(&buckets[i], 10 + n / alph_size); // expected n/alph but I don't want zero so +10
     }
@@ -365,6 +365,7 @@ static void get_performance(size_t size)
     struct suffix_array *sa;
     clock_t begin, end;
     
+#if 0
     s = build_equal(size);
     begin = clock();
     sa = qsort_sa_construction(s);
@@ -406,28 +407,27 @@ static void get_performance(size_t size)
     free_suffix_array(sa);
 
     free(s);
+
+#else
+#warning Use the code below when profiling; use the other when timing
     
-    /*
-#warning remove this when done with partial profiling
     s = build_equal(size);
     
     begin = clock();
-    sa = skew_sa_construction_mark_1(s);
+    sa = skew_sa_construction(s);
     end = clock();
-#warning get printing back after profiling
-    //printf("Skew Random %lu %f\n", size, (double)(end - begin) / CLOCKS_PER_SEC);
     
     free_suffix_array(sa);
     
     free(s);
-     */
+#endif
 }
 
 int main(int argc, const char **argv)
 {
     srand(time(NULL));
     
-    for (size_t n = 0; n < 30000; n += 500) {
+    for (size_t n = 0; n < 60000; n += 500) {
         for (int rep = 0; rep < 5; ++rep) {
             get_performance(n);
         }

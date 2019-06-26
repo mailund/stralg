@@ -76,7 +76,7 @@ static void check_suffix_tree(struct suffix_tree *st)
     
     struct st_leaf_iter iter;
     struct st_leaf_iter_result res;
-    index_vector *indices = alloc_index_vector(100);
+    struct index_vector *indices = alloc_index_vector(100);
     
     init_st_leaf_iter(&iter, st, st->root);
     while (next_st_leaf(&iter, &res)) {
@@ -90,7 +90,7 @@ static void check_suffix_tree(struct suffix_tree *st)
     printf("testing indices\n");
     assert(indices->used == no_indices);
     for (size_t i = 0; i < no_indices; ++i) {
-        assert(indices->data[i].data.index == expected[i]);
+        assert(indices->data[i] == expected[i]);
     }
     
     int xx = 0;

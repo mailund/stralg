@@ -25,7 +25,7 @@ static void print_leaves(struct suffix_tree_node *from)
     }
 }
 
-static void test_suffix_tree_match(index_vector *naive_matches, const char *pattern, struct suffix_tree *st, char *string) {
+static void test_suffix_tree_match(struct index_vector *naive_matches, const char *pattern, struct suffix_tree *st, char *string) {
     struct st_leaf_iter st_iter;
     struct st_leaf_iter_result res;
     
@@ -45,7 +45,7 @@ static void test_suffix_tree_match(index_vector *naive_matches, const char *patt
     if (match_root)
         print_leaves(match_root);
     
-    index_vector *st_matches = alloc_index_vector(100);
+    struct index_vector *st_matches = alloc_index_vector(100);
     init_st_leaf_iter(&st_iter, st, match_root);
     while (next_st_leaf(&st_iter, &res)) {
         index_vector_append(st_matches, res.leaf->leaf_label);
@@ -64,13 +64,13 @@ static void test_suffix_tree_match(index_vector *naive_matches, const char *patt
     printf("\n");
     
     // Compare the two
-    assert(vector_equal(naive_matches, st_matches));
+    assert(index_vector_equal(naive_matches, st_matches));
     
     free_index_vector(st_matches);
 }
 
 static void test_matching(const char *pattern, char *string) {
-    index_vector *naive_matches  = alloc_index_vector(10);
+    struct index_vector *naive_matches  = alloc_index_vector(10);
     size_t n = (size_t)strlen(string);
     size_t m = (size_t)strlen(pattern);
     struct naive_match_iter naive_iter;

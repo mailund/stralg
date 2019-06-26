@@ -101,51 +101,7 @@ void dequeue(struct queue *queue)
 
 #pragma vector
 
-void init_vector(struct vector *vec, size_t init_size)
-{
-    vec->data = malloc(init_size * sizeof(struct boxed_data));
-    vec->size = init_size;
-    vec->used = 0;
-}
-void dealloc_vector(struct vector *vec)
-{
-    free(vec->data);
-}
 
-struct vector *alloc_vector(size_t init_size)
-{
-    struct vector *vec = malloc(sizeof(struct vector));
-    init_vector(vec, init_size);
-    return vec;
-}
-void free_vector(struct vector *vec)
-{
-    dealloc_vector(vec);
-    free(vec);
-}
-
-
-struct boxed_data vector_get(struct vector *vec, size_t idx)
-{
-    assert(idx < vec->used);
-    return vec->data[idx];
-}
-
-void vector_set(struct vector *vec, size_t idx,
-                struct boxed_data data)
-{
-    assert(idx < vec->used);
-    vec->data[idx] = data;
-}
-
-void vector_append(struct vector *vec, struct boxed_data data)
-{
-    if (vec->used == vec->size) {
-        vec->data = realloc(vec->data, 2 * vec->size * sizeof(struct boxed_data));
-        vec->size = 2 * vec->size;
-    }
-    vec->data[vec->used++] = data;
-}
 
 bool vector_equal(struct vector *v1, struct vector *v2)
 {
@@ -177,22 +133,32 @@ bool vector_equal(struct vector *v1, struct vector *v2)
     return true;
 }
 
+bool index_vector_equal(struct index_vector *v1, struct index_vector *v2)
+{
+    if (v1->used != v2->used) return false;
+    for (size_t i = 0; i < v1->used; ++i) {
+        size_t i1 = v1->data[i];
+        size_t i2 = v2->data[i];
+        if (i1 != i2) return false;
+    }
+    return true;
+
+}
+
 static int index_cmpfunc (const void *void_a, const void *void_b) {
-    struct boxed_data *box_a = (struct boxed_data *)void_a;
-    struct boxed_data *box_b = (struct boxed_data *)void_b;
-    size_t index_a = box_a->data.index;
-    size_t index_b = box_b->data.index;
+    size_t index_a = *(size_t*)void_a;
+    size_t index_b = *(size_t*)void_b;
     if (index_a  < index_b) return -1;
     if (index_a == index_b) return  0;
     if (index_a  > index_b) return  1;
     return 42; // we can't reach this point but we get a warning anyway
 }
 
-void sort_index_vector(index_vector *vec)
+void sort_index_vector(struct index_vector *vec)
 {
-    qsort(vec->data, vec->used, sizeof(struct boxed_data), index_cmpfunc);
+    qsort(vec->data, vec->used, sizeof(size_t), index_cmpfunc);
 }
-void print_index_vector(index_vector *vec)
+void print_index_vector(struct index_vector *vec)
 {
     for (size_t i = 0; i < vec->used; ++i) {
         printf("%zu\n", index_vector_get(vec, i));
@@ -220,7 +186,7 @@ static int string_cmpfunc (const void *void_a, const void *void_b) {
     return strcmp(string_a, string_b);
 }
 
-void sort_string_vector(index_vector *vec)
+void sort_string_vector(string_vector *vec)
 {
     qsort(vec->data, vec->used, sizeof(struct boxed_data), string_cmpfunc);
 }

@@ -75,50 +75,54 @@ static size_t map_u_s(size_t i, size_t m)
 
 static void radix_sort(uint16_t *s, size_t n,
                        size_t *sa, size_t m, size_t offset,
-                       index_vector *buckets, uint16_t alph_size)
+                       struct index_vector *buckets, uint16_t alph_size)
 {
     uint16_t mask = (1 << 8) - 1;
     
     // --- First byte ---------
     for (size_t i = 0; i < m; ++i) {
         size_t a = (sa[i] + offset >= n) ? 0 : s[sa[i] + offset];
-        size_t bucket = a & mask;
-        index_vector_append(&buckets[bucket], sa[i]);
+        struct index_vector *bucket = &buckets[a & mask];
+        index_vector_append(bucket, sa[i]);
     }
     
     size_t k = 0;
     for (size_t i = 0; i < 256; ++i) {
-        for (size_t j = 0; j < buckets[i].used; ++j) {
-            sa[k++] = index_vector_get(&buckets[i], j);
+        struct index_vector *bucket = &buckets[i];
+        for (size_t j = 0; j < bucket->used; ++j) {
+            sa[k] = index_vector_get(&buckets[i], j); // FIXME
+            sa[k++] = bucket->data[j];
         }
         buckets[i].used = 0; // reset
     }
     assert(k == m);
     
     if (alph_size > 256) {
-    // --- Second byte ---------
-    for (size_t i = 0; i < m; ++i) {
-        size_t a = (sa[i] + offset >= n) ? 0 : s[sa[i] + offset];
-        size_t bucket = (a >> 8) & mask;
-        assert(bucket < 256);
-        index_vector_append(&buckets[bucket], sa[i]);
-    }
-    
-    k = 0;
-    for (size_t i = 0; i < 256; ++i) {
-        for (size_t j = 0; j < buckets[i].used; ++j) {
-            sa[k++] = index_vector_get(&buckets[i], j);
+        // --- Second byte ---------
+        for (size_t i = 0; i < m; ++i) {
+            size_t a = (sa[i] + offset >= n) ? 0 : s[sa[i] + offset];
+            size_t bucket = (a >> 8) & mask;
+            assert(bucket < 256);
+            index_vector_append(&buckets[bucket], sa[i]);
         }
-        buckets[i].used = 0; // reset
-    }
-    assert(k == m);
+        
+        k = 0;
+        for (size_t i = 0; i < 256; ++i) {
+            struct index_vector *bucket = &buckets[i];
+            for (size_t j = 0; j < bucket->used; ++j) {
+                sa[k] = index_vector_get(&buckets[i], j); // FIXME
+                sa[k++] = bucket->data[j];
+            }
+            buckets[i].used = 0; // reset
+        }
+        assert(k == m);
     }
 
 }
 
 static void radix_sort_3(uint16_t *s, size_t n,
                          size_t *sa12, size_t m,
-                         index_vector *buckets,
+                         struct index_vector *buckets,
                          uint16_t alph_size)
 {
     radix_sort(s, n, sa12, m, 2, buckets, alph_size);
@@ -138,7 +142,7 @@ static bool equal3(uint16_t *s, size_t n, size_t i, size_t j)
 
 
 static uint16_t lex3sort(uint16_t *s, size_t n,
-                         index_vector *buckets, uint16_t alph_size,
+                         struct index_vector *buckets, uint16_t alph_size,
                          size_t *sa12, size_t m12, uint16_t *s12_lex3_numbers)
 {
     // set up s12 and sort s12
@@ -193,7 +197,7 @@ static void construct_u(uint16_t *lex_nos, size_t m12, uint16_t *u)
 
 static void construct_sa3(size_t m12, size_t m3, size_t n,
                           uint16_t *s, size_t *sa12, size_t *sa3,
-                          index_vector *buckets, uint16_t alph_size)
+                          struct index_vector *buckets, uint16_t alph_size)
 {
     size_t j = 0;
     
@@ -285,7 +289,7 @@ static void merge_suffix_arrays(uint16_t *s,
 }
 
 static void skew_rec(uint16_t *s, size_t n,
-                     index_vector *buckets, uint16_t alph_size,
+                     struct index_vector *buckets, uint16_t alph_size,
                      size_t *sa)
 {
     // we shouldn't hit an empty string, except if we get that as the initial
@@ -341,12 +345,13 @@ static void skew(const char *x, size_t *sa)
     // but we explicitly set it at index zero in sa. We reserve
     // the sentinel for center points in u strings.
     
+#warning Using uint16_t as the alphabet type could be a problem if all of char is used in the input. Check and warn.
     uint16_t *s = malloc(n * sizeof(uint16_t));
     for (size_t i = 0; i < n; ++i) {
         s[i] = (unsigned char)x[i];
         assert(s[i] < 256);
     }
-    index_vector buckets[256];
+    struct index_vector buckets[256];
     for (int i = 0; i < 256; ++i) {
         // if the input characters are random integers then we expect
         // this many in each bucket. I add 10 to avoid problems if n < 256

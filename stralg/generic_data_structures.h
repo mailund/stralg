@@ -140,35 +140,105 @@ struct vector {
     size_t used;
 };
 
-void init_vector(struct vector *vec, size_t init_size);
-void dealloc_vector(struct vector *vec);
-struct vector *alloc_vector(size_t init_size);
-void free_vector(struct vector *vec);
+static inline void init_vector(struct vector *vec, size_t init_size)
+{
+    vec->data = malloc(init_size * sizeof(struct boxed_data));
+    vec->size = init_size;
+    vec->used = 0;
+}
+static inline void dealloc_vector(struct vector *vec)
+{
+    free(vec->data);
+}
 
-struct boxed_data vector_get(struct vector *vec, size_t idx);
-void vector_set(struct vector *vec, size_t idx,
-                struct boxed_data data);
-void vector_append(struct vector *vec, struct boxed_data data);
+static inline struct vector *alloc_vector(size_t init_size)
+{
+    struct vector *vec = malloc(sizeof(struct vector));
+    init_vector(vec, init_size);
+    return vec;
+}
+static inline void free_vector(struct vector *vec)
+{
+    dealloc_vector(vec);
+    free(vec);
+}
+
+static inline struct boxed_data vector_get(struct vector *vec, size_t idx)
+{
+    assert(idx < vec->used);
+    return vec->data[idx];
+}
+
+static inline void vector_set(struct vector *vec, size_t idx,
+                struct boxed_data data)
+{
+    assert(idx < vec->used);
+    vec->data[idx] = data;
+}
+
+static inline void vector_append(struct vector *vec, struct boxed_data data)
+{
+    if (vec->used == vec->size) {
+        vec->data = realloc(vec->data, 2 * vec->size * sizeof(struct boxed_data));
+        vec->size = 2 * vec->size;
+    }
+    vec->data[vec->used++] = data;
+}
+
+
 bool vector_equal(struct vector *v1, struct vector *v2);
 
-typedef struct vector index_vector;
-#define init_index_vector    init_vector
-#define dealloc_index_vector dealloc_vector
-#define alloc_index_vector   alloc_vector
-#define free_index_vector    free_vector
-static inline size_t index_vector_get(index_vector *vec, size_t idx) {
-    return unbox_index(vector_get(vec, idx));
+struct index_vector {
+    size_t *data;
+    size_t size;
+    size_t used;
+};
+
+
+static inline void init_index_vector(struct index_vector *vec, size_t init_size)
+{
+    vec->data = malloc(init_size * sizeof(size_t));
+    vec->size = init_size;
+    vec->used = 0;
 }
-static inline void index_vector_set(index_vector *vec,
+static inline void dealloc_index_vector(struct index_vector *vec)
+{
+    free(vec->data);
+}
+static inline struct index_vector *alloc_index_vector(size_t init_size)
+{
+    struct index_vector *vec = malloc(sizeof(struct index_vector));
+    init_index_vector(vec, init_size);
+    return vec;
+}
+static inline void free_index_vector(struct index_vector *vec)
+{
+    dealloc_index_vector(vec);
+    free(vec);
+}
+
+static inline size_t index_vector_get(struct index_vector *vec, size_t idx) {
+    return vec->data[idx];
+}
+static inline void index_vector_set(struct index_vector *vec,
                                     size_t idx, size_t index) {
-    vector_set(vec, idx, box_index(index));
+    vec->data[idx] = index;
 }
-static inline void index_vector_append(index_vector *vec, size_t index) {
-    vector_append(vec, box_index(index));
+static inline void index_vector_append(struct index_vector *vec, size_t index) {
+    
+    if (vec->used == vec->size) {
+        vec->data = realloc(vec->data, 2 * vec->size * sizeof(struct boxed_data));
+        vec->size = 2 * vec->size;
+    }
+    vec->data[vec->used++] = index;
+
 }
-void sort_index_vector(index_vector *vec);
-#define index_vector_equal vector_equal
-void print_index_vector(index_vector *vec);
+void sort_index_vector(struct index_vector *vec);
+bool index_vector_equal(struct index_vector *v1, struct index_vector *v2);
+void print_index_vector(struct index_vector *vec);
+
+
+
 
 typedef struct vector string_vector;
 #define init_string_vector    init_vector
