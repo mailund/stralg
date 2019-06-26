@@ -101,7 +101,7 @@ static void aho_corasick_approach(const char *string,
     
     // init patter->cigars table -- we need it if there are more than one
     // cigar per pattern (which there often will be)
-    index_list *cigar_table[patterns.used];
+    struct index_linked_list *cigar_table[patterns.used];
     struct trie trie;
     init_trie(&trie);
     for (size_t i = 0; i < patterns.used; ++i) {
@@ -109,10 +109,10 @@ static void aho_corasick_approach(const char *string,
         struct trie *node = get_trie_node(&trie, pattern);
         if (node && node->string_label >= 0) {
             // we have a repeated pattern but with a new cigar
-            cigar_table[node->string_label] = prepend_index_link(cigar_table[node->string_label], i);
+            cigar_table[node->string_label] = new_index_link(i, cigar_table[node->string_label]); //prepend_index_link(cigar_table[node->string_label], i);
         } else {
             add_string_to_trie(&trie, pattern, (long long)i);
-            cigar_table[i] = prepend_index_link(0, i);
+            cigar_table[i] = new_index_link(i, 0); //prepend_index_link(0, i);
         }
         
     }
@@ -131,9 +131,9 @@ static void aho_corasick_approach(const char *string,
         size_t pattern_idx = ac_match.string_label;
         const char *pattern = string_vector_get(&patterns, pattern_idx);
         // there might be more than one cigar per pattern
-        index_list *pattern_cigars = cigar_table[pattern_idx];
+        struct index_linked_list *pattern_cigars = cigar_table[pattern_idx];
         while (pattern_cigars) {
-            size_t cigar_index = unbox_index(pattern_cigars->data);
+            size_t cigar_index = pattern_cigars->data;
             const char *cigar = string_vector_get(&cigars, cigar_index);
             char *hit = match_string(ac_match.index, pattern, cigar);
             string_vector_append(results, hit);

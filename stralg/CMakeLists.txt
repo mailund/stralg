@@ -2,14 +2,19 @@
 set(CMAKE_MACOSX_RPATH 1)
 add_library(stralg SHARED
 	stralg.h
+	# helper data structures
+	lists.h lists.c
+	vectors.h vectors.c
+	queues.h queues.c
+
+	# string algorithms
 	aho_corasick.h aho_corasick.c
 	bwt.h bwt.c
 	cigar.h cigar.c
 	edit_distance_generator.h edit_distance_generator.c
 	error.h
 	match.h match.c
-	vectors.h vectors.c
-	generic_data_structures.h generic_data_structures.c
+
 	io.h io.c
 	remap.h remap.c
 	serialise.h serialise.c

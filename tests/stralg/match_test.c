@@ -1,5 +1,5 @@
 #include <stralg.h>
-#include <generic_data_structures.h>
+#include <vectors.h>
 #include <bwt.h>
 
 #include <stdlib.h>
