@@ -119,3 +119,4 @@ makefilebuild/
 .Rproj.user
 performance/suffix_tree_construction
 performance/suffix_tree_construction.txt
+performance/suffix_array_construction

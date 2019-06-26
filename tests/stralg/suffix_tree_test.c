@@ -1,5 +1,5 @@
 
-#include <generic_data_structures.h>
+#include <vectors.h>
 #include <suffix_tree.h>
 #include <cigar.h>
 #include <stdlib.h>

@@ -16,7 +16,7 @@ static char *match_string(size_t idx, const char *cigar)
     return new_string;
 }
 
-static void free_strings(string_vector *vec)
+static void free_strings(struct string_vector *vec)
 {
     for (int i = 0; i < vec->used; i++) {
         free(string_vector_get(vec, i));
@@ -51,7 +51,7 @@ struct search_data {
     const char *string_end;
     char *full_cigar_buf;
     char *cigar_buf;
-    string_vector *results;
+    struct string_vector *results;
 };
 
 static void search_children(struct search_data *data,
@@ -123,7 +123,7 @@ static void simple_match(struct suffix_tree *st,
                          const char *p,
                          const char *string,
                          int edits,
-                         string_vector *results)
+                         struct string_vector *results)
 {
     size_t m = (size_t)(strlen(p) + 4*edits + 1); // one edit can max cost four characters
 
@@ -218,7 +218,7 @@ static void ld_match(struct suffix_tree *st,
                              const char *p,
                              const char *string,
                              int edits,
-                             string_vector *results)
+                             struct string_vector *results)
 {
     size_t m = (size_t)(strlen(p) + 4*edits + 1); // one edit can max cost four characters
     
@@ -242,7 +242,7 @@ static void ld_match(struct suffix_tree *st,
 static void iter_match(struct suffix_tree *st,
                        const char *pattern, const char *string,
                        int edits,
-                       string_vector *results)
+                       struct string_vector *results)
 {
     struct st_approx_match_iter iter;
     struct st_approx_match match;
@@ -257,7 +257,7 @@ static void iter_match(struct suffix_tree *st,
 }
 
 // MARK: Test code
-static bool equal_vectors(string_vector *first, string_vector *second)
+static bool equal_vectors(struct string_vector *first, struct string_vector *second)
 {
     if (first->used != second->used) return false;
     
@@ -269,10 +269,10 @@ static bool equal_vectors(string_vector *first, string_vector *second)
     
     return true;
 }
-static bool first_unique(string_vector *first, string_vector *second)
+static bool first_unique(struct string_vector *first, struct string_vector *second)
 {
-    string_vector first_unique;
-    string_vector second_unique;
+    struct string_vector first_unique;
+    struct string_vector second_unique;
     init_string_vector(&first_unique, 10);
     init_string_vector(&second_unique, 10);
     
@@ -286,11 +286,11 @@ static bool first_unique(string_vector *first, string_vector *second)
 
 static void test_matching(struct suffix_tree *st, const char *string, const char *pattern, int edits)
 {
-    string_vector simple_results;
+    struct string_vector simple_results;
     init_string_vector(&simple_results, 100);
-    string_vector ld_results;
+    struct string_vector ld_results;
     init_string_vector(&ld_results, 100);
-    string_vector iter_results;
+    struct string_vector iter_results;
     init_string_vector(&iter_results, 100);
 
     simple_match(st, pattern, string, edits, &simple_results);

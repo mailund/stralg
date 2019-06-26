@@ -1,6 +1,6 @@
 
 #include "suffix_array.h"
-#include <generic_data_structures.h>
+#include <vectors.h>
 
 #include <stdlib.h>
 #include <string.h>
@@ -90,8 +90,7 @@ static void radix_sort(uint16_t *s, size_t n,
     for (size_t i = 0; i < 256; ++i) {
         struct index_vector *bucket = &buckets[i];
         for (size_t j = 0; j < bucket->used; ++j) {
-            sa[k] = index_vector_get(&buckets[i], j); // FIXME
-            sa[k++] = bucket->data[j];
+            sa[k++] = index_vector_get(bucket, j);
         }
         buckets[i].used = 0; // reset
     }
@@ -101,17 +100,15 @@ static void radix_sort(uint16_t *s, size_t n,
         // --- Second byte ---------
         for (size_t i = 0; i < m; ++i) {
             size_t a = (sa[i] + offset >= n) ? 0 : s[sa[i] + offset];
-            size_t bucket = (a >> 8) & mask;
-            assert(bucket < 256);
-            index_vector_append(&buckets[bucket], sa[i]);
+            struct index_vector *bucket = &buckets[(a >> 8) & mask];
+            index_vector_append(bucket, sa[i]);
         }
         
         k = 0;
         for (size_t i = 0; i < 256; ++i) {
             struct index_vector *bucket = &buckets[i];
             for (size_t j = 0; j < bucket->used; ++j) {
-                sa[k] = index_vector_get(&buckets[i], j); // FIXME
-                sa[k++] = bucket->data[j];
+                sa[k++] = index_vector_get(bucket, j);
             }
             buckets[i].used = 0; // reset
         }

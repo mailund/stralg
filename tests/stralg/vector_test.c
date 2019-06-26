@@ -1,9 +1,10 @@
 
-#include <generic_data_structures.h>
+#include <vectors.h>
 
 #include <stdio.h>
 #include <assert.h>
 #include <stdlib.h>
+#include <string.h>
 
 int main(int argc, const char **argv)
 {
@@ -36,13 +37,34 @@ int main(int argc, const char **argv)
         printf("%zu ", index_vector_get(vec, i));
     }
     printf("\n");
-
     
     for (size_t i = 0; i < 10; ++i) {
         assert(i + 1 == index_vector_get(vec, i));
     }
-
+    
     free_index_vector(vec);
     
+    struct string_vector svec;
+    init_string_vector(&svec, 2);
+    assert(svec.size == 2);
+    assert(svec.used == 0);
+    
+    string_vector_append(&svec, "foo");
+    string_vector_append(&svec, "bar");
+    string_vector_append(&svec, "baz");
+    
+    assert(svec.used == 3);
+    assert(svec.size == 4);
+    
+    assert(strcmp(string_vector_get(&svec, 0), "foo") == 0);
+    assert(strcmp(string_vector_get(&svec, 1), "bar") == 0);
+    assert(strcmp(string_vector_get(&svec, 2), "baz") == 0);
+    
+    sort_string_vector(&svec);
+
+    assert(strcmp(string_vector_get(&svec, 0), "bar") == 0);
+    assert(strcmp(string_vector_get(&svec, 1), "baz") == 0);
+    assert(strcmp(string_vector_get(&svec, 2), "foo") == 0);
+
     return EXIT_SUCCESS;
 }

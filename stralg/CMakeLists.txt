@@ -8,6 +8,7 @@ add_library(stralg SHARED
 	edit_distance_generator.h edit_distance_generator.c
 	error.h
 	match.h match.c
+	vectors.h vectors.c
 	generic_data_structures.h generic_data_structures.c
 	io.h io.c
 	remap.h remap.c

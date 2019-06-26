@@ -16,7 +16,7 @@ static char *match_string(size_t idx, const char *string, const char *cigar)
     return new_string;
 }
 
-static void free_strings(string_vector *vec)
+static void free_strings(struct string_vector *vec)
 {
     for (int i = 0; i < vec->used; i++) {
         free(string_vector_get(vec, i));
@@ -28,7 +28,7 @@ static void free_strings(string_vector *vec)
 
 static void exact_approach(const char *string, const char *pattern,
                            const char *alphabet,
-                           int dist, string_vector *results)
+                           int dist, struct string_vector *results)
 {
     size_t n = (size_t)strlen(string);
     
@@ -75,11 +75,11 @@ static void print_cigar_list(index_list *list, string_vector *patterns)
 static void aho_corasick_approach(const char *string,
                                   const char *pattern,
                                   const char *alphabet,
-                                  int dist, string_vector *results)
+                                  int dist, struct string_vector *results)
 {
     
-    string_vector patterns; init_string_vector(&patterns, 10);
-    string_vector cigars;   init_string_vector(&cigars, 10);
+    struct string_vector patterns; init_string_vector(&patterns, 10);
+    struct string_vector cigars;   init_string_vector(&cigars, 10);
     
     struct edit_iter pattern_iter;
     struct edit_pattern edit_pattern;
@@ -153,7 +153,7 @@ static void aho_corasick_approach(const char *string,
 static void st_match(struct suffix_tree *st,
                      const char *pattern, const char *string,
                      int edits,
-                     string_vector *st_results)
+                     struct string_vector *st_results)
 {
     char path_buffer[st->length + 1];
     
@@ -176,7 +176,7 @@ static void bwt_match(struct suffix_array *sa,
                       struct remap_table *remap_table,
                       struct bwt_table *bwt_table,
                       int edits,
-                      string_vector *bwt_results)
+                      struct string_vector *bwt_results)
 {
     
     // We need this to get the string we actually matched
@@ -202,7 +202,7 @@ static void bwt_match(struct suffix_array *sa,
 
 #pragma mark The testing functions
 
-static void exact_bwt_test(string_vector *exact_results,
+static void exact_bwt_test(struct string_vector *exact_results,
                            struct remap_table *remap_table,
                            char *remapped_pattern, char *remapped_string)
 {
@@ -212,7 +212,7 @@ static void exact_bwt_test(string_vector *exact_results,
     struct bwt_table bwt_table;
     init_bwt_table(&bwt_table, sa, remap_table);
     
-    string_vector bwt_results;
+    struct string_vector bwt_results;
     init_string_vector(&bwt_results, 10);
     bwt_match(sa, remapped_pattern, remapped_string,
               remap_table, &bwt_table, 0, &bwt_results);
@@ -221,6 +221,8 @@ static void exact_bwt_test(string_vector *exact_results,
     dealloc_bwt_table(&bwt_table);
     
     sort_string_vector(&bwt_results);
+    printf("bwt results\n");
+    print_string_vector(&bwt_results);
     
     assert(string_vector_equal(exact_results, &bwt_results));
     free_strings(&bwt_results);
@@ -237,13 +239,13 @@ static void test_exact(const char *pattern, const char *string,
     printf("\n\nTesting exact matching (with approximative matchers)\n");
     printf("Searching for %s in %s\n", pattern, string);
     printf("====================================================\n");
-    string_vector exact_results;
+    struct string_vector exact_results;
     init_string_vector(&exact_results, 10);
     exact_approach(string, pattern, alphabet, 0, &exact_results);
     sort_string_vector(&exact_results);
     
     printf("Aho-Corasick\t");
-    string_vector ac_results;
+    struct string_vector ac_results;
     init_string_vector(&ac_results, 10);
     aho_corasick_approach(string, pattern, "acgt", 0, &ac_results);
     sort_string_vector(&ac_results);
@@ -255,7 +257,7 @@ static void test_exact(const char *pattern, const char *string,
     
     printf("Naive suffix tree\t");
     struct suffix_tree *st = naive_suffix_tree(string);
-    string_vector st_results;
+    struct string_vector st_results;
     init_string_vector(&st_results, 10);
     st_match(st, pattern, string, 0, &st_results);
     sort_string_vector(&st_results);
@@ -318,18 +320,18 @@ static void test_approx(const char *pattern, const char *string,
     printf("Searching for %s in %s\n", pattern, string);
     printf("====================================================\n");
     
-    string_vector exact_results;
+    struct string_vector exact_results;
     init_string_vector(&exact_results, 10);
     exact_approach(string, pattern, alphabet, edits, &exact_results);
     sort_string_vector(&exact_results);
     
-    string_vector ac_results;
+    struct string_vector ac_results;
     init_string_vector(&ac_results, 10);
     aho_corasick_approach(string, pattern, alphabet, edits, &ac_results);
     sort_string_vector(&ac_results);
     
     printf("Naive vs Aho-Corasic\t");
-    assert(vector_equal(&exact_results, &ac_results));
+    assert(string_vector_equal(&exact_results, &ac_results));
     free_strings(&exact_results);
     dealloc_vector(&exact_results);
     printf("OK\n");
@@ -339,13 +341,13 @@ static void test_approx(const char *pattern, const char *string,
     struct suffix_tree *st = naive_suffix_tree(string);
     st_print_dot_name(st, st->root, "naive-tree.dot");
     
-    string_vector st_results;
+    struct string_vector st_results;
     init_string_vector(&st_results, 10);
     st_match(st, pattern, string, edits, &st_results);
     sort_string_vector(&st_results);
     free_suffix_tree(st);
     
-    assert(vector_equal(&ac_results, &st_results));
+    assert(string_vector_equal(&ac_results, &st_results));
     free_strings(&st_results);
     dealloc_string_vector(&st_results);
     
@@ -379,7 +381,7 @@ static void test_approx(const char *pattern, const char *string,
         //print_bwt_table(&bwt_table, sa, &remap_table);
         
         
-        string_vector bwt_results;
+        struct string_vector bwt_results;
         init_string_vector(&bwt_results, 10);
         bwt_match(sa, remapped_pattern, remappe_string,
                   &remap_table, &bwt_table, edits, &bwt_results);
@@ -387,7 +389,7 @@ static void test_approx(const char *pattern, const char *string,
         
         free_suffix_array(sa);
         
-        assert(vector_equal(&ac_results, &bwt_results));
+        assert(string_vector_equal(&ac_results, &bwt_results));
         printf("OK\n");
         printf("----------------------------------------------------\n");
         

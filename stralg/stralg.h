@@ -15,5 +15,6 @@
 #include <suffix_array.h>
 #include <suffix_tree.h>
 #include <trie.h>
+#include <vectors.h>
 
 #endif
