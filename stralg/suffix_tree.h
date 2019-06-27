@@ -28,10 +28,15 @@ static inline size_t edge_length(struct suffix_tree_node *n) {
     return range_length(n->range);
 }
 
+struct suffix_tree_node_pool {
+    struct suffix_tree_node *nodes;
+    struct suffix_tree_node *next_node;
+};
 struct suffix_tree {
     const char *string;
     size_t length;
     struct suffix_tree_node *root;
+    struct suffix_tree_node_pool pool;
 };
 
 struct suffix_tree *naive_suffix_tree(const char *string);
