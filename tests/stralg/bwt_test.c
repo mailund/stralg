@@ -11,19 +11,24 @@ static void test_expected(const struct bwt_table *bwt_table)
     struct suffix_array *sa = bwt_table->sa;
     
     size_t expected_c[] = {
-        0, 0, 1, 5, 9
+       // 0, 1, 2, 6, 10
+         0, 0, 4, 5, 7
     };
     for (size_t i = 0; i < remap_table->alphabet_size; ++i) {
         printf("C[%zu] == %zu\n", i, bwt_table->c_table[i]);
         assert(bwt_table->c_table[i] == expected_c[i]);
     }
     
+    printf("\nO table:\n");
+    print_o_table(bwt_table);
+    printf("\n");
+    
     size_t expected_o[] = {
-        0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-        0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-        1, 1, 1, 1, 1, 1, 1, 1, 2, 3, 3, 4,
-        0, 0, 0, 0, 1, 2, 3, 4, 4, 4, 4, 4,
-        0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2
+        /* $ */ 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1,
+        /* i */ 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 3, 4,
+        /* m */ 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1,
+        /* p */ 0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2,
+        /* s */ 0, 0, 1, 2, 2, 2, 2, 2, 3, 4, 4, 4 
     };
     for (unsigned char a = 0; a < remap_table->alphabet_size; ++a) {
         printf("O(%d,-) == ", a);
@@ -119,6 +124,6 @@ int main(int argc, char **argv)
     free_suffix_array(sa);
     dealloc_remap_table(&remap_table);
     dealloc_bwt_table(&bwt_table);
-    
+
     return EXIT_SUCCESS;
 }

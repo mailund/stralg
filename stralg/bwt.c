@@ -20,13 +20,13 @@ void init_bwt_table(struct bwt_table    *bwt_table,
                     struct suffix_array *sa,
                     struct remap_table  *remap_table)
 {
+    assert(sa);
     bwt_table->remap_table = remap_table;
     bwt_table->sa = sa;
     
     // ---- COMPUTE C TABLE -----------------------------------
     size_t char_counts[remap_table->alphabet_size];
     memset(char_counts, 0, remap_table->alphabet_size * sizeof(size_t));
-    // I don't go all the way to $ because I shouldn't count that in c
     for (size_t i = 0; i < sa->length - 1; ++i) {
         char_counts[(unsigned char)sa->string[i]]++;
     }
@@ -539,7 +539,7 @@ struct bwt_table * read_bwt_table_fname(const char *fname,
 
 
 
-void print_c_table(struct bwt_table *table)
+void print_c_table(const struct bwt_table *table)
 {
     const struct remap_table *remap_table = table->remap_table;
     printf("C: ");
@@ -549,7 +549,7 @@ void print_c_table(struct bwt_table *table)
     printf("\n");
 }
 
-void print_o_table  (struct bwt_table *table)
+void print_o_table(const struct bwt_table *table)
 {
     const struct remap_table *remap_table = table->remap_table;
     const struct suffix_array *sa = table->sa;
@@ -563,7 +563,7 @@ void print_o_table  (struct bwt_table *table)
     
 }
 
-void print_bwt_table(struct bwt_table *table)
+void print_bwt_table(const struct bwt_table *table)
 {
     print_c_table(table);
     printf("\n");

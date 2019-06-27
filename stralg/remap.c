@@ -1,19 +1,29 @@
 #include "remap.h"
 #include <string.h>
 
+// this remap could be a lot easier if I didn't preserve
+// the input order, but I prefer to do so for debugging
+// purposes. It doesn't cost much anyway
 void build_remap_table(struct remap_table *table,
                        const char *string)
 {
-    unsigned const char *x = (unsigned const char *)string;
+    unsigned const char *x;
     
-    // I use '\0' as a sentinel, as always,
-    // so I won't map that to anything here, but
-    // I will have it in the table, just mapped to zero
-    for (; *x; ++x) {
+    // collect existing characters
+    for (x = (unsigned const char *)string; *x; x++) {
         if (table->table[*x] == -1) {
-            table->table[*x] = table->alphabet_size;
-            table->rev_table[table->alphabet_size] = *x;
             table->alphabet_size++;
+            table->table[*x] = 1;
+        }
+    }
+    
+    // now give the alphabet indices numbers in an
+    // order that matches the input
+    for (int i = 0, char_no = 0; i < 256; i++) {
+        if (table->table[i] != -1) {
+            table->table[i] = char_no;
+            table->rev_table[char_no] = i;
+            char_no++;
         }
     }
 }

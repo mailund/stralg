@@ -314,9 +314,9 @@ struct bwt_table * read_bwt_table_fname(const char *fname,
 
 
 // Some debug code
-void print_c_table  (struct bwt_table *table);
-void print_o_table  (struct bwt_table *table);
-void print_bwt_table(struct bwt_table *table);
+void print_c_table  (const struct bwt_table *table);
+void print_o_table  (const struct bwt_table *table);
+void print_bwt_table(const struct bwt_table *table);
 
 bool equivalent_bwt_tables(struct bwt_table *table1,
                            struct bwt_table *table2);
