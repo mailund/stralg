@@ -40,6 +40,8 @@ void init_bwt_table(struct bwt_table    *bwt_table,
     bwt_table->o_table =
         calloc(remap_table->alphabet_size * sa->length, sizeof(*bwt_table->o_table));
     
+    // the sentinel always goes first so the first should only be zero if the
+    // string is empty, but this handles that special case.
     unsigned char bwt0 = (sa->array[0] == 0) ? 0 : sa->string[sa->array[0] - 1];
     for (unsigned char a = 0; a < remap_table->alphabet_size; ++a) {
         size_t idx = o_index(a, 0, bwt_table);
