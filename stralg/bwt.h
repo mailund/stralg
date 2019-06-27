@@ -54,7 +54,9 @@ struct bwt_table {
 static inline size_t o_index(unsigned char a, size_t i,
                                const struct bwt_table *table)
 {
-    return a * table->sa->length + i;
+    // i is unsigned but I can index -1 (it should always be
+    // zero) so I allow this.
+    return (i == -1) ? 0 : (a * table->sa->length + i + 1);
 }
 
 /**

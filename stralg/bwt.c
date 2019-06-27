@@ -37,8 +37,11 @@ void init_bwt_table(struct bwt_table    *bwt_table,
     }
     
     // ---- COMPUTE O TABLE -----------------------------------
-    bwt_table->o_table =
-        calloc(remap_table->alphabet_size * sa->length, sizeof(*bwt_table->o_table));
+    // I have a bit of a hack here so I can index -1 (to avoid special
+    // cases I need to check for everywhere in the code). I allocate
+    // one more entry than I need, and point one past the allocated buffer.
+    bwt_table->o_table = calloc(remap_table->alphabet_size * sa->length + 1, sizeof(*bwt_table->o_table));
+    
     
     // the sentinel always goes first so the first should only be zero if the
     // string is empty, but this handles that special case.
@@ -59,7 +62,7 @@ void init_bwt_table(struct bwt_table    *bwt_table,
 void dealloc_bwt_table(struct bwt_table *bwt_table)
 {
     free(bwt_table->c_table);
-    free(bwt_table->o_table);
+    free(bwt_table->o_table); // -1 to get the real allocated buffer
 }
 
 void completely_dealloc_bwt_table(struct bwt_table *bwt_table)
@@ -135,14 +138,7 @@ void init_bwt_exact_match_iter(struct bwt_exact_match_iter *iter,
         assert(a > 0); // only the sentinel is null
         assert(a < bwt_table->remap_table->alphabet_size);
         
-         size_t o_contrib = 0;
-        if (L != 0) {
-            assert(a > 0); // only sentinel is zero
-            assert(a < bwt_table->remap_table->alphabet_size);
-            size_t o_idx = o_index(a, L - 1, bwt_table);
-            o_contrib = bwt_table->o_table[o_idx];
-        }
-        L = bwt_table->c_table[a] + o_contrib;
+        L = bwt_table->c_table[a] + bwt_table->o_table[o_index(a, L - 1, bwt_table)];
         R = bwt_table->c_table[a] + bwt_table->o_table[o_index(a, R - 1, bwt_table)];
         i--;
     }
@@ -285,8 +281,7 @@ static void push_edits(struct bwt_approx_match_internal_iter *iter,
     // Iterating alphabet from 1 so I don't include the sentinel.
     for (unsigned char a = 1; a < remap_table->alphabet_size; ++a) {
         
-        size_t o_contrib = (L == 0) ? 0 : o_table[o_index(a, L - 1, bwt_table)];
-        new_L = c_table[a] + o_contrib;
+        new_L = c_table[a] + o_table[o_index(a, L - 1, bwt_table)];
         new_R = c_table[a] + o_table[o_index(a, R - 1, bwt_table)];
 
 
@@ -307,8 +302,7 @@ static void push_edits(struct bwt_approx_match_internal_iter *iter,
     if (!first) { // never start with a deletion
         // Iterating alphabet from 1 so I don't include the sentinel.
         for (unsigned char a = 1; a < remap_table->alphabet_size; ++a) {
-            size_t o_contrib = (L == 0) ? 0 : o_table[o_index(a, L - 1, bwt_table)];
-            new_L = c_table[a] + o_contrib;
+            new_L = c_table[a] + o_table[o_index(a, L - 1, bwt_table)];
             new_R = c_table[a] + o_table[o_index(a, R - 1, bwt_table)];
             push_frame(iter, 'D', edits - 1,
                        cigar + 1, match_length + 1,

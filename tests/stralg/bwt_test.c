@@ -24,6 +24,7 @@ static void test_expected(const struct bwt_table *bwt_table)
     printf("\n");
     
     size_t expected_o[] = {
+        0, // DUMMY
         /* $ */ 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1,
         /* i */ 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 3, 4,
         /* m */ 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1,
