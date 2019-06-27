@@ -96,6 +96,7 @@ struct bwt_table *build_complete_table(const char *string)
     remap(remapped_str, string, remap_table);
     
     // FIXME: use the fastest algorithm I have here...
+    // qsort is for random strings, so that is the choice for now
     struct suffix_array *sa = qsort_sa_construction(remapped_str);
 
     struct bwt_table *table = malloc(sizeof(struct bwt_table));
@@ -115,7 +116,7 @@ void init_bwt_exact_match_iter(struct bwt_exact_match_iter *iter,
     size_t m = (size_t)strlen(remapped_pattern);
     
     size_t L = 0;
-    size_t R = n - 1;
+    size_t R = n;
 
     // if the pattern is longer than the string then
     // there won't be a match
@@ -129,7 +130,7 @@ void init_bwt_exact_match_iter(struct bwt_exact_match_iter *iter,
     
     
     
-    while (i >= 0 && L <= R) {
+    while (i >= 0 && L < R) {
         unsigned char a = remapped_pattern[i];
         assert(a > 0); // only the sentinel is null
         assert(a < bwt_table->remap_table->alphabet_size);
@@ -142,11 +143,7 @@ void init_bwt_exact_match_iter(struct bwt_exact_match_iter *iter,
             o_contrib = bwt_table->o_table[o_idx];
         }
         L = bwt_table->c_table[a] + o_contrib;
-        R = bwt_table->c_table[a] + bwt_table->o_table[o_index(a, R, bwt_table)] - 1;
-        /*
-        L = bwt_table->c_table[a] + ((L == 0) ? 0 : bwt_table->o_table[o_index(a, L - 1, bwt_table)]);
-        R = bwt_table->c_table[a] + bwt_table->o_table[o_index(a, R, bwt_table)] - 1;
-         */
+        R = bwt_table->c_table[a] + bwt_table->o_table[o_index(a, R - 1, bwt_table)];
         i--;
     }
     iter->L = L;
@@ -160,7 +157,7 @@ bool next_bwt_exact_match_iter(struct bwt_exact_match_iter *iter,
     // cases where we never had a match
     if (iter->i < 0)       return false;
     // cases where we no longer have a match
-    if (iter->i > iter->R) return false;
+    if (iter->i >= iter->R) return false;
     
     // we still have a match.
     // report it and update the position
@@ -290,11 +287,7 @@ static void push_edits(struct bwt_approx_match_internal_iter *iter,
         
         size_t o_contrib = (L == 0) ? 0 : o_table[o_index(a, L - 1, bwt_table)];
         new_L = c_table[a] + o_contrib;
-        new_R = c_table[a] + o_table[o_index(a, R, bwt_table)] - 1;
-         /*
-        new_L = bwt_table->c_table[a] + ((L == 0) ? 0 : bwt_table->o_table[o_index(a, L - 1, bwt_table)]);
-        new_R = bwt_table->c_table[a] + bwt_table->o_table[o_index(a, R, bwt_table)] - 1;
-          */
+        new_R = c_table[a] + o_table[o_index(a, R - 1, bwt_table)];
 
 
         int edit_cost = (a == match_a) ? 0 : 1;
@@ -316,7 +309,7 @@ static void push_edits(struct bwt_approx_match_internal_iter *iter,
         for (unsigned char a = 1; a < remap_table->alphabet_size; ++a) {
             size_t o_contrib = (L == 0) ? 0 : o_table[o_index(a, L - 1, bwt_table)];
             new_L = c_table[a] + o_contrib;
-            new_R = c_table[a] + o_table[o_index(a, R, bwt_table)] - 1;
+            new_R = c_table[a] + o_table[o_index(a, R - 1, bwt_table)];
             push_frame(iter, 'D', edits - 1,
                        cigar + 1, match_length + 1,
                        new_L, new_R, i);
@@ -378,7 +371,7 @@ void init_bwt_approx_match_internal_iter
 #endif
     
     size_t L = 0;
-    size_t R = n - 1;
+    size_t R = n;
     long long i = m - 1;
     
     // push the start of the search
@@ -403,11 +396,11 @@ bool next_bwt_approx_match_internal_iter
         
         // in these cases we will never find a match
         if (edits < 0) continue;
-        if (L > R) continue;
+        if (L >= R) continue;
 
         cigar[-1] = edit_op;
 
-        if (i < 0 && L <= R) {
+        if (i < 0 && L < R) {
             // We have a match!
             
             // To get the right cigar, we must reverse and simplify.
