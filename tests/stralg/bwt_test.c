@@ -11,8 +11,8 @@ static void test_expected(const struct bwt_table *bwt_table)
     struct suffix_array *sa = bwt_table->sa;
     
     size_t expected_c[] = {
-       // 0, 1, 2, 6, 10
-         0, 0, 4, 5, 7
+        0, 1, 5, 6, 8
+       //  0, 0, 4, 5, 7
     };
     for (size_t i = 0; i < remap_table->alphabet_size; ++i) {
         printf("C[%zu] == %zu\n", i, bwt_table->c_table[i]);
@@ -28,7 +28,7 @@ static void test_expected(const struct bwt_table *bwt_table)
         /* i */ 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 3, 4,
         /* m */ 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1,
         /* p */ 0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2,
-        /* s */ 0, 0, 1, 2, 2, 2, 2, 2, 3, 4, 4, 4 
+        /* s */ 0, 0, 1, 2, 2, 2, 2, 2, 3, 4, 4, 4
     };
     for (unsigned char a = 0; a < remap_table->alphabet_size; ++a) {
         printf("O(%d,-) == ", a);
