@@ -24,19 +24,17 @@ static void test_expected(const struct bwt_table *bwt_table)
     printf("\n");
     
     size_t expected_o[] = {
-        0, // DUMMY
-        /* $ */ 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1,
-        /* i */ 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 3, 4,
-        /* m */ 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1,
-        /* p */ 0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2,
-        /* s */ 0, 0, 1, 2, 2, 2, 2, 2, 3, 4, 4, 4
+        /* $ */ 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1,
+        /* i */ 0, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 3, 4,
+        /* m */ 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1,
+        /* p */ 0, 0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2,
+        /* s */ 0, 0, 0, 1, 2, 2, 2, 2, 2, 3, 4, 4, 4
     };
     for (unsigned char a = 0; a < remap_table->alphabet_size; ++a) {
         printf("O(%d,-) == ", a);
         for (size_t i = 0; i < sa->length; ++i) {
-            size_t idx = o_index(a, i, bwt_table);
-            printf("%zu ", bwt_table->o_table[idx]);
-            assert(bwt_table->o_table[idx] == expected_o[idx]);
+            printf("%zu/%lu ", O(a, i), expected_o[o_index(a, i, bwt_table)]);
+            assert(O(a, i) == expected_o[o_index(a, i, bwt_table)]);
         }
         printf("\n");
     }

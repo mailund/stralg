@@ -56,7 +56,8 @@ static inline size_t o_index(unsigned char a, size_t i,
 {
     // i is unsigned but I can index -1 (it should always be
     // zero) so I allow this.
-    return (i == -1) ? 0 : (a * table->sa->length + i + 1);
+    return //(i == -1) ? 0 : (a * table->sa->length + i + 1);
+    a * (table->sa->length + 1) + i;
 }
 
 // these macros just make the notation nices, but they do require

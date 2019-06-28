@@ -33,7 +33,6 @@ void init_bwt_table(struct bwt_table    *bwt_table,
     
     bwt_table->c_table = calloc(remap_table->alphabet_size, sizeof(*bwt_table->c_table));
     for (size_t i = 1; i < remap_table->alphabet_size; ++i) {
-        //bwt_table->c_table[i] = bwt_table->c_table[i-1] + char_counts[i - 1];
         C(i) = C(i-1) + char_counts[i - 1];
     }
     
@@ -43,19 +42,12 @@ void init_bwt_table(struct bwt_table    *bwt_table,
     bwt_table->o_table =
         calloc(remap_table->alphabet_size * (sa->length + 1),
                sizeof(*bwt_table->o_table));
-    
-    // the sentinel always goes first so the first should only be zero if the
-    // string is empty, but this handles that special case.
-    unsigned char bwt0 = bwt(sa, 0);
-    //(sa->array[0] == 0) ? 0 : sa->string[sa->array[0] - 1];
+
     for (unsigned char a = 0; a < remap_table->alphabet_size; ++a) {
-        size_t idx = o_index(a, 0, bwt_table);
-        bwt_table->o_table[idx] = bwt0 == a;
-        for (size_t i = 1; i < sa->length; ++i) {
-            O(a, i) = O(a, i - 1) + (bwt(sa, i) == a);
+        for (size_t i = 1; i <= sa->length; ++i) {
+            O(a, i) = O(a, i - 1) + (bwt(sa, i - 1) == a);
         }
     }
-    
 }
 
 void dealloc_bwt_table(struct bwt_table *bwt_table)
@@ -137,8 +129,8 @@ void init_bwt_exact_match_iter(struct bwt_exact_match_iter *iter,
         assert(a > 0); // only the sentinel is null
         assert(a < bwt_table->remap_table->alphabet_size);
         
-        L = C(a) + O(a, L - 1);
-        R = C(a) + O(a, R - 1);
+        L = C(a) + O(a, L);
+        R = C(a) + O(a, R);
         i--;
     }
     iter->L = L;
@@ -278,8 +270,8 @@ static void push_edits(struct bwt_approx_match_internal_iter *iter,
     // Iterating alphabet from 1 so I don't include the sentinel.
     for (unsigned char a = 1; a < remap_table->alphabet_size; ++a) {
         
-        new_L = C(a) + O(a, L - 1);
-        new_R = C(a) + O(a, R - 1);
+        new_L = C(a) + O(a, L);
+        new_R = C(a) + O(a, R);
 
 
         int edit_cost = (a == match_a) ? 0 : 1;
@@ -299,8 +291,8 @@ static void push_edits(struct bwt_approx_match_internal_iter *iter,
     if (!first) { // never start with a deletion
         // Iterating alphabet from 1 so I don't include the sentinel.
         for (unsigned char a = 1; a < remap_table->alphabet_size; ++a) {
-            new_L = C(a) + O(a, L - 1);
-            new_R = C(a) + O(a, R - 1);
+            new_L = C(a) + O(a, L);
+            new_R = C(a) + O(a, R);
             push_frame(iter, 'D', edits - 1,
                        cigar + 1, match_length + 1,
                        new_L, new_R, i);
@@ -550,7 +542,7 @@ void print_o_table(const struct bwt_table *table)
     const struct suffix_array *sa = table->sa;
     for (size_t i = 0; i < remap_table->alphabet_size; ++i) {
         printf("O(%c,) = ", remap_table->rev_table[i]);
-        for (size_t j = 0; j < sa->length; ++j) {
+        for (size_t j = 0; j <= sa->length; ++j) {
             printf("%zu ", table->o_table[o_index(i, j, table)]);
         }
         printf("\n");
