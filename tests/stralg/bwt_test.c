@@ -1,5 +1,8 @@
 
 #include <bwt.h>
+#include <string_utils.h>
+
+
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
@@ -58,6 +61,33 @@ static void test_reverse_expected(struct bwt_table *bwt_table)
         printf("\n");
     }
 
+}
+
+static void forward_search(struct bwt_table *bwt_table,
+                           struct suffix_array *rsa,
+                           const char *string,
+                           const char *pattern)
+{
+    size_t n = bwt_table->sa->length;
+    size_t m = strlen(pattern);
+    size_t L = 0, R = n, i = 0;
+    
+    while (i < m && L < R) {
+        unsigned char a = pattern[i];
+        assert(a > 0); // only the sentinel is null
+        assert(a < bwt_table->remap_table->alphabet_size);
+        
+        L = C(a) + RO(a, L);
+        R = C(a) + RO(a, R);
+        i++;
+    }
+    
+    printf("[%lu,%lu]\n", L, R);
+    for (size_t i = L; i < R; ++i) {
+        size_t j = rsa->array[i];
+        printf("%2lu: %s\n", j, string + n - (j + m));
+    }
+    printf("\n");
 }
 
 static void error_test(void)
@@ -141,17 +171,38 @@ int main(int argc, char **argv)
     completely_free_bwt_table(yet_another_table);
     
     free_suffix_array(sa);
-    dealloc_remap_table(&remap_table);
     dealloc_bwt_table(&bwt_table);
 
     
     another_table = build_complete_table(string, true);
     print_bwt_table(another_table);
     test_reverse_expected(another_table);
-    
-
-    
     completely_free_bwt_table(another_table);
+    
+    
+    sa = qsort_sa_construction(remapped);
+    char *rev_remapped = str_copy(remapped);
+    str_inplace_rev(rev_remapped);
+    struct suffix_array *rsa = qsort_sa_construction(rev_remapped);
+    
+    init_bwt_table(&bwt_table, sa, rsa, &remap_table);
+    
+    const char *iss = "iss";
+    char rm_iss[strlen(iss) + 1];
+    remap(rm_iss, iss, &remap_table);
+    forward_search(&bwt_table, rsa, string, rm_iss);
+
+#warning this doesn't work, but now it is weekend.
+    const char *pi = "pi";
+    char rm_pi[strlen(pi) + 1];
+    remap(rm_pi, pi, &remap_table);
+    forward_search(&bwt_table, rsa, string, rm_pi);
+
+    dealloc_bwt_table(&bwt_table);
+    free_suffix_array(sa);
+    free(rev_remapped);
+    free_suffix_array(rsa);
+    dealloc_remap_table(&remap_table);
     
     
     return EXIT_SUCCESS;

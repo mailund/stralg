@@ -590,7 +590,7 @@ void print_o_table(const struct bwt_table *bwt_table)
     for (size_t i = 0; i < remap_table->alphabet_size; ++i) {
         printf("O(%c,) = ", remap_table->rev_table[i]);
         for (size_t j = 0; j <= sa->length; ++j) {
-            printf("%zu ", O(i, j));//table->o_table[o_index(i, j, table)]);
+            printf("%zu ", O(i, j));
         }
         printf("\n");
     }
@@ -604,7 +604,7 @@ void print_ro_table(const struct bwt_table *bwt_table)
     for (size_t i = 0; i < remap_table->alphabet_size; ++i) {
         printf("RO(%c,) = ", remap_table->rev_table[i]);
         for (size_t j = 0; j <= sa->length; ++j) {
-            printf("%zu ", RO(i, j));//table->ro_table[o_index(i, j, table)]);
+            printf("%zu ", RO(i, j));
         }
         printf("\n");
     }
