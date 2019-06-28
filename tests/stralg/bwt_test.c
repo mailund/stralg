@@ -40,7 +40,27 @@ static void test_expected(const struct bwt_table *bwt_table)
     }
 }
 
-void error_test(void)
+static void test_reverse_expected(struct bwt_table *bwt_table)
+{
+    size_t expected_ro[] = {
+        /* $ */ 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        /* i */ 0, 0, 0, 0, 0, 0, 1, 1, 2, 2, 2, 3, 4,
+        /* m */ 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        /* p */ 0, 0, 0, 0, 0, 1, 1, 2, 2, 2, 2, 2, 2,
+        /* s */ 0, 0, 1, 1, 2, 2, 2, 2, 2, 3, 4, 4, 4
+    };
+    for (unsigned char a = 0; a < bwt_table->remap_table->alphabet_size; ++a) {
+        printf("RO(%d,-) == ", a);
+        for (size_t i = 0; i < bwt_table->sa->length; ++i) {
+            printf("%zu/%lu ", O(a, i), expected_ro[o_index(a, i, bwt_table)]);
+            assert(RO(a, i) == expected_ro[o_index(a, i, bwt_table)]);
+        }
+        printf("\n");
+    }
+
+}
+
+static void error_test(void)
 {
     // test that it is possible to
     
@@ -116,7 +136,7 @@ int main(int argc, char **argv)
 
     error_test();
     
-    struct bwt_table *yet_another_table = build_complete_table(string);
+    struct bwt_table *yet_another_table = build_complete_table(string, false);
     assert(equivalent_bwt_tables(&bwt_table, yet_another_table));
     completely_free_bwt_table(yet_another_table);
     
@@ -124,5 +144,15 @@ int main(int argc, char **argv)
     dealloc_remap_table(&remap_table);
     dealloc_bwt_table(&bwt_table);
 
+    
+    another_table = build_complete_table(string, true);
+    print_bwt_table(another_table);
+    test_reverse_expected(another_table);
+    
+
+    
+    completely_free_bwt_table(another_table);
+    
+    
     return EXIT_SUCCESS;
 }

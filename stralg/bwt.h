@@ -163,9 +163,14 @@ void completely_free_bwt_table(struct bwt_table *bwt_table);
  
  @param string The string to build the tables over. You do not
                 need to remap it; this function does that for you.
+ 
+ @param include_reverse If true, the O table for the reverse table
+ is also built.
+ 
  @return A BWT table holding all the tables needed to use it.
  */
-struct bwt_table *build_complete_table(const char *string);
+struct bwt_table *build_complete_table(const char *string,
+                                       bool include_reverse);
 
 /**
  Iterator for exact search with BWT.

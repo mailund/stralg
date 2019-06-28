@@ -58,7 +58,7 @@ static void preprocess(const char *fasta_fname)
         fprintf(stderr, "Serialising record %s\n", rec.name);
         fprintf(stderr, "Length: %zu\n", rec.seq_len);
         write_string(outfile, rec.name);
-        struct bwt_table *table = build_complete_table(rec.seq);
+        struct bwt_table *table = build_complete_table(rec.seq, false);
         write_complete_bwt_info(outfile, table);
         completely_free_bwt_table(table);
         fprintf(stderr, "Done\n");

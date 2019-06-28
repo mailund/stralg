@@ -103,7 +103,7 @@ void completely_free_bwt_table(struct bwt_table *bwt_table)
     free(bwt_table);
 }
 
-struct bwt_table *build_complete_table(const char *string)
+struct bwt_table *build_complete_table(const char *string, bool include_reverse)
 {
     char *remapped_str = malloc(strlen(string) + 1);
     struct remap_table  *remap_table = alloc_remap_table(string);
@@ -112,13 +112,25 @@ struct bwt_table *build_complete_table(const char *string)
     // FIXME: use the fastest algorithm I have here...
     // qsort is for random strings, so that is the choice for now
     struct suffix_array *sa = qsort_sa_construction(remapped_str);
-#warning build rsa
-    struct suffix_array *rsa = 0;
 
+    char *rev_remapped_str = 0;
+    
+    
+    struct suffix_array *rsa = 0;
+    if (include_reverse) {
+        rev_remapped_str = str_copy(remapped_str);
+        str_inplace_rev(rev_remapped_str);
+        // also here use the fastest algorithm here
+        rsa = qsort_sa_construction(rev_remapped_str);
+    }
     struct bwt_table *table = malloc(sizeof(struct bwt_table));
     init_bwt_table(table, sa, rsa, remap_table);
+    
+    // we do not use rsa after we have constructed the suffix
+    // array and we need to free it and the reversed string.
+    if (rsa) free_complete_suffix_array(rsa);
+    
     return table;
-
 }
 
 
@@ -571,14 +583,28 @@ void print_c_table(const struct bwt_table *bwt_table)
     printf("\n");
 }
 
-void print_o_table(const struct bwt_table *table)
+void print_o_table(const struct bwt_table *bwt_table)
 {
-    const struct remap_table *remap_table = table->remap_table;
-    const struct suffix_array *sa = table->sa;
+    const struct remap_table *remap_table = bwt_table->remap_table;
+    const struct suffix_array *sa = bwt_table->sa;
     for (size_t i = 0; i < remap_table->alphabet_size; ++i) {
         printf("O(%c,) = ", remap_table->rev_table[i]);
         for (size_t j = 0; j <= sa->length; ++j) {
-            printf("%zu ", table->o_table[o_index(i, j, table)]);
+            printf("%zu ", O(i, j));//table->o_table[o_index(i, j, table)]);
+        }
+        printf("\n");
+    }
+    
+}
+
+void print_ro_table(const struct bwt_table *bwt_table)
+{
+    const struct remap_table *remap_table = bwt_table->remap_table;
+    const struct suffix_array *sa = bwt_table->sa;
+    for (size_t i = 0; i < remap_table->alphabet_size; ++i) {
+        printf("RO(%c,) = ", remap_table->rev_table[i]);
+        for (size_t j = 0; j <= sa->length; ++j) {
+            printf("%zu ", RO(i, j));//table->ro_table[o_index(i, j, table)]);
         }
         printf("\n");
     }
@@ -590,6 +616,10 @@ void print_bwt_table(const struct bwt_table *table)
     print_c_table(table);
     printf("\n");
     print_o_table(table);
+    if (table->ro_table) {
+        printf("\n");
+        print_ro_table(table);
+    }
     printf("\n\n");
 }
 
@@ -598,6 +628,7 @@ bool equivalent_bwt_tables(struct bwt_table *table1,
 {
     struct suffix_array *sa1 = table1->sa;
     struct suffix_array *sa2 = table2->sa;
+    
     
     if (!identical_remap_tables(table1->remap_table, table2->remap_table))
         return false;
@@ -612,6 +643,15 @@ bool equivalent_bwt_tables(struct bwt_table *table1,
         if (table1->o_table[i] != table2->o_table[i])
             return false;
     }
-    
+
+    if (table1->ro_table && !table2->ro_table) return false;
+    if (table2->ro_table && !table1->ro_table) return false;
+    if (table1->ro_table) {
+        for (size_t i = 0; i < o_table_size; ++i) {
+            if (table1->ro_table[i] != table2->ro_table[i])
+                return false;
+        }
+    }
+
     return true;
 }
