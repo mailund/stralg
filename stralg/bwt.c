@@ -33,27 +33,26 @@ void init_bwt_table(struct bwt_table    *bwt_table,
     
     bwt_table->c_table = calloc(remap_table->alphabet_size, sizeof(*bwt_table->c_table));
     for (size_t i = 1; i < remap_table->alphabet_size; ++i) {
-        bwt_table->c_table[i] = bwt_table->c_table[i-1] + char_counts[i - 1];
+        //bwt_table->c_table[i] = bwt_table->c_table[i-1] + char_counts[i - 1];
+        C(i) = C(i-1) + char_counts[i - 1];
     }
     
     // ---- COMPUTE O TABLE -----------------------------------
-    // I have a bit of a hack here so I can index -1 (to avoid special
-    // cases I need to check for everywhere in the code). I allocate
-    // one more entry than I need, and point one past the allocated buffer.
-    bwt_table->o_table = calloc(remap_table->alphabet_size * sa->length + 1, sizeof(*bwt_table->o_table));
-    
+    // The table has indices from zero to n, so it must have size
+    // Sigma x (n + 1)
+    bwt_table->o_table =
+        calloc(remap_table->alphabet_size * (sa->length + 1),
+               sizeof(*bwt_table->o_table));
     
     // the sentinel always goes first so the first should only be zero if the
     // string is empty, but this handles that special case.
-    unsigned char bwt0 = (sa->array[0] == 0) ? 0 : sa->string[sa->array[0] - 1];
+    unsigned char bwt0 = bwt(sa, 0);
+    //(sa->array[0] == 0) ? 0 : sa->string[sa->array[0] - 1];
     for (unsigned char a = 0; a < remap_table->alphabet_size; ++a) {
         size_t idx = o_index(a, 0, bwt_table);
         bwt_table->o_table[idx] = bwt0 == a;
         for (size_t i = 1; i < sa->length; ++i) {
-            unsigned char bwti = bwt(sa, i);
-            size_t idx = o_index(a, i, bwt_table);
-            size_t pre_idx = o_index(a, i - 1, bwt_table);
-            bwt_table->o_table[idx] = bwt_table->o_table[pre_idx] + (bwti == a);
+            O(a, i) = O(a, i - 1) + (bwt(sa, i) == a);
         }
     }
     
@@ -138,8 +137,8 @@ void init_bwt_exact_match_iter(struct bwt_exact_match_iter *iter,
         assert(a > 0); // only the sentinel is null
         assert(a < bwt_table->remap_table->alphabet_size);
         
-        L = bwt_table->c_table[a] + bwt_table->o_table[o_index(a, L - 1, bwt_table)];
-        R = bwt_table->c_table[a] + bwt_table->o_table[o_index(a, R - 1, bwt_table)];
+        L = C(a) + O(a, L - 1);
+        R = C(a) + O(a, R - 1);
         i--;
     }
     iter->L = L;
@@ -269,8 +268,6 @@ static void push_edits(struct bwt_approx_match_internal_iter *iter,
     
     // aliasing to make the code easier to read.
     struct bwt_table *bwt_table = iter->bwt_table;
-    size_t *c_table = bwt_table->c_table;
-    size_t *o_table = bwt_table->o_table;
     const struct remap_table *remap_table = iter->bwt_table->remap_table;
     
     size_t new_L;
@@ -281,8 +278,8 @@ static void push_edits(struct bwt_approx_match_internal_iter *iter,
     // Iterating alphabet from 1 so I don't include the sentinel.
     for (unsigned char a = 1; a < remap_table->alphabet_size; ++a) {
         
-        new_L = c_table[a] + o_table[o_index(a, L - 1, bwt_table)];
-        new_R = c_table[a] + o_table[o_index(a, R - 1, bwt_table)];
+        new_L = C(a) + O(a, L - 1);
+        new_R = C(a) + O(a, R - 1);
 
 
         int edit_cost = (a == match_a) ? 0 : 1;
@@ -302,8 +299,8 @@ static void push_edits(struct bwt_approx_match_internal_iter *iter,
     if (!first) { // never start with a deletion
         // Iterating alphabet from 1 so I don't include the sentinel.
         for (unsigned char a = 1; a < remap_table->alphabet_size; ++a) {
-            new_L = c_table[a] + o_table[o_index(a, L - 1, bwt_table)];
-            new_R = c_table[a] + o_table[o_index(a, R - 1, bwt_table)];
+            new_L = C(a) + O(a, L - 1);
+            new_R = C(a) + O(a, R - 1);
             push_frame(iter, 'D', edits - 1,
                        cigar + 1, match_length + 1,
                        new_L, new_R, i);
@@ -537,12 +534,12 @@ struct bwt_table * read_bwt_table_fname(const char *fname,
 
 
 
-void print_c_table(const struct bwt_table *table)
+void print_c_table(const struct bwt_table *bwt_table)
 {
-    const struct remap_table *remap_table = table->remap_table;
+    const struct remap_table *remap_table = bwt_table->remap_table;
     printf("C: ");
     for (size_t i = 0; i < remap_table->alphabet_size; ++i) {
-        printf("%zu ", table->c_table[i]);
+        printf("%zu ", C(i));
     }
     printf("\n");
 }

@@ -59,6 +59,12 @@ static inline size_t o_index(unsigned char a, size_t i,
     return (i == -1) ? 0 : (a * table->sa->length + i + 1);
 }
 
+// these macros just make the notation nices, but they do require
+// that the table is called bwt_table.
+#define C(a) (bwt_table->c_table[(a)])
+#define O(a,i) (bwt_table->o_table[o_index((a),(i),bwt_table)])
+
+
 /**
  Initialising a table.
  
