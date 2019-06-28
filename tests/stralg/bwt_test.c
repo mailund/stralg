@@ -83,7 +83,7 @@ int main(int argc, char **argv)
         printf("\n");
     }
     
-    init_bwt_table(&bwt_table, sa, &remap_table);
+    init_bwt_table(&bwt_table, sa, 0, &remap_table);
     print_bwt_table(&bwt_table);
     test_expected(&bwt_table);
     
@@ -108,7 +108,7 @@ int main(int argc, char **argv)
     
     free_bwt_table(another_table);
     
-    struct bwt_table *bwt_ptr = alloc_bwt_table(sa, &remap_table);
+    struct bwt_table *bwt_ptr = alloc_bwt_table(sa, 0, &remap_table);
     test_expected(bwt_ptr);
     assert(equivalent_bwt_tables(&bwt_table, bwt_ptr));
     free_bwt_table(bwt_ptr);

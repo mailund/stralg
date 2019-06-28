@@ -37,6 +37,7 @@ struct bwt_table {
     struct suffix_array *sa;
     size_t *c_table;
     size_t *o_table;
+    size_t *ro_table;
 };
 
 /**
@@ -52,18 +53,16 @@ struct bwt_table {
  @return the number at O[a,i].
  */
 static inline size_t o_index(unsigned char a, size_t i,
-                               const struct bwt_table *table)
+                             const struct bwt_table *table)
 {
-    // i is unsigned but I can index -1 (it should always be
-    // zero) so I allow this.
-    return //(i == -1) ? 0 : (a * table->sa->length + i + 1);
-    a * (table->sa->length + 1) + i;
+    return a * (table->sa->length + 1) + i;
 }
 
 // these macros just make the notation nices, but they do require
 // that the table is called bwt_table.
-#define C(a) (bwt_table->c_table[(a)])
-#define O(a,i) (bwt_table->o_table[o_index((a),(i),bwt_table)])
+#define C(a)    (bwt_table->c_table[(a)])
+#define O(a,i)  (bwt_table->o_table[o_index((a),(i),bwt_table)])
+#define RO(a,i) (bwt_table->ro_table[o_index((a),(i),bwt_table)])
 
 
 /**
@@ -79,11 +78,17 @@ static inline size_t o_index(unsigned char a, size_t i,
  must deallocate it first, see dealloc_bwt_table().
  @param sa Suffix array to build the table over. It must be built
  over a remapped string.
+ @param rsa Suffix array over the reversed string. It is used
+ for the D table from BWA when doing approximative searching.
+ It is not used in exact matching so you can set it to null there.
+ If it is null and you do approximative matching, the D table
+ is just constant zero.
  @param remap_table The remap table used to generate the string that
  the suffix array was built over.
  */
 void init_bwt_table   (struct bwt_table    *bwt_table,
                        struct suffix_array *sa,
+                       struct suffix_array *rsa,
                        struct remap_table  *remap_table);
 /**
  Allocates a table.
@@ -96,12 +101,18 @@ void init_bwt_table   (struct bwt_table    *bwt_table,
 
  @param sa Suffix array to build the table over. It must be built
  over a remapped string.
+ @param rsa Suffix array over the reversed string. It is used
+ for the D table from BWA when doing approximative searching.
+ It is not used in exact matching so you can set it to null there.
+ If it is null and you do approximative matching, the D table
+ is just constant zero.
  @param remap_table The remap table used to generate the string that
  the suffix array was built over.
 
  @return A freshly allocated BWT table.
  */
 struct bwt_table *alloc_bwt_table(struct suffix_array *sa,
+                                  struct suffix_array *rsa,
                                   struct remap_table  *remap_table);
 
 /**

@@ -210,7 +210,7 @@ static void exact_bwt_test(struct string_vector *exact_results,
     
     printf("BWT\t");
     struct bwt_table bwt_table;
-    init_bwt_table(&bwt_table, sa, remap_table);
+    init_bwt_table(&bwt_table, sa, 0, remap_table);
     
     struct string_vector bwt_results;
     init_string_vector(&bwt_results, 10);
@@ -377,7 +377,7 @@ static void test_approx(const char *pattern, const char *string,
         struct suffix_array *sa = qsort_sa_construction(remappe_string);
         
         struct bwt_table bwt_table;
-        init_bwt_table(&bwt_table, sa, &remap_table);
+        init_bwt_table(&bwt_table, sa, 0, &remap_table);
         //print_bwt_table(&bwt_table, sa, &remap_table);
         
         

@@ -16,7 +16,7 @@ static void test_complete_bwt(void)
     remap(remapped_str, str, &remap_table);
     struct suffix_array *sa = qsort_sa_construction(remapped_str);
     struct bwt_table bwt_table;
-    init_bwt_table(&bwt_table, sa, &remap_table);
+    init_bwt_table(&bwt_table, sa, 0, &remap_table);
     
     // Serialise and load them back...
     const char *temp_template = "/tmp/temp.XXXXXX";

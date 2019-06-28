@@ -18,11 +18,13 @@ static inline unsigned char bwt(const struct suffix_array *sa, size_t i)
 
 void init_bwt_table(struct bwt_table    *bwt_table,
                     struct suffix_array *sa,
+                    struct suffix_array *rsa,
                     struct remap_table  *remap_table)
 {
     assert(sa);
+    
     bwt_table->remap_table = remap_table;
-    bwt_table->sa = sa;
+    bwt_table->sa = sa;    // FIXME: don't reference
     
     // ---- COMPUTE C TABLE -----------------------------------
     size_t char_counts[remap_table->alphabet_size];
@@ -48,12 +50,29 @@ void init_bwt_table(struct bwt_table    *bwt_table,
             O(a, i) = O(a, i - 1) + (bwt(sa, i - 1) == a);
         }
     }
+    
+    if (rsa) {
+        
+        bwt_table->ro_table =
+        calloc(remap_table->alphabet_size * (rsa->length + 1),
+               sizeof(*bwt_table->ro_table));
+        
+        for (unsigned char a = 0; a < remap_table->alphabet_size; ++a) {
+            for (size_t i = 1; i <= rsa->length; ++i) {
+                RO(a, i) = RO(a, i - 1) + (bwt(rsa, i - 1) == a);
+            }
+        }
+
+    } else {
+        bwt_table->ro_table = 0;
+    }
 }
 
 void dealloc_bwt_table(struct bwt_table *bwt_table)
 {
     free(bwt_table->c_table);
-    free(bwt_table->o_table); // -1 to get the real allocated buffer
+    free(bwt_table->o_table);
+    if (bwt_table->ro_table) free(bwt_table->ro_table);
 }
 
 void completely_dealloc_bwt_table(struct bwt_table *bwt_table)
@@ -64,10 +83,11 @@ void completely_dealloc_bwt_table(struct bwt_table *bwt_table)
 }
 
 struct bwt_table *alloc_bwt_table(struct suffix_array *sa,
+                                  struct suffix_array *rsa,
                                   struct remap_table  *remap_table)
 {
     struct bwt_table *table = malloc(sizeof(struct bwt_table));
-    init_bwt_table(table, sa, remap_table);
+    init_bwt_table(table, sa, rsa, remap_table);
     return table;
 }
 
@@ -92,9 +112,11 @@ struct bwt_table *build_complete_table(const char *string)
     // FIXME: use the fastest algorithm I have here...
     // qsort is for random strings, so that is the choice for now
     struct suffix_array *sa = qsort_sa_construction(remapped_str);
+#warning build rsa
+    struct suffix_array *rsa = 0;
 
     struct bwt_table *table = malloc(sizeof(struct bwt_table));
-    init_bwt_table(table, sa, remap_table);
+    init_bwt_table(table, sa, rsa, remap_table);
     return table;
 
 }
@@ -121,8 +143,6 @@ void init_bwt_exact_match_iter(struct bwt_exact_match_iter *iter,
     // This gives us a signed integer that can
     // easily index all of size_t
     int64_t i = m - 1;
-    
-    
     
     while (i >= 0 && L < R) {
         unsigned char a = remapped_pattern[i];
@@ -486,6 +506,13 @@ void write_bwt_table(FILE *f, const struct bwt_table *bwt_table)
     size_t o_table_length = bwt_table->remap_table->alphabet_size * bwt_table->sa->length;
     fwrite(bwt_table->c_table, sizeof(*bwt_table->c_table), c_table_length, f);
     fwrite(bwt_table->o_table, sizeof(*bwt_table->o_table), o_table_length, f);
+    bool has_ro_table = bwt_table->ro_table;
+    fwrite(&has_ro_table, sizeof(bool), 1, f);
+    if (bwt_table->ro_table) {
+        fwrite(bwt_table->ro_table,
+               sizeof(*bwt_table->ro_table),
+               o_table_length, f);
+    }
 }
 
 void write_bwt_table_fname(const char *fname, const struct bwt_table *bwt_table)
@@ -502,7 +529,7 @@ struct bwt_table *read_bwt_table(FILE *f,
     struct bwt_table *bwt_table = malloc(sizeof(struct bwt_table));
     
     bwt_table->remap_table = remap_table;
-    bwt_table->sa = sa;
+    bwt_table->sa = sa;   // shouldn't store these
     size_t c_table_length = remap_table->alphabet_size;
     size_t o_table_length = remap_table->alphabet_size * sa->length;
     
@@ -510,6 +537,14 @@ struct bwt_table *read_bwt_table(FILE *f,
     bwt_table->o_table = malloc(sizeof(*bwt_table->o_table) * o_table_length);
     fread(bwt_table->c_table, sizeof(*bwt_table->c_table), c_table_length, f);
     fread(bwt_table->o_table, sizeof(*bwt_table->o_table), o_table_length, f);
+    bwt_table->ro_table = 0;
+    bool has_ro_table;
+    fread(&has_ro_table, sizeof(bool), 1, f);
+    if (has_ro_table) {
+        fread(bwt_table->ro_table,
+              sizeof(*bwt_table->ro_table),
+              o_table_length, f);
+    }
     
     return bwt_table;
 }

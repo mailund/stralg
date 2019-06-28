@@ -408,7 +408,7 @@ static void bwt_match(struct index_vector *naive,
     struct index_vector bwt; init_index_vector(&bwt, 10);
     
     struct bwt_table bwt_table;
-    init_bwt_table(&bwt_table, sa, remap_table);
+    init_bwt_table(&bwt_table, sa, 0, remap_table);
     print_bwt_table(&bwt_table);
     
     struct bwt_exact_match_iter bwt_iter;
