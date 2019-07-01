@@ -293,7 +293,7 @@ static void push_edits(struct bwt_approx_match_internal_iter *iter,
                        char *cigar, size_t match_length,
                        int edits, size_t L, size_t R, long long i)
 {
-    int lower_limit = (iter->D_table) ? iter->D_table[i] : 0;
+    int lower_limit = (i >= 0 && iter->D_table) ? iter->D_table[i] : 0;
     if (edits  < lower_limit) {
         return;
     }
