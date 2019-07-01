@@ -66,6 +66,7 @@ static void test_reverse_expected(struct bwt_table *bwt_table)
 static void forward_search(struct bwt_table *bwt_table,
                            struct suffix_array *rsa,
                            const char *string,
+                           const char *rev_string,
                            const char *pattern)
 {
     size_t n = bwt_table->sa->length;
@@ -77,15 +78,24 @@ static void forward_search(struct bwt_table *bwt_table,
         assert(a > 0); // only the sentinel is null
         assert(a < bwt_table->remap_table->alphabet_size);
         
+        printf("iteration %lu: [%lu,%lu]\n", i, L, R);
+        for (size_t i = L; i < R; ++i) {
+            size_t j = rsa->array[i];
+            size_t idx = ((n - j - 1) < m) ? 11 : (n - 1 - m - j);
+            printf("%2lu: %s -> %2lu %s\n", j, rev_string + i, idx, string + idx);
+        }
+        printf("\n");
+
         L = C(a) + RO(a, L);
         R = C(a) + RO(a, R);
         i++;
     }
     
+    printf("n == %lu\n", n);
     printf("[%lu,%lu]\n", L, R);
     for (size_t i = L; i < R; ++i) {
         size_t j = rsa->array[i];
-        printf("%2lu: %s\n", j, string + n - (j + m));
+        printf("%2lu: %s -> %s\n", j, rev_string, string + (n - 1) - m - j);
     }
     printf("\n");
 }
@@ -184,19 +194,26 @@ int main(int argc, char **argv)
     char *rev_remapped = str_copy(remapped);
     str_inplace_rev(rev_remapped);
     struct suffix_array *rsa = qsort_sa_construction(rev_remapped);
+    char *rev_string = str_copy(string);
+    str_inplace_rev(rev_string);
+    
+    for (size_t i = 0; i < rsa->length; ++i) {
+        printf("SA[%2lu] = %2lu : %s\n", i, rsa->array[i],
+               rev_string + rsa->array[i]);
+    }
     
     init_bwt_table(&bwt_table, sa, rsa, &remap_table);
     
     const char *iss = "iss";
     char rm_iss[strlen(iss) + 1];
     remap(rm_iss, iss, &remap_table);
-    forward_search(&bwt_table, rsa, string, rm_iss);
+    forward_search(&bwt_table, rsa, string, rev_string, rm_iss);
 
 #warning this doesn't work, but now it is weekend.
     const char *pi = "pi";
     char rm_pi[strlen(pi) + 1];
     remap(rm_pi, pi, &remap_table);
-    forward_search(&bwt_table, rsa, string, rm_pi);
+    forward_search(&bwt_table, rsa, string, rev_string, rm_pi);
 
     dealloc_bwt_table(&bwt_table);
     free_suffix_array(sa);
