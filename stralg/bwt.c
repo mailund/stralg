@@ -24,7 +24,7 @@ void init_bwt_table(struct bwt_table    *bwt_table,
     assert(sa);
     
     bwt_table->remap_table = remap_table;
-    bwt_table->sa = sa;    // FIXME: don't reference
+    bwt_table->sa = sa;    // FIXME: don't reference?
     
     // ---- COMPUTE C TABLE -----------------------------------
     size_t char_counts[remap_table->alphabet_size];
@@ -217,10 +217,12 @@ struct bwt_approx_frame {
 };
 struct bwt_approx_match_internal_iter {
     struct bwt_table *bwt_table;
+    struct bwt_approx_iter *iter;
     struct bwt_approx_frame sentinel;
     const char *remapped_pattern;
     char *full_cigar_buf;
     char *cigar_buf;
+    int *D_table;
 };
 
 
@@ -291,7 +293,10 @@ static void push_edits(struct bwt_approx_match_internal_iter *iter,
                        char *cigar, size_t match_length,
                        int edits, size_t L, size_t R, long long i)
 {
-    if (edits < 0) return;
+    int lower_limit = (iter->D_table) ? iter->D_table[i] : 0;
+    if (edits  < lower_limit) {
+        return;
+    }
     
     // aliasing to make the code easier to read.
     struct bwt_table *bwt_table = iter->bwt_table;
@@ -382,6 +387,27 @@ void init_bwt_approx_match_internal_iter
     iter->full_cigar_buf = malloc(buf_size + 1); iter->full_cigar_buf[0] = '\0';
     iter->cigar_buf = malloc(buf_size + 1);      iter->cigar_buf[0] = '\0';
     
+    if (bwt_table->ro_table) {
+        size_t m = strlen(p);
+        iter->D_table = malloc(m * sizeof(int));
+        
+        int min_edits = 0;
+        size_t L = 0, R = bwt_table->sa->length;
+        for (size_t i = 0; i < m; ++i) {
+            unsigned char a = p[i];
+            L = C(a) + RO(a, L);
+            R = C(a) + RO(a, R);
+            if (L >= R) {
+                min_edits++;
+                L = 0;
+                R = bwt_table->sa->length;
+            }
+            iter->D_table[i] = min_edits;
+        }
+    } else {
+        iter->D_table = 0;
+    }
+
 #if PRINT_STACK
     printf("stack after setup:\n");
     print_stack(&iter->sentinel);
@@ -450,6 +476,7 @@ void dealloc_bwt_approx_match_internal_iter(struct bwt_approx_match_internal_ite
 {
     free(iter->full_cigar_buf);
     free(iter->cigar_buf);
+    if (iter->D_table) free(iter->D_table);
 }
 
 void init_bwt_exact_match_from_approx_match(const struct bwt_approx_internal_match *approx_match,
@@ -471,9 +498,13 @@ void init_bwt_approx_iter(struct bwt_approx_iter *iter,
                           int                     edits)
 {
     iter->internal_approx_iter = malloc(sizeof(struct bwt_approx_match_internal_iter));
+    
     init_bwt_approx_match_internal_iter(iter->internal_approx_iter, bwt_table, remapped_pattern, edits);
+    
     iter->internal_exact_iter = malloc(sizeof(struct bwt_exact_match_iter));
+    
     init_bwt_exact_match_iter(iter->internal_exact_iter, bwt_table, remapped_pattern);
+    
     iter->outer = true;
 }
 

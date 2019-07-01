@@ -387,7 +387,31 @@ static void test_approx(const char *pattern, const char *string,
                   &remap_table, &bwt_table, edits, &bwt_results);
         sort_string_vector(&bwt_results);
         
-        free_suffix_array(sa);
+        assert(string_vector_equal(&ac_results, &bwt_results));
+        printf("OK\n");
+        printf("----------------------------------------------------\n");
+        
+        free_strings(&bwt_results);
+        dealloc_string_vector(&bwt_results);
+
+
+        printf("Aho-Corasic vs BWT-D.\t");
+        
+        
+        assert(strlen(string) == strlen(remappe_string));
+        assert(strlen(pattern) == strlen(remapped_pattern));
+        
+        char *reversed_remapped = str_copy(remappe_string);
+        str_inplace_rev(reversed_remapped);
+        struct suffix_array *rsa = qsort_sa_construction(reversed_remapped);
+
+        init_bwt_table(&bwt_table, sa, rsa, &remap_table);
+        
+        
+        init_string_vector(&bwt_results, 10);
+        bwt_match(sa, remapped_pattern, remappe_string,
+                  &remap_table, &bwt_table, edits, &bwt_results);
+        sort_string_vector(&bwt_results);
         
         assert(string_vector_equal(&ac_results, &bwt_results));
         printf("OK\n");
@@ -395,6 +419,8 @@ static void test_approx(const char *pattern, const char *string,
         
         free_strings(&bwt_results);
         dealloc_string_vector(&bwt_results);
+        free_suffix_array(sa);
+        free(reversed_remapped);
     }
     
     free_strings(&ac_results);
