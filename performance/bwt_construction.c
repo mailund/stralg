@@ -66,6 +66,7 @@ static void get_performance(size_t size)
     rs = malloc(size + 1);
     remap(rs, s, &remap_table);
 
+    // Without D table
     
     sa_begin = clock();
     sa = qsort_sa_construction(rs);
@@ -82,6 +83,8 @@ static void get_performance(size_t size)
 
     sa_begin = clock();
     sa = qsort_sa_construction(rs);
+    
+    // With D table
     
     revrs = str_copy(rs);
     str_inplace_rev(revrs);
@@ -110,7 +113,7 @@ int main(int argc, const char **argv)
 {
     srand(time(NULL));
     
-#if 1 // for comparison
+#if 0 // for comparison
     for (size_t n = 0; n < 10000; n += 500) {
         for (int rep = 0; rep < 5; ++rep) {
             get_performance(n);

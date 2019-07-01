@@ -27,6 +27,7 @@ void free_suffix_array(struct suffix_array *sa)
     free(sa->array);
     if (sa->inverse) free(sa->inverse);
     if (sa->lcp)     free(sa->lcp);
+    free(sa);
 }
 
 void free_complete_suffix_array(struct suffix_array *sa)
@@ -53,6 +54,8 @@ struct suffix_array *qsort_sa_construction(char *string)
     
     for (int i = 0; i < sa->length; i++)
         sa->array[i] = (size_t)(suffixes[i] - string);
+    
+    free(suffixes);
     
     return sa;
 }

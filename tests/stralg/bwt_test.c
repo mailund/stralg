@@ -209,7 +209,6 @@ int main(int argc, char **argv)
     remap(rm_iss, iss, &remap_table);
     forward_search(&bwt_table, rsa, string, rev_string, rm_iss);
 
-#warning this doesn't work, but now it is weekend.
     const char *pi = "pi";
     char rm_pi[strlen(pi) + 1];
     remap(rm_pi, pi, &remap_table);
