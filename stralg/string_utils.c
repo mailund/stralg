@@ -4,14 +4,25 @@
 
 char *str_copy(const char *x)
 {
-    char *copy = malloc(strlen(x) + 1);
-    strcpy(copy, x);
-    return copy;
+    return str_copy_n(x, strlen(x));
 }
 
 void str_inplace_rev(char *x)
 {
-    char *y = x + strlen(x) - 1;
+    str_inplace_rev_n(x, strlen(x));
+}
+
+char *str_copy_n(const char *x, size_t n)
+{
+    char *copy = malloc(n + 1);
+    strncpy(copy, x, n);
+    copy[n] = 0;
+    return copy;
+}
+
+void str_inplace_rev_n(char *x, size_t n)
+{
+    char *y = x + n - 1;
     while (x < y) {
         char tmp = *y;
         *y = *x;

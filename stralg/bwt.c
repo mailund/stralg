@@ -41,10 +41,12 @@ void init_bwt_table(struct bwt_table    *bwt_table,
     // ---- COMPUTE O TABLE -----------------------------------
     // The table has indices from zero to n, so it must have size
     // Sigma x (n + 1)
-    bwt_table->o_table =
-        calloc(remap_table->alphabet_size * (sa->length + 1),
-               sizeof(*bwt_table->o_table));
-
+    size_t o_size = remap_table->alphabet_size * (sa->length + 1) *
+                        sizeof(*bwt_table->o_table);
+    bwt_table->o_table = malloc(o_size);
+    for (unsigned char a = 0; a < remap_table->alphabet_size; ++a) {
+        O(a, 0) = 0;
+    }
     for (unsigned char a = 0; a < remap_table->alphabet_size; ++a) {
         for (size_t i = 1; i <= sa->length; ++i) {
             O(a, i) = O(a, i - 1) + (bwt(sa, i - 1) == a);
@@ -105,7 +107,8 @@ void completely_free_bwt_table(struct bwt_table *bwt_table)
 
 struct bwt_table *build_complete_table(const char *string, bool include_reverse)
 {
-    char *remapped_str = malloc(strlen(string) + 1);
+    size_t n = strlen(string);
+    char *remapped_str = malloc(n + 1);
     struct remap_table  *remap_table = alloc_remap_table(string);
     remap(remapped_str, string, remap_table);
     
@@ -118,8 +121,8 @@ struct bwt_table *build_complete_table(const char *string, bool include_reverse)
     
     struct suffix_array *rsa = 0;
     if (include_reverse) {
-        rev_remapped_str = str_copy(remapped_str);
-        str_inplace_rev(rev_remapped_str);
+        rev_remapped_str = str_copy_n(remapped_str, n);
+        str_inplace_rev_n(rev_remapped_str, n);
         // also here use the fastest algorithm here
         rsa = qsort_sa_construction(rev_remapped_str);
     }

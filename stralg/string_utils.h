@@ -12,11 +12,13 @@
  * of the string that is returned.
  **/
 char *str_copy(const char *x);
+char *str_copy_n(const char *x, size_t n);
 
 /**
  * Reverses the string x inplace.
  **/
 void str_inplace_rev(char *x);
+void str_inplace_rev_n(char *x, size_t n);
 
 /**
  * Serialisation: write a string to a file.
