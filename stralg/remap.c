@@ -169,6 +169,14 @@ void print_remap_table(const struct remap_table *table)
     }
 }
 
+char *backmapped(struct remap_table *table, const char *x)
+{
+    size_t n = strlen(x);
+    char *result = malloc(n + 1);
+    rev_remap(result, x, table);
+    return result;
+}
+
 bool identical_remap_tables(const struct remap_table *table1,
                             const struct remap_table *table2)
 {

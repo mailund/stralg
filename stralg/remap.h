@@ -57,6 +57,7 @@ struct remap_table *read_remap_table(FILE *f);
 struct remap_table *read_remap_table_fname(const char *fname);
 
 // This is mostly for debugging
+char *backmapped(struct remap_table *table, const char *x);
 void print_remap_table(const struct remap_table *table);
 bool identical_remap_tables(const struct remap_table *table1,
                             const struct remap_table *table2);

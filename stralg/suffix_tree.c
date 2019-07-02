@@ -310,6 +310,10 @@ static struct suffix_tree_node * fast_scan(struct suffix_tree *st,
 static struct suffix_tree_node *suffix_link(struct suffix_tree *st,
                                             struct suffix_tree_node *v)
 {
+    // mostly to silence static analyser
+    assert(v);
+    assert(v->parent);
+    
     // two special cases to deal with empty strings (either in
     // v or its parent's suffix).
     if (v == st->root) {

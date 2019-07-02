@@ -2,8 +2,9 @@
 #ifndef BWT_H
 #define BWT_H
 
-#include "remap.h"
-#include "suffix_array.h"
+#include <remap.h>
+#include <suffix_array.h>
+#include <vectors.h>
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -251,9 +252,19 @@ void dealloc_bwt_exact_match_iter(struct bwt_exact_match_iter *iter);
  
  */
 struct bwt_approx_iter {
-    struct bwt_approx_match_internal_iter *internal_approx_iter;
-    struct bwt_exact_match_iter *internal_exact_iter;
-    bool outer;
+    struct bwt_table *bwt_table;
+    const char *remapped_pattern;
+    
+    size_t L, R, next_interval;
+    struct index_vector  Ls;
+    struct index_vector  Rs;
+    struct string_vector cigars;
+    struct index_vector  match_lengths;
+    
+    int edits;
+    size_t m;
+    char *cigar_buf;
+    int *D_table;
 };
 
 /**
@@ -261,8 +272,8 @@ struct bwt_approx_iter {
  
  The structure will be filled in by next_bwt_approx_match.
  
- It contains a cigar string (this will change with each call
- to next_bwt_approx_match, so copy it if you need to keep it).
+ It contains a cigar string (it will be freed by the iterator
+ so copy it if you need to keep it).
  
  Then it contains the position in the string that the key matches.
  

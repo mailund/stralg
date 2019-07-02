@@ -15,10 +15,22 @@ ggplot(performance,
 withoutD <- performance %>% filter(Algorithm == "BWT-without-D")
 withD <- performance %>% filter(Algorithm == "BWT-with-D")
 
-comparison <- inner_join(withoutD, withD, by = "PatternLength")
+comparison <- inner_join(withoutD, withD, by = "PatternLength",
+                         suffix = c(".withoutD", ".withD"))
 
-comparison %>% ggplot(aes(x = Edits.x, y = Time.y / Time.x)) +
+comparison %>% ggplot(aes(x = Edits.withD, y = Time.withD / Time.withoutD,
+                          fill = as.factor(PatternDistance.withD))) +
     geom_boxplot() +
     scale_y_log10() +
     theme_minimal()
 
+performance1 <- read_table2("bwt_search_v1.txt",
+                            col_names = c("Algorithm", "PatternLength", "PatternDistance",
+                                          "Edits", "Time"),
+                            col_types = "ccncn")
+
+ggplot(rbind(performance1, performance),
+       aes(x = PatternLength, y = Time, color = Algorithm)) +
+    facet_grid(~ Edits) +
+    geom_boxplot() +
+    theme_minimal()

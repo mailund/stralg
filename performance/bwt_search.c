@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <string.h>
+#include <assert.h>
 
 static char *build_random(size_t size)
 {
@@ -37,7 +38,9 @@ static void edit_string(char *string, struct bwt_table *bwt_table, size_t m, flo
     for (size_t i = 0; i < m; ++i) {
         double p = rand() / RAND_MAX;
         if (p < err) { // edit 5% of the characters
-            string[i] = rand() % bwt_table->remap_table->alphabet_size;
+            char a = rand() % bwt_table->remap_table->alphabet_size;
+            string[i] = (a == 0) ? 1 : a;
+            
         }
     }
 }
@@ -50,12 +53,66 @@ static void search(struct bwt_table *bwt_table, const char *p, int edits)
     init_bwt_approx_iter(&iter, bwt_table, p, edits);
     while (next_bwt_approx_match(&iter, &match)) {
         // do nothing
+        printf("match at %lu\n", match.position);
     }
     dealloc_bwt_approx_iter(&iter);
 }
 
+/*
+static const char *cigar_alignment(const char *cigar, const char *pattern,
+                                   const char *matched_seq,
+                                   char *pattern_buffer, char *match_buffer) {
+    int count;
+    char op;
+    while (*cigar) {
+        int no_chars_scanned;
+        int matched_tokens =
+        sscanf(cigar, "%d%c%n", &count, &op, &no_chars_scanned);
+        if (matched_tokens != 2)
+            break;
+        cigar += no_chars_scanned;
+        switch (op) {
+            case '=':
+            case 'X':
+            case 'M':
+                // match
+                for (int i = 0; i < count; i++) {
+                    *(pattern_buffer++) = *(pattern++);
+                    *(match_buffer++) = *(matched_seq++);
+                }
+                break;
+                
+            case 'I':
+                // insertion
+                for (int i = 0; i < count; i++) {
+                    *(match_buffer++) = '-';
+                    *(pattern_buffer++) = *(pattern++);
+                }
+                break;
+                
+            case 'D':
+                // deletion
+                for (int i = 0; i < count; i++) {
+                    *(match_buffer++) = *(matched_seq++);
+                    *(pattern_buffer++) = '-';
+                }
+                break;
+                
+            default:
+                fprintf(stderr, "Unknown CIGAR code '%c'\n", op);
+                exit(1);
+        }
+    }
+    
+    *pattern_buffer = *match_buffer = '\0';
+    return matched_seq;
+}
+ */
+
 static unsigned long get_performance(struct bwt_table *bwt_table, size_t m, float err, int edits)
 {
+    assert(m > 0);
+    
     clock_t search_begin, search_end;
     char *p;
 
@@ -66,10 +123,9 @@ static unsigned long get_performance(struct bwt_table *bwt_table, size_t m, floa
                         m);
         edit_string(p, bwt_table, m, err);
         search(bwt_table, p, edits);
+        free(p);
     }
     search_end = clock();
-    
-    free(p);
     
     return search_end - search_begin;
     
@@ -90,6 +146,7 @@ int main(int argc, const char **argv)
     
     size_t size = 10000;
     s = build_random(size);
+    
     init_remap_table(&remap_table, s);
     rs = malloc(size + 1);
     remap(rs, s, &remap_table);
@@ -97,10 +154,11 @@ int main(int argc, const char **argv)
     sa = qsort_sa_construction(rs);
     init_bwt_table(&bwt_table, sa, 0, &remap_table);
     
-    revrs = str_copy_n(rs, size);
-    str_inplace_rev_n(revrs, size);
+    revrs = str_copy(rs);
+    str_inplace_rev(revrs);
     rsa = qsort_sa_construction(revrs);
     init_bwt_table(&bwt_table_D, sa, rsa, &remap_table);
+    
     
     
 #if 1 // for comparison
@@ -133,7 +191,10 @@ int main(int argc, const char **argv)
     free_suffix_array(sa);
     free_suffix_array(rsa);
     dealloc_remap_table(&remap_table);
+    free(rs);
+    free(revrs);
     free(s);
+
     
     return EXIT_SUCCESS;
 }
