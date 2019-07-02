@@ -206,7 +206,11 @@ static void rec_approx_matching(struct bwt_approx_iter *iter,
     
     int lower_limit = (i >= 0 && iter->D_table) ? iter->D_table[i] : 0;
     if (edits  < lower_limit) {
-        return; // we can never get a match from here
+        /*
+        printf("bailing out with D %p edits %d and limit %d\n",
+               iter->D_table, edits, lower_limit);
+         */
+         return; // we can never get a match from here
     }
 
     assert(L < R);
@@ -286,9 +290,30 @@ void init_bwt_approx_iter(struct bwt_approx_iter *iter,
     init_string_vector(&iter->cigars, 10);
     init_index_vector(&iter->match_lengths, 10);
     
-    iter->D_table = 0; // FIXME: build this when you can
+    if (bwt_table->ro_table) {
+        size_t m = strlen(remapped_pattern);
+        iter->D_table = malloc(m * sizeof(int));
+        
+        int min_edits = 0;
+        size_t L = 0, R = bwt_table->sa->length;
+        for (size_t i = 0; i < m; ++i) {
+            unsigned char a = remapped_pattern[i];
+            L = C(a) + RO(a, L);
+            R = C(a) + RO(a, R);
+            if (L >= R) {
+                min_edits++;
+                L = 0;
+                R = bwt_table->sa->length;
+            }
+            iter->D_table[i] = min_edits;
+        }
+    } else {
+        iter->D_table = 0;
+    }
     
+    assert(remapped_pattern);
     size_t m = strlen(remapped_pattern);
+    assert(m > 0);
     // one edit can max cost four characters
     size_t buf_size = m + 4 * edits + 1;
     iter->m = m;
