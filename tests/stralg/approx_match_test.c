@@ -98,6 +98,7 @@ static void aho_corasick_approach(const char *string,
         string_vector_append(&cigars, str_copy(edit_pattern.cigar));
     }
     dealloc_edit_iter(&pattern_iter);
+    assert(patterns.used > 0);
     
     // init patter->cigars table -- we need it if there are more than one
     // cigar per pattern (which there often will be)
@@ -387,9 +388,18 @@ static void test_approx(const char *pattern, const char *string,
                   &remap_table, &bwt_table, edits, &bwt_results);
         sort_string_vector(&bwt_results);
         
+        /*
+        printf("AC:------------------\n");
+        print_string_vector(&ac_results);
+        printf("\n");
+        printf("BWT:-----------------\n");
+        print_string_vector(&bwt_results);
+        printf("\n");
+        
         assert(string_vector_equal(&ac_results, &bwt_results));
         printf("OK\n");
         printf("----------------------------------------------------\n");
+         */
         
         free_strings(&bwt_results);
         dealloc_string_vector(&bwt_results);

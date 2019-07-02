@@ -130,6 +130,8 @@ static int32_t lex3sort(int32_t *s, size_t n,
                          struct index_vector *buckets, int32_t alph_size,
                          size_t *sa12, size_t m12, int32_t *s12_lex3_numbers)
 {
+    assert(m12 > 0);
+    
     // set up s12 and sort s12
     for (size_t i = 0, j = 0; i < n; ++i) {
         if (i % 3 != 0) {
@@ -280,9 +282,18 @@ static void skew_rec(int32_t *s, size_t n,
     // we shouldn't hit an empty string, except if we get that as the initial
     // input, but just in case...
     if (n == 0) return;
+    if (n == 1) {
+        sa[0] = 1;
+        sa[1] = 0;
+        return;
+    }
     
-    size_t m3 = (n - 1) / 3 + 1; // n - 1 to adjust for 0 indexing and + 1 to pick zero
+    // n - 1 to adjust for 0 indexing and + 1 to pick zero
+    size_t m3 = (n - 1) / 3 + 1;
     size_t m12 = n - m3;
+    
+    assert(m3 > 0); // by + 1 it isn't possible.
+    assert(m12 > 0); // size n >= 2 it should never by zero.
     
     int32_t *lex_nos = malloc(m12 * sizeof(*lex_nos));
     assert(lex_nos); // FIXME: better error handling
@@ -300,8 +311,10 @@ static void skew_rec(int32_t *s, size_t n,
         skew_rec(u, m12 + 1, buckets, mapped_alphabet_size, sau);
         
         int32_t mm = m12 / 2;
+        
         assert(u[mm] == 0);
         assert(sau[0] == mm);
+        
         for (size_t i = 1; i < m12 + 1; ++i) {
             size_t k = map_u_s(sau[i], mm);
             sa12[i - 1] = k;
@@ -326,6 +339,9 @@ static void skew_rec(int32_t *s, size_t n,
 static void skew(const char *x, size_t *sa)
 {
     size_t n = strlen(x);
+    if (n == 0) {
+        // trivial special case
+    }
     // We are not including the termination sentinel in this algorithm
     // but we explicitly set it at index zero in sa. We reserve
     // the sentinel for center points in u strings.

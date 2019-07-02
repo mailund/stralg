@@ -14,7 +14,7 @@
  segments of the same symbol to a number plus the symbol
  to get the CIGAR format.
  
- It is not safe to the to and from pointers point to the same buffer.
+ It is not safe if the to and from pointers point to the same buffer.
 
  @param to A buffer the CIGAR will be written to. You are responsible
  for allocating a buffer long enough.

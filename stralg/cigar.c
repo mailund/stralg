@@ -3,6 +3,7 @@
 
 #include <string.h>
 #include <stdio.h>
+#include <assert.h>
 
 static const char *scan(const char *cigar)
 {

@@ -17,7 +17,8 @@ withD <- performance %>% filter(Algorithm == "BWT-with-D")
 
 comparison <- inner_join(withoutD, withD, by = "PatternLength")
 
-comparison %>% ggplot(aes(x = Edits.x, y = Time.y / Time.x)) +
+comparison %>% ggplot(aes(x = Edits.x, y = Time.y / Time.x,
+                          fill = as.factor(PatternDistance.x))) +
     geom_boxplot() +
     scale_y_log10() +
     theme_minimal()

@@ -24,7 +24,7 @@ void init_bwt_table(struct bwt_table    *bwt_table,
     assert(sa);
     
     bwt_table->remap_table = remap_table;
-    bwt_table->sa = sa;    // FIXME: don't reference?
+    bwt_table->sa = sa;
     
     // ---- COMPUTE C TABLE -----------------------------------
     size_t char_counts[remap_table->alphabet_size];
@@ -55,9 +55,10 @@ void init_bwt_table(struct bwt_table    *bwt_table,
     
     if (rsa) {
         
-        bwt_table->ro_table =
-        calloc(remap_table->alphabet_size * (rsa->length + 1),
-               sizeof(*bwt_table->ro_table));
+        bwt_table->ro_table = malloc(o_size);
+        for (unsigned char a = 0; a < remap_table->alphabet_size; ++a) {
+            RO(a, 0) = 0;
+        }
         
         for (unsigned char a = 0; a < remap_table->alphabet_size; ++a) {
             for (size_t i = 1; i <= rsa->length; ++i) {
@@ -196,112 +197,44 @@ void dealloc_bwt_exact_match_iter(struct bwt_exact_match_iter *iter)
 }
 
 
-struct bwt_approx_internal_match {
-    const char *cigar;
-    size_t match_length;
-    const struct suffix_array *sa;
-    size_t L;
-    size_t R;
-};
-struct bwt_approx_frame {
-    struct bwt_approx_frame *next;
-    
-    int edits;
-    char edit_op;
-    char *cigar;
-    size_t match_length;
-    
-    size_t L;
-    long long i;
-    size_t R;
-};
-struct bwt_approx_match_internal_iter {
-    struct bwt_table *bwt_table;
-    struct bwt_approx_iter *iter;
-    struct bwt_approx_frame sentinel;
-    const char *remapped_pattern;
-    char *full_cigar_buf;
-    char *cigar_buf;
-    int *D_table;
-};
-
-
-void init_bwt_approx_match_internal_iter   (struct bwt_approx_match_internal_iter *iter,
-                                            struct bwt_table *bwt_table,
-                                            const char *remapped_pattern,
-                                            int edits);
-
-bool next_bwt_approx_match_internal_iter   (struct bwt_approx_match_internal_iter *iter,
-                                            struct bwt_approx_internal_match      *match);
-
-void dealloc_bwt_approx_match_internal_iter(struct bwt_approx_match_internal_iter *iter);
-
-
-
-void init_bwt_exact_match_from_approx_match(const struct bwt_approx_internal_match *approx_match,
-                                            struct bwt_exact_match_iter *exact_iter);
-
-#if PRINT_STACK
-static void print_frame(struct bwt_approx_frame *frame)
+static void rec_approx_matching(struct bwt_approx_iter *iter,
+                                size_t L, size_t R, int i, size_t match_length,
+                                int edits, char *cigar)
 {
-    printf("{ [%lu:%lu] %d (%c:%d) }->",
-           frame->L, frame->R, frame->i,
-           frame->edit_op, frame->edits);
-}
-
-static void print_stack(struct bwt_approx_frame *sentinel)
-{
-    printf("stack:->");
-    struct bwt_approx_frame *frame = sentinel->next;
-    while (frame) {
-        print_frame(frame);
-        frame = frame->next;
-    }
-    printf("|\n");
-}
-#endif
-
-static void push_frame(struct bwt_approx_match_internal_iter *iter,
-                       char edit_op, int edits,
-                       char *cigar, size_t match_length,
-                       size_t L, size_t R, long long i)
-{
-    struct bwt_approx_frame *frame = malloc(sizeof(struct bwt_approx_frame));
-
-    frame->edit_op = edit_op;
-    frame->edits = edits;
-    frame->cigar = cigar;
-    frame->match_length = match_length;
+    struct bwt_table *bwt_table = iter->bwt_table;
+    struct remap_table *remap_table = bwt_table->remap_table;
     
-    frame->L = L;
-    frame->R = R;
-    frame->i = i;
-    
-    frame->next = iter->sentinel.next;
-    iter->sentinel.next = frame;
-    
-#if PRINT_STACK
-    printf("stack after push:\n");
-    print_stack(&iter->sentinel);
-    printf("\n");
-#endif
-
-}
-
-static void push_edits(struct bwt_approx_match_internal_iter *iter,
-                       bool first, // is this the first push edits we make?
-                       char *cigar, size_t match_length,
-                       int edits, size_t L, size_t R, long long i)
-{
     int lower_limit = (i >= 0 && iter->D_table) ? iter->D_table[i] : 0;
     if (edits  < lower_limit) {
-        return;
+        return; // we can never get a match from here
     }
+
+    assert(L < R);
     
-    // aliasing to make the code easier to read.
-    struct bwt_table *bwt_table = iter->bwt_table;
-    const struct remap_table *remap_table = iter->bwt_table->remap_table;
-    
+    if (i < 0) {
+        // we have a match here
+        index_vector_append(&iter->Ls, L);
+        index_vector_append(&iter->Rs, R);
+        index_vector_append(&iter->match_lengths, match_length);
+
+        // there is a lot of copying overhead with these strings.
+        // I cannot reuse a buffer because of the iterator implementation.
+        // I could before but having all the traversal as an iterator
+        // is very slow.
+        
+        size_t cig_len = cigar - iter->cigar_buf;
+        char *my_cigar = str_copy_n(iter->cigar_buf, cig_len);
+        str_inplace_rev(my_cigar);
+        char *real_cigar = malloc(iter->m + 4 * iter->edits + 1);
+        correct_cigar(real_cigar, my_cigar);
+        
+        free(my_cigar);
+        
+        string_vector_append(&iter->cigars, real_cigar);
+        
+        return; // done down this path of matching...
+    }
+
     size_t new_L;
     size_t new_R;
     
@@ -312,237 +245,130 @@ static void push_edits(struct bwt_approx_match_internal_iter *iter,
         
         new_L = C(a) + O(a, L);
         new_R = C(a) + O(a, R);
-
-
+        
+        
         int edit_cost = (a == match_a) ? 0 : 1;
         if (edits - edit_cost < 0) continue;
-
-        push_frame(iter, 'M', edits - edit_cost,
-                   cigar + 1, match_length + 1,
-                   new_L, new_R, i - 1);
+        if (new_L >= new_R) continue;
+        
+        *cigar = 'M';
+        rec_approx_matching(iter, new_L, new_R, i - 1,
+                            match_length + 1, edits - edit_cost,
+                            cigar + 1);
     }
     
     // I-operation
-    push_frame(iter, 'I', edits - 1,
-               cigar + 1, match_length,
-               L, R, i - 1);
-
+    *cigar = 'I';
+    rec_approx_matching(iter, L, R, i - 1, match_length, edits - 1, cigar + 1);
+    
     // D-operation
-    if (!first) { // never start with a deletion
-        // Iterating alphabet from 1 so I don't include the sentinel.
-        for (unsigned char a = 1; a < remap_table->alphabet_size; ++a) {
-            new_L = C(a) + O(a, L);
-            new_R = C(a) + O(a, R);
-            push_frame(iter, 'D', edits - 1,
-                       cigar + 1, match_length + 1,
-                       new_L, new_R, i);
-        }
-    }
-    
-#if PRINT_STACK
-    printf("stack after push edits:\n");
-    print_stack(&iter->sentinel);
-    printf("\n");
-#endif
-}
-
-static void pop_edits(struct bwt_approx_match_internal_iter *iter,
-                      char *edit_op, int *edits,
-                      char **cigar, size_t *match_length,
-                      size_t *L, size_t *R, long long *i)
-{
-    // the stack should never be called on an empty stack,
-    // but just in case...
-    if (iter->sentinel.next == 0) return; // stack is empty
-    
-    struct bwt_approx_frame *frame = iter->sentinel.next;
-    iter->sentinel.next = frame->next;
-    
-    *edit_op = frame->edit_op;
-    *edits = frame->edits;
-    *cigar = frame->cigar;
-    *match_length = frame->match_length;
-    *L = frame->L;
-    *R = frame->R;
-    *i = frame->i;
-    
-    free(frame);
-}
-
-
-void init_bwt_approx_match_internal_iter
-    (struct bwt_approx_match_internal_iter *iter,
-     struct bwt_table *bwt_table, const char *p, int edits)
-{
-    iter->bwt_table = bwt_table;
-    iter->remapped_pattern = p;
-    
-    size_t n = iter->bwt_table->sa->length;
-    size_t m = (size_t)strlen(p);
-    
-     // one edit can max cost four characters
-    size_t buf_size = m + 4 * edits + 1;
-    
-    iter->sentinel.next = 0;
-    iter->full_cigar_buf = malloc(buf_size + 1); iter->full_cigar_buf[0] = '\0';
-    iter->cigar_buf = malloc(buf_size + 1);      iter->cigar_buf[0] = '\0';
-    
-    if (bwt_table->ro_table) {
-        size_t m = strlen(p);
-        iter->D_table = malloc(m * sizeof(int));
+    *cigar = 'D';
+    for (unsigned char a = 1; a < remap_table->alphabet_size; ++a) {
+        new_L = C(a) + O(a, L);
+        new_R = C(a) + O(a, R);
+        if (new_L >= new_R) continue;
         
-        int min_edits = 0;
-        size_t L = 0, R = bwt_table->sa->length;
-        for (size_t i = 0; i < m; ++i) {
-            unsigned char a = p[i];
-            L = C(a) + RO(a, L);
-            R = C(a) + RO(a, R);
-            if (L >= R) {
-                min_edits++;
-                L = 0;
-                R = bwt_table->sa->length;
-            }
-            iter->D_table[i] = min_edits;
-        }
-    } else {
-        iter->D_table = 0;
+        rec_approx_matching(iter, new_L, new_R, i, match_length + 1,
+                            edits - 1, cigar + 1);
     }
-
-#if PRINT_STACK
-    printf("stack after setup:\n");
-    print_stack(&iter->sentinel);
-    printf("\n");
-#endif
-    
-    size_t L = 0;
-    size_t R = n;
-    long long i = m - 1;
-    
-    // push the start of the search
-    push_edits(iter, true,
-               iter->full_cigar_buf, 0, edits, L, R, i);
 }
 
-bool next_bwt_approx_match_internal_iter
-    (struct bwt_approx_match_internal_iter *iter,
-     struct bwt_approx_internal_match      *res)
-{
-    char edit_op;
-    int edits;
-    char *cigar;
-    size_t match_length;
-    size_t L;
-    long long i;
-    size_t R;
-    
-    while (iter->sentinel.next) {
-        pop_edits(iter, &edit_op, &edits, &cigar, &match_length, &L, &R, &i);
-        
-        // in these cases we will never find a match
-        if (edits < 0) continue;
-        if (L >= R) continue;
 
-        cigar[-1] = edit_op;
-
-        if (i < 0 && L < R) {
-            // We have a match!
-            
-            // To get the right cigar, we must reverse and simplify.
-            // We need to reverse a copy because the full_cigar_buf
-            // contains state that will be reused elsewhere in
-            // the recursive exploration.
-            *cigar = '\0';
-            char buf[strlen(iter->full_cigar_buf) + 1];
-            strcpy(buf, iter->full_cigar_buf);
-            str_inplace_rev(buf);
-            correct_cigar(iter->cigar_buf, buf);
-            
-            res->cigar = iter->cigar_buf;
-            res->match_length = match_length;
-            res->sa = iter->bwt_table->sa;
-            res->L = L;
-            res->R = R;
-            
-            return true;
-        }
-        
-        push_edits(iter, false, cigar, match_length, edits, L, R, i);
-    }
-    
-    return false;
-}
-
-void dealloc_bwt_approx_match_internal_iter(struct bwt_approx_match_internal_iter *iter)
-{
-    free(iter->full_cigar_buf);
-    free(iter->cigar_buf);
-    if (iter->D_table) free(iter->D_table);
-}
-
-void init_bwt_exact_match_from_approx_match(const struct bwt_approx_internal_match *approx_match,
-                                            struct bwt_exact_match_iter *exact_iter)
-{
-    exact_iter->sa = approx_match->sa;
-    exact_iter->i  = approx_match->L;
-    exact_iter->L  = approx_match->L;
-    exact_iter->R  = approx_match->R;
-}
-
-// In all this code, I assume that there is no need for
-// actually deallocating (and updating) the exact matches.
-// That way, I can get away with setting it up once and reuse
-// it for all exact matches.
 void init_bwt_approx_iter(struct bwt_approx_iter *iter,
                           struct bwt_table       *bwt_table,
                           const char             *remapped_pattern,
                           int                     edits)
 {
-    iter->internal_approx_iter = malloc(sizeof(struct bwt_approx_match_internal_iter));
+    iter->bwt_table = bwt_table;
+    iter->remapped_pattern = remapped_pattern;
+    init_index_vector(&iter->Ls, 10);
+    init_index_vector(&iter->Rs, 10);
+    init_string_vector(&iter->cigars, 10);
+    init_index_vector(&iter->match_lengths, 10);
     
-    init_bwt_approx_match_internal_iter(iter->internal_approx_iter, bwt_table, remapped_pattern, edits);
+    iter->D_table = 0; // FIXME: build this when you can
     
-    iter->internal_exact_iter = malloc(sizeof(struct bwt_exact_match_iter));
+    size_t m = strlen(remapped_pattern);
+    // one edit can max cost four characters
+    size_t buf_size = m + 4 * edits + 1;
+    iter->m = m;
     
-    init_bwt_exact_match_iter(iter->internal_exact_iter, bwt_table, remapped_pattern);
+    iter->cigar_buf = malloc(buf_size + 1);
+    iter->cigar_buf[0] = '\0';
+    iter->edits = edits;
     
-    iter->outer = true;
+    // Start searching
+    size_t L = 0, R = bwt_table->sa->length; int i = m - 1;
+    size_t new_L;
+    size_t new_R;
+    
+    struct remap_table *remap_table = bwt_table->remap_table;
+    char *cigar = iter->cigar_buf;
+    
+    // M-operations
+    unsigned char match_a = remapped_pattern[i];
+    // Iterating alphabet from 1 so I don't include the sentinel.
+    for (unsigned char a = 1; a < remap_table->alphabet_size; ++a) {
+        
+        new_L = C(a) + O(a, L);
+        new_R = C(a) + O(a, R);
+        
+        int edit_cost = (a == match_a) ? 0 : 1;
+        if (edits - edit_cost < 0) continue;
+        if (new_L >= new_R) continue;
+
+        *cigar = 'M';
+        rec_approx_matching(iter, new_L, new_R, i - 1,
+                            1, edits - edit_cost,
+                            cigar + 1);
+        
+    }
+    
+
+    // I-operation
+    *cigar = 'I';
+    rec_approx_matching(iter, L, R, i - 1, 0, edits - 1, cigar + 1);
+    
+    // make sure we start at the first interval
+    iter->L = m; iter->R = 0;
+    iter->next_interval = 0;
 }
 
 bool next_bwt_approx_match(struct bwt_approx_iter  *iter,
                            struct bwt_approx_match *match)
 {
-    struct bwt_approx_internal_match outer_match;
-    struct bwt_exact_match inner_match;
-    if (iter->outer) {
-        if (next_bwt_approx_match_internal_iter(iter->internal_approx_iter, &outer_match)) {
-            init_bwt_exact_match_from_approx_match(&outer_match, iter->internal_exact_iter);
-            match->cigar = outer_match.cigar;
-            match->match_length = outer_match.match_length;
-            iter->outer = false;
-            return next_bwt_approx_match(iter, match);
-        } else {
-            return false;
-        }
-    } else {
-        if (next_bwt_exact_match_iter(iter->internal_exact_iter, &inner_match)) {
-            match->position = inner_match.pos;
-            return true;
-        } else {
-            iter->outer = true;
-            return next_bwt_approx_match(iter, match);
-        }
+    if (iter->L >= iter->R) { // done with current interval
+        if (iter->next_interval >= iter->Ls.used)
+            return false; // no more intervals
+        // start the next interval
+        iter->L = iter->Ls.data[iter->next_interval];
+        iter->R = iter->Rs.data[iter->next_interval];
+        iter->next_interval++;
     }
+    match->cigar = iter->cigars.data[iter->next_interval - 1];
+    match->match_length = iter->match_lengths.data[iter->next_interval - 1];
+    match->position = iter->bwt_table->sa->array[iter->L];
+    iter->L++;
     
-    return false;
+    return true;
 }
 
+static void free_strings(struct string_vector *vec)
+{
+    for (int i = 0; i < vec->used; i++) {
+        free(string_vector_get(vec, i));
+    }
+}
 
 void dealloc_bwt_approx_iter(struct bwt_approx_iter *iter)
 {
-    dealloc_bwt_approx_match_internal_iter(iter->internal_approx_iter);
-    free(iter->internal_approx_iter);
-    dealloc_bwt_exact_match_iter(iter->internal_exact_iter);
-    free(iter->internal_exact_iter);
+    dealloc_index_vector(&iter->Ls);
+    dealloc_index_vector(&iter->Rs);
+    free_strings(&iter->cigars);
+    dealloc_string_vector(&iter->cigars);
+    dealloc_index_vector(&iter->match_lengths);
+    free(iter->cigar_buf);
+    if (iter->D_table) free(iter->D_table);
 }
 
 
