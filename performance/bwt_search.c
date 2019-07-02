@@ -123,10 +123,9 @@ static unsigned long get_performance(struct bwt_table *bwt_table, size_t m, floa
                         m);
         edit_string(p, bwt_table, m, err);
         search(bwt_table, p, edits);
+        free(p);
     }
     search_end = clock();
-    
-    free(p);
     
     return search_end - search_begin;
     
@@ -192,6 +191,8 @@ int main(int argc, const char **argv)
     free_suffix_array(sa);
     free_suffix_array(rsa);
     dealloc_remap_table(&remap_table);
+    free(rs);
+    free(revrs);
     free(s);
 
     

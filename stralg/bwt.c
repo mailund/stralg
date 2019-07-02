@@ -206,10 +206,6 @@ static void rec_approx_matching(struct bwt_approx_iter *iter,
     
     int lower_limit = (i >= 0 && iter->D_table) ? iter->D_table[i] : 0;
     if (edits  < lower_limit) {
-        /*
-        printf("bailing out with D %p edits %d and limit %d\n",
-               iter->D_table, edits, lower_limit);
-         */
          return; // we can never get a match from here
     }
 
