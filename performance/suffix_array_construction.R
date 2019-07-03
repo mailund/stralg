@@ -1,6 +1,6 @@
 library(tidyverse)
 
-performance <- read_table2("suffix_array_construction.txt",
+performance <- read_table2("suffix_array_construction_V1.txt",
                            col_names = c("Algorithm", "String", "Size", "Time"))
 
 ggplot(performance,

@@ -63,59 +63,83 @@ struct suffix_array *qsort_sa_construction(char *string)
 /// MARK: Skew algorithm
 
 // Map from indices in s to indices in s12
-static size_t map_s_s12(size_t k) {
+inline static size_t map_s_s12(size_t k) {
     return 2 * (k / 3) + (k % 3) - 1;
 }
 
 // map from an index in u to an index in s
-static size_t map_u_s(size_t i, size_t m)
+inline static size_t map_u_s(size_t i, size_t m)
 {
     // first: u -> s12
     size_t k = (i < m) ? (2 * i + 1) : (2 * (i - m - 1));
     return k + k / 2 + 1; // then s12 -> s
 }
 
-
 static void radix_sort(int32_t *s, size_t n,
-                       size_t *sa, size_t m, size_t offset,
-                       struct index_vector *buckets,
-                       int32_t alph_size)
+                       size_t *sa, size_t m,
+                       size_t offset, int32_t alph_size)
 {
     int32_t mask = (1 << 8) - 1;
+    size_t *radix_buckets = malloc(256 * sizeof(size_t));
+    size_t *radix_accsum = malloc(256 * sizeof(size_t));
+    
+    size_t *radix_values0 = malloc(m * sizeof(size_t));
+    size_t *radix_values1 = malloc(m * sizeof(size_t));
+    size_t *radix_values[] = { radix_values0, radix_values1 };
+    bool radix_index = 0;
+    
+    size_t *input, *output;
+    
+    memcpy(radix_values0, sa, m * sizeof(size_t));
     
     for (size_t byte = 0, shift = 0;
          byte < 4 && alph_size > 0;
          byte++, shift += 8, alph_size >>= 8) {
         
-        for (size_t i = 0; i < m; ++i) {
-            size_t a = (sa[i] + offset >= n) ? 0 : s[sa[i] + offset];
-            struct index_vector *bucket = &buckets[(a >> shift) & mask];
-            index_vector_append(bucket, sa[i]);
-        }
+        memset(radix_buckets, 0, 256 * sizeof(size_t));
+        input = radix_values[radix_index];
+        output = radix_values[!radix_index];
         
-        size_t k = 0;
-        for (size_t i = 0; i < 256; ++i) {
-            struct index_vector *bucket = &buckets[i];
-            for (size_t j = 0; j < bucket->used; ++j) {
-                sa[k++] = index_vector_get(bucket, j);
-            }
-            buckets[i].used = 0; // reset
+        radix_index = !radix_index;
+        for (size_t i = 0; i < m; i++) {
+            // count keys in each bucket
+            size_t a = (input[i] + offset >= n) ? 0 : s[input[i] + offset];
+            size_t key = (a >> shift) & mask;
+            radix_buckets[key]++;
         }
-        assert(k == m);
+        size_t sum = 0;
+        for (size_t i = 0; i < 256; i++) {
+            // get the accumulated sum for offsets
+            radix_accsum[i] = sum;
+            sum += radix_buckets[i];
+        }
+        assert(sum == m);
+        for (size_t i = 0; i < m; ++i) {
+            // move input to their sorted position
+            size_t a = (input[i] + offset >= n) ? 0 : s[input[i] + offset];
+            size_t key = (a >> shift) & mask;
+            output[radix_accsum[key]++] = input[i];
+        }
     }
+    
+    memcpy(sa, output, m * sizeof(size_t));
+    
+    free(radix_buckets);
+    free(radix_values0);
+    free(radix_values1);
+    free(radix_accsum);
 }
 
-static void radix_sort_3(int32_t *s, size_t n,
+inline static void radix_sort_3(int32_t *s, size_t n,
                          size_t *sa12, size_t m,
-                         struct index_vector *buckets,
                          int32_t alph_size)
 {
-    radix_sort(s, n, sa12, m, 2, buckets, alph_size);
-    radix_sort(s, n, sa12, m, 1, buckets, alph_size);
-    radix_sort(s, n, sa12, m, 0, buckets, alph_size);
+    radix_sort(s, n, sa12, m, 2, alph_size);
+    radix_sort(s, n, sa12, m, 1, alph_size);
+    radix_sort(s, n, sa12, m, 0, alph_size);
 }
 
-static bool equal3(int32_t *s, size_t n, size_t i, size_t j)
+inline static bool equal3(int32_t *s, size_t n, size_t i, size_t j)
 {
     for (int k = 0; k < 3; ++k) {
         if (i + k >= n) return false;
@@ -127,12 +151,12 @@ static bool equal3(int32_t *s, size_t n, size_t i, size_t j)
 
 
 static int32_t lex3sort(int32_t *s, size_t n,
-                         struct index_vector *buckets, int32_t alph_size,
+                         int32_t alph_size,
                          size_t *sa12, size_t m12, int32_t *s12_lex3_numbers)
 {
     assert(m12 > 0);
     
-    // set up s12 and sort s12
+    // set up s12
     for (size_t i = 0, j = 0; i < n; ++i) {
         if (i % 3 != 0) {
             sa12[j] = i;
@@ -140,7 +164,8 @@ static int32_t lex3sort(int32_t *s, size_t n,
         }
     }
     
-    radix_sort_3(s, n, sa12, m12, buckets, alph_size);
+    // sort s12
+    radix_sort_3(s, n, sa12, m12, alph_size);
     
     // collect the lex numbers from the sorted list
     int32_t *sorted_lex3_numbers = malloc(m12 * sizeof(*sorted_lex3_numbers));
@@ -169,8 +194,8 @@ static int32_t lex3sort(int32_t *s, size_t n,
 static void construct_u(int32_t *lex_nos, size_t m12, int32_t *u)
 {
     size_t j = 0;
-    // I first put those mod 3 == 1 so the first "half"
-    // is always (m12 + 1) / 2.
+    // I first put those mod 3 == 2 so the first "half"
+    // is always (m12 + 1) / 2 (the expression rounds down).
     for (size_t i = 1; i < m12; i += 2) {
         u[j++] = lex_nos[i];
     }
@@ -184,7 +209,7 @@ static void construct_u(int32_t *lex_nos, size_t m12, int32_t *u)
 
 static void construct_sa3(size_t m12, size_t m3, size_t n,
                           int32_t *s, size_t *sa12, size_t *sa3,
-                          struct index_vector *buckets, int32_t alph_size)
+                          int32_t alph_size)
 {
     size_t j = 0;
     
@@ -203,7 +228,7 @@ static void construct_sa3(size_t m12, size_t m3, size_t n,
     }
     assert(j == m3);
     
-    radix_sort(s, n, sa3, m3, 0, buckets, alph_size);
+    radix_sort(s, n, sa3, m3, 0, alph_size);
 }
 
 static bool less(size_t i, size_t j, int32_t *s, size_t n, size_t *isa)
@@ -276,7 +301,7 @@ static void merge_suffix_arrays(int32_t *s,
 }
 
 static void skew_rec(int32_t *s, size_t n,
-                     struct index_vector *buckets, int32_t alph_size,
+                     int32_t alph_size,
                      size_t *sa)
 {
     // we shouldn't hit an empty string, except if we get that as the initial
@@ -300,7 +325,7 @@ static void skew_rec(int32_t *s, size_t n,
     size_t *sa12 = malloc(m12 * sizeof(*sa12));
     assert(sa12); // FIXME: better error handling
     
-    size_t mapped_alphabet_size = lex3sort(s, n, buckets, alph_size, sa12, m12, lex_nos);
+    size_t mapped_alphabet_size = lex3sort(s, n, alph_size, sa12, m12, lex_nos);
     
     // the +1 here is because we leave space for the sentinel
     if (mapped_alphabet_size != m12 + 1) {
@@ -308,7 +333,7 @@ static void skew_rec(int32_t *s, size_t n,
         size_t *sau = malloc((m12 + 1) * sizeof(*sau));
         
         construct_u(lex_nos, m12, u);
-        skew_rec(u, m12 + 1, buckets, mapped_alphabet_size, sau);
+        skew_rec(u, m12 + 1, mapped_alphabet_size, sau);
         
         int32_t mm = m12 / 2;
         
@@ -326,7 +351,7 @@ static void skew_rec(int32_t *s, size_t n,
     
     size_t *sa3 = malloc(m3 * sizeof(*sa3));
     assert(sa3);
-    construct_sa3(m12, m3, n, s, sa12, sa3, buckets, alph_size);
+    construct_sa3(m12, m3, n, s, sa12, sa3, alph_size);
     
     merge_suffix_arrays(s, sa12, m12, sa3, m3, sa);
     
@@ -351,20 +376,8 @@ static void skew(const char *x, size_t *sa)
         s[i] = (unsigned char)x[i];
         assert(s[i] < 256);
     }
-    struct index_vector buckets[256];
-    for (int i = 0; i < 256; ++i) {
-        // if the input characters are random integers then we expect
-        // this many in each bucket. I add 10 to avoid problems if n < 256
-        init_index_vector(&buckets[i], n / 256 + 10);
-    }
-    
-    skew_rec(s, n, buckets, 256, sa + 1); // do not include index zero
+    skew_rec(s, n, 256, sa + 1); // do not include index zero
     sa[0] = n; // but set it to the sentinel here
-    
-    for (size_t i = 0; i < 256; ++i) {
-        dealloc_index_vector(&buckets[i]);
-    }
-
     
     free(s);
 }

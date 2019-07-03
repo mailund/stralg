@@ -366,7 +366,7 @@ static void get_performance(size_t size)
     struct suffix_array *sa;
     clock_t begin, end;
     
-#if 1
+#if 0
     s = build_equal(size);
     begin = clock();
     sa = qsort_sa_construction(s);
@@ -428,7 +428,7 @@ int main(int argc, const char **argv)
 {
     srand(time(NULL));
     
-    for (size_t n = 0; n < 10000; n += 500) {
+    for (size_t n = 0; n < 50000; n += 500) {
         for (int rep = 0; rep < 5; ++rep) {
             get_performance(n);
         }
