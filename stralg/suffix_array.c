@@ -239,7 +239,7 @@ static void construct_sa3(uint32_t m12, uint32_t m3, uint32_t n,
     radix_sort(s, n, shared_buffers->sa3, m3, 0, alph_size, shared_buffers);
 }
 
-/*
+
 // Check order of characters at index i and j
 // (with special case for the sentinel)
 #define CHECK_INDEX(i,j) {          \
@@ -248,7 +248,9 @@ if ((j) >= n) return false;         \
 if (s[(i)] < s[(j)]) return true;   \
 if (s[(i)] > s[(j)]) return false;  \
 }
-inline static bool less(uint32_t i, uint32_t j,
+
+/*
+ inline static bool less(uint32_t i, uint32_t j,
                         uint32_t *s, uint32_t n,
                         struct skew_buffers *shared_buffers)
 {
@@ -264,15 +266,7 @@ inline static bool less(uint32_t i, uint32_t j,
 
 inline static bool less(uint32_t i, uint32_t j, uint32_t *s, uint32_t n, uint32_t *isa)
 {
-    // Since we do not have the terminal sentinel
-    // in this algorithm we need to test the indices
-    // explicitly
-    if (i >= n) return true;
-    if (j >= n) return false;
-    
-    // Check characters
-    if (s[i] < s[j]) return true;
-    if (s[i] > s[j]) return false;
+    CHECK_INDEX(i, j);
     
     // Check cases where we have the indices in the
     // same arrays
