@@ -264,13 +264,18 @@ if (s[(i)] > s[(j)]) return false;  \
 }
 */
 
+#define CHECK_ISA(i,j) \
+    (((j) >= n) ? false : ((i) >= n) || ISA((i)) < ISA((j)))
+
 inline static bool less(uint32_t i, uint32_t j, uint32_t *s, uint32_t n,
                         struct skew_buffers *shared_buffers)
 {
     CHECK_INDEX(i, j);
     
     // test for j should not be necessary at the end.
-    if ((i % 3 == 1) && (j % 3 == 0)) return ISA(i + 1) < ISA(j + 1);
+    if ((i % 3 == 1) && (j % 3 == 0)) {
+        return CHECK_ISA(i + 1, j + 1);
+    }
     
     // Check cases where we have the indices in the
     // same arrays
