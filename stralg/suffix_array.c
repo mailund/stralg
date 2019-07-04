@@ -269,6 +269,9 @@ inline static bool less(uint32_t i, uint32_t j, uint32_t *s, uint32_t n,
 {
     CHECK_INDEX(i, j);
     
+    // test for j should not be necessary at the end.
+    if ((i % 3 == 1) && (j % 3 == 0)) return ISA(i + 1) < ISA(j + 1);
+    
     // Check cases where we have the indices in the
     // same arrays
     if (((i % 3 == 0) && (j % 3 == 0))||((i % 3 != 0) && (j % 3 != 0))) {
