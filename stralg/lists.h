@@ -2,6 +2,7 @@
 #define LISTS_H
 
 #include <stdlib.h>
+#include <stdint.h>
 
 /// NB: new_link() handles the return.
 // It is slightly more complicated otherwise, since we then need to get hold
