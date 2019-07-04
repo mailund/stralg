@@ -52,13 +52,13 @@ static void get_performance(uint32_t size)
     begin = clock();
     sa = skew_sa_construction(s);
     end = clock();
-    printf("Skew_v6 Equal %u %f\n", size, (double)(end - begin) / CLOCKS_PER_SEC);
+    printf("Skew_v7 Equal %u %f\n", size, (double)(end - begin) / CLOCKS_PER_SEC);
     free_suffix_array(sa);
     
     begin = clock();
     sa = skew_sa_construction(s);
     end = clock();
-    printf("Skew_v6 Equal %u %f\n", size, (double)(end - begin) / CLOCKS_PER_SEC);
+    printf("Skew_v7 Equal %u %f\n", size, (double)(end - begin) / CLOCKS_PER_SEC);
     free_suffix_array(sa);
 
     free(s);
@@ -73,13 +73,13 @@ static void get_performance(uint32_t size)
     begin = clock();
     sa = skew_sa_construction(s);
     end = clock();
-    printf("Skew_v6 Random %u %f\n", size, (double)(end - begin) / CLOCKS_PER_SEC);
+    printf("Skew_v7 Random %u %f\n", size, (double)(end - begin) / CLOCKS_PER_SEC);
     free_suffix_array(sa);
 
     begin = clock();
     sa = skew_sa_construction(s);
     end = clock();
-    printf("Skew_v6 Random %u %f\n", size, (double)(end - begin) / CLOCKS_PER_SEC);
+    printf("Skew_v7 Random %u %f\n", size, (double)(end - begin) / CLOCKS_PER_SEC);
     free_suffix_array(sa);
 
     free(s);

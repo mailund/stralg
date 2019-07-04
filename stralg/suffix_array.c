@@ -239,28 +239,28 @@ static void construct_sa3(uint32_t m12, uint32_t m3, uint32_t n,
     radix_sort(s, n, shared_buffers->sa3, m3, 0, alph_size, shared_buffers);
 }
 
-inline static bool less(uint32_t i, uint32_t j, uint32_t *s, uint32_t n, uint32_t *isa)
-{
-    // Since we do not have the terminal sentinel
-    // in this algorithm we need to test the indices
-    // explicitly
-    if (i >= n) return true;
-    if (j >= n) return false;
-    
-    // Check characters
-    if (s[i] < s[j]) return true;
-    if (s[i] > s[j]) return false;
-    
-    // Check cases where we have the indices in the
-    // same arrays
-    if (((i % 3 == 0) && (j % 3 == 0))||((i % 3 != 0) && (j % 3 != 0))) {
-        return isa[i] < isa[j];
-    }
-    
-    // Recurse otherwise; they will end up in the same
-    // arrays after max two recursions
-    return less(i + 1, j + 1, s, n, isa);
+// Check order of characters at index i and j
+// (with special case for the sentinel)
+#define CHECK_INDEX(i,j) {          \
+if ((i) >= n) return true;          \
+if ((j) >= n) return false;         \
+if (s[(i)] < s[(j)]) return true;   \
+if (s[(i)] > s[(j)]) return false;  \
 }
+inline static bool less(uint32_t i, uint32_t j,
+                        uint32_t *s, uint32_t n,
+                        struct skew_buffers *shared_buffers)
+{
+    CHECK_INDEX(i, j);
+    if (i % 3 == 1) {
+        return ISA(i + 1) < ISA(j + 1);
+    } else {
+        CHECK_INDEX(i + 1, j + 1);
+        return ISA(i + 2) < ISA(j + 2);
+    }
+}
+// Just for readability in the merge
+#define LESS(i,j) less((i),(j), s, n, shared_buffers)
 
 static void merge_suffix_arrays(uint32_t *s, uint32_t m12, uint32_t m3,
                                 uint32_t *sa, struct skew_buffers *shared_buffers)
@@ -285,7 +285,7 @@ static void merge_suffix_arrays(uint32_t *s, uint32_t m12, uint32_t m3,
         uint32_t ii = SA12(i);
         uint32_t jj = SA3(j);
         
-        if (less(ii, jj, s, n, shared_buffers->helper_buffer0)) {
+        if (LESS(ii,jj)) {
             sa[k++] = ii;
             i++;
         } else {
