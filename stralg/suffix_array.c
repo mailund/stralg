@@ -78,32 +78,28 @@ inline static uint32_t map_u_s(uint32_t i, uint32_t m)
 struct skew_buffers {
     uint32_t *sa12;                // 2/3n +
     uint32_t *sa3;                 // 1/3n = n
-    uint32_t *u;                   // 2/3n +
 
     uint32_t radix_buckets[256];
     uint32_t radix_accsum[256];
-    uint32_t *radix_values0;      // 2/3n +
-    uint32_t *radix_values1;      // 2/3n = 2n
-    uint32_t *radix_values[2];
-    
-    uint32_t *isa;                //    n = n
-    uint32_t *lex_nos;            // 2/3n = 2/3n
-                                //      = 8/3n
+    uint32_t *helper_buffer0;      // 2/3n +
+    uint32_t *helper_buffer1;      // 2/3n = 4/3 n
+    uint32_t *helper_buffers[2];
 };
 
 // All these macros work as long as the skew_buffers structure
 // is pointed to from a variable called shared_buffers.
 #define B(i)    (shared_buffers->radix_buckets[(i)])
 #define AS(i)   (shared_buffers->radix_accsum[(i)])
-#define ISA(i)  (shared_buffers->isa[(i)])
+#define ISA(i)  (shared_buffers->helper_buffer0[(i)])
 #define SA12(i) (shared_buffers->sa12[(i)])
 #define SA3(i)  (shared_buffers->sa3[(i)])
 
 // This macro maps an index in sa12 to its suffix index in s,
 // then it maps that suffix index into s12 and uses that
-// index to access the lex3 numbers array
-#define LEX3(i) (shared_buffers->lex_nos[map_s_s12(shared_buffers->sa12[(i)])])
-
+// index to access the lex3 numbers array.
+// I reuse the radix_values0 buffer. I never use that
+// between radix sort and using the lex order.
+#define LEX3(i) (shared_buffers->helper_buffer0[map_s_s12(shared_buffers->sa12[(i)])])
 
 
 static void radix_sort(uint32_t *s, uint32_t n,
@@ -116,7 +112,7 @@ static void radix_sort(uint32_t *s, uint32_t n,
     
     uint32_t *input, *output;
     
-    memcpy(shared_buffers->radix_values0, sa, m * sizeof(uint32_t));
+    memcpy(shared_buffers->helper_buffer0, sa, m * sizeof(uint32_t));
     
 #define RAWKEY(i) ((input[(i)] + offset >= n) ? 0 : s[input[(i)] + offset])
 #define KEY(i)    ((RAWKEY((i)) >> shift) & mask)
@@ -126,8 +122,9 @@ static void radix_sort(uint32_t *s, uint32_t n,
          byte++, shift += 8, alph_size >>= 8) {
         
         memset(shared_buffers->radix_buckets, 0, 256 * sizeof(uint32_t));
-        input = shared_buffers->radix_values[radix_index];
-        output = shared_buffers->radix_values[!radix_index];
+        
+        input = shared_buffers->helper_buffers[radix_index];
+        output = shared_buffers->helper_buffers[!radix_index];
         radix_index = !radix_index;
         
         for (uint32_t i = 0; i < m; i++) {
@@ -275,7 +272,6 @@ static void merge_suffix_arrays(uint32_t *s, uint32_t m12, uint32_t m3,
     // not sorting between 12 and 3, and then doing
     // isa[sa[i]] = i. Just both at the same time.
     for (uint32_t i = 1, j = 0; j < m12; i += 3, j += 2) {
-        //shared_buffers->isa[sa12[j]] = i;
         ISA(SA12(j)) = i;
     }
     for (uint32_t i = 2, j = 1; j < m12; i += 3, j += 2) {
@@ -289,7 +285,7 @@ static void merge_suffix_arrays(uint32_t *s, uint32_t m12, uint32_t m3,
         uint32_t ii = SA12(i);
         uint32_t jj = SA3(j);
         
-        if (less(ii, jj, s, n, shared_buffers->isa)) {
+        if (less(ii, jj, s, n, shared_buffers->helper_buffer0)) {
             sa[k++] = ii;
             i++;
         } else {
@@ -325,15 +321,13 @@ static void skew_rec(uint32_t *s, uint32_t n,
     
     // the +1 here is because we leave space for the sentinel
     if (mapped_alphabet_size != m12 + 1) {
-#warning Can I eliminate these two buffers?
         uint32_t *u = malloc((m12 + 1) * sizeof(*u));
-        //uint32_t *u = shared_buffers->u;
         
         assert(u);
         uint32_t *sau = malloc((m12 + 1) * sizeof(*sau));
         assert(sau);
         
-        construct_u(shared_buffers->lex_nos, m12, u);
+        construct_u(shared_buffers->helper_buffer0, m12, u);
         skew_rec(u, m12 + 1, mapped_alphabet_size, sau, shared_buffers);
         
         int32_t mm = m12 / 2;
@@ -380,34 +374,20 @@ static void skew(const char *x, uint32_t *sa)
     uint32_t m3 = (n - 1) / 3 + 1;
     uint32_t m12 = n - m3;
     struct skew_buffers shared_buffers;
-    shared_buffers.radix_values0 = malloc(m12 * sizeof(uint32_t));
-    assert(shared_buffers.radix_values0);
-    shared_buffers.radix_values1 = malloc(m12 * sizeof(uint32_t));
-    assert(shared_buffers.radix_values1);
-    shared_buffers.radix_values[0] = shared_buffers.radix_values0;
-    shared_buffers.radix_values[1] = shared_buffers.radix_values1;
-    shared_buffers.isa = malloc(n * sizeof(uint32_t));
-    assert(shared_buffers.isa);
-    shared_buffers.lex_nos = malloc(m12 * sizeof(uint32_t));
-    assert(shared_buffers.lex_nos);
+    shared_buffers.helper_buffer0 = malloc(2 * m12 * sizeof(uint32_t));
+    shared_buffers.helper_buffer1 = shared_buffers.helper_buffer0 + m12;
+    shared_buffers.helper_buffers[0] = shared_buffers.helper_buffer0;
+    shared_buffers.helper_buffers[1] = shared_buffers.helper_buffer1;
     shared_buffers.sa12 = malloc(m12 * sizeof(uint32_t));
-    assert(shared_buffers.sa12);
     shared_buffers.sa3 = malloc(m3 * sizeof(uint32_t));
-    assert(shared_buffers.sa3);
     shared_buffers.sa3 = malloc(m3 * sizeof(uint32_t));
-    assert(shared_buffers.sa3);
-    shared_buffers.u = malloc((m12 + 1) * sizeof(uint32_t));
 
     skew_rec(s, n, 256, sa + 1, &shared_buffers); // do not include index zero
     sa[0] = n; // but set it to the sentinel here
     
     free(shared_buffers.sa12);
     free(shared_buffers.sa3);
-    free(shared_buffers.u);
-    free(shared_buffers.radix_values0);
-    free(shared_buffers.radix_values1);
-    free(shared_buffers.isa);
-    free(shared_buffers.lex_nos);
+    free(shared_buffers.helper_buffer0);
     free(s);
 }
 
