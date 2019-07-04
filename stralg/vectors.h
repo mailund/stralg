@@ -3,7 +3,7 @@
 
 #include <stdlib.h>
 #include <stdbool.h>
-
+#include <stdint.h>
 
 /// MARK: Generic vector code
 #define vector_init(vec, init_size)  {     \
