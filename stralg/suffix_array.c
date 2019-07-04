@@ -264,23 +264,24 @@ if (s[(i)] > s[(j)]) return false;  \
 }
 */
 
-inline static bool less(uint32_t i, uint32_t j, uint32_t *s, uint32_t n, uint32_t *isa)
+inline static bool less(uint32_t i, uint32_t j, uint32_t *s, uint32_t n,
+                        struct skew_buffers *shared_buffers)
 {
     CHECK_INDEX(i, j);
     
     // Check cases where we have the indices in the
     // same arrays
     if (((i % 3 == 0) && (j % 3 == 0))||((i % 3 != 0) && (j % 3 != 0))) {
-        return isa[i] < isa[j];
+        return ISA(i) < ISA(j);
     }
     
     // Recurse otherwise; they will end up in the same
     // arrays after max two recursions
-    return less(i + 1, j + 1, s, n, isa);
+    return less(i + 1, j + 1, s, n, shared_buffers);
 }
 
 // Just for readability in the merge
-#define LESS(i,j) less((i),(j), s, n, shared_buffers->helper_buffer0)
+#define LESS(i,j) less((i),(j), s, n, shared_buffers)
 
 static void merge_suffix_arrays(uint32_t *s, uint32_t m12, uint32_t m3,
                                 uint32_t *sa, struct skew_buffers *shared_buffers)
