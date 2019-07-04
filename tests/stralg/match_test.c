@@ -17,16 +17,16 @@
 static void naive_search(const char *x, const char *p,
                          struct index_vector *res)
 {
-    size_t n = strlen(x);
-    size_t m = strlen(p);
+    uint32_t n = strlen(x);
+    uint32_t m = strlen(p);
     
     // otherwise the loop test can go horribly wrong
     if ((long long)n < (long long)m) {
         return;
     }
     
-    for (size_t j = 0; j <= n - m; ++j) {
-        size_t i = 0;
+    for (uint32_t j = 0; j <= n - m; ++j) {
+        uint32_t i = 0;
         while (i < m && x[j + i] == p[i])
             ++i;
         if (i == m) {
@@ -38,8 +38,8 @@ static void naive_search(const char *x, const char *p,
 static void border_search(const char *x, const char *p,
                           struct index_vector *res)
 {
-    size_t n = strlen(x);
-    size_t m = strlen(p);
+    uint32_t n = strlen(x);
+    uint32_t m = strlen(p);
     int b = 0;
     
     if ((long long)n < (long long)m) {
@@ -71,8 +71,8 @@ static void border_search(const char *x, const char *p,
 static void kmp_search(const char *x, const char *p,
                        struct index_vector *res)
 {
-    size_t n = strlen(x);
-    size_t m = strlen(p);
+    uint32_t n = strlen(x);
+    uint32_t m = strlen(p);
     
     if ((long long)n < (long long)m) {
         return;
@@ -82,10 +82,10 @@ static void kmp_search(const char *x, const char *p,
     // Build prefix border array -- I allocate with calloc
     // because the static analyser otherwise think it can contain
     // garbage values after the initialisation.
-    size_t *prefixtab = calloc(m, sizeof(size_t));
+    uint32_t *prefixtab = calloc(m, sizeof(uint32_t));
     prefixtab[0] = 0;
-    for (size_t i = 1; i < m; ++i) {
-        size_t k = prefixtab[i - 1];
+    for (uint32_t i = 1; i < m; ++i) {
+        uint32_t k = prefixtab[i - 1];
         while (k > 0 && p[i] != p[k])
             k = prefixtab[k - 1];
         prefixtab[i] = (p[i] == p[k]) ? k + 1 : 0;
@@ -93,7 +93,7 @@ static void kmp_search(const char *x, const char *p,
     
     // Modify it so the we avoid borders where the following
     // letters match
-    for (size_t i = 0; i < m - 1; i++) {
+    for (uint32_t i = 0; i < m - 1; i++) {
         prefixtab[i] =
         (p[prefixtab[i]] != p[i + 1] || prefixtab[i] == 0) ?
         prefixtab[i] : prefixtab[prefixtab[i] - 1];
@@ -119,15 +119,15 @@ static void kmp_search(const char *x, const char *p,
 static void bmh_search(const char *x, const char *p,
                        struct index_vector *res)
 {
-    size_t n = strlen(x);
-    size_t m = strlen(p);
+    uint32_t n = strlen(x);
+    uint32_t m = strlen(p);
     
     if ((long long)n < (long long)m) {
         return;
     }
 
     
-    size_t jump_table[256];
+    uint32_t jump_table[256];
     
     for (int k = 0; k < 256; k++) {
         jump_table[k] = m;
@@ -140,7 +140,7 @@ static void bmh_search(const char *x, const char *p,
          j < n - m + 1;
          j += jump_table[(unsigned char)x[j + m - 1]]) {
         
-        size_t i = m - 1;
+        uint32_t i = m - 1;
         while (i > 0 && p[i] == x[j + i])
             --i;
         if (i == 0 && p[0] == x[j]) {
@@ -158,8 +158,8 @@ typedef bool (*iteration_func)(
 );
 typedef void (*iter_init_func)(
     void *iter,
-    const char *text, size_t n,
-    const char *pattern, size_t m
+    const char *text, uint32_t n,
+    const char *pattern, uint32_t m
 );
 typedef void (*iter_dealloc_func)(
     void *iter
@@ -173,8 +173,8 @@ static void iter_test(
     iter_dealloc_func iter_dealloc,
     struct index_vector *res
 ) {
-    size_t n = (size_t)strlen(text);
-    size_t m = (size_t)strlen(pattern);
+    uint32_t n = (uint32_t)strlen(text);
+    uint32_t m = (uint32_t)strlen(pattern);
 
     struct match match;
     iter_init(iter, text, n, pattern, m);
@@ -222,12 +222,12 @@ static void simple_exact_matchers(struct index_vector *naive,
     naive_search(string, pattern, &real_naive);
     printf("naive:\n");
     for (int i = 0; i < naive->used; ++i) {
-        printf("%zu ", index_vector_get(naive, i));
+        printf("%u ", index_vector_get(naive, i));
     }
     printf("\n");
     printf("real naive:\n");
     for (int i = 0; i < real_naive.used; ++i) {
-        printf("%zu ", index_vector_get(&real_naive, i));
+        printf("%u ", index_vector_get(&real_naive, i));
     }
     printf("\n");
     assert(index_vector_equal(&real_naive, naive));
@@ -238,7 +238,7 @@ static void simple_exact_matchers(struct index_vector *naive,
     border_search(string, pattern, &real_naive);
     printf("border naive:\n");
     for (int i = 0; i < real_naive.used; ++i) {
-        printf("%zu ", index_vector_get(&real_naive, i));
+        printf("%u ", index_vector_get(&real_naive, i));
     }
     printf("\n");
     assert(index_vector_equal(&real_naive, naive));
@@ -248,7 +248,7 @@ static void simple_exact_matchers(struct index_vector *naive,
     kmp_search(string, pattern, &real_naive);
     printf("kmp naive:\n");
     for (int i = 0; i < real_naive.used; ++i) {
-        printf("%zu ", index_vector_get(&real_naive, i));
+        printf("%u ", index_vector_get(&real_naive, i));
     }
     printf("\n");
     assert(index_vector_equal(&real_naive, naive));
@@ -258,7 +258,7 @@ static void simple_exact_matchers(struct index_vector *naive,
     bmh_search(string, pattern, &real_naive);
     printf("bmh naive:\n");
     for (int i = 0; i < real_naive.used; ++i) {
-        printf("%zu ", index_vector_get(&real_naive, i));
+        printf("%u ", index_vector_get(&real_naive, i));
     }
     printf("\n");
     assert(index_vector_equal(&real_naive, naive));
@@ -319,8 +319,8 @@ static void general_suffix_test(struct index_vector *naive,
     //st_print_dot_name(st, st->root, "tree.dot");
     test_suffix_tree_match(naive, pattern, st, string);
     
-    size_t sorted_suffixes[st->length];
-    size_t lcp[st->length];
+    uint32_t sorted_suffixes[st->length];
+    uint32_t lcp[st->length];
     st_compute_sa_and_lcp(st, sorted_suffixes, lcp);
     free_suffix_tree(st);
     
@@ -437,9 +437,9 @@ static void bwt_match(struct index_vector *naive,
 static void remap_match_test(const char *pattern,
                              const char *string)
 {
-    size_t n = (size_t)strlen(string);
+    uint32_t n = (uint32_t)strlen(string);
     char remapped_string[n + 1];
-    size_t m = (size_t)strlen(pattern);
+    uint32_t m = (uint32_t)strlen(pattern);
     char remapped_pattern[m + 1];
     
     struct remap_table remap_table;
@@ -509,15 +509,15 @@ int main(int argc, char * argv[])
             "acgc",
             "ccgc"
         };
-        size_t no_strings = sizeof(strings) / sizeof(const char *);
+        uint32_t no_strings = sizeof(strings) / sizeof(const char *);
         const char *patterns[] = {
             "aca", "ac", "ca", "a", "c", "acg", "cg", "g",
             "cgc", "acgc", "aaa", "aaccaac"
         };
-        size_t no_patterns = sizeof(patterns) / sizeof(const char *);
+        uint32_t no_patterns = sizeof(patterns) / sizeof(const char *);
         
-        for (size_t i = 0; i < no_patterns; ++i) {
-            for (size_t j = 0; j < no_strings; ++j) {
+        for (uint32_t i = 0; i < no_patterns; ++i) {
+            for (uint32_t j = 0; j < no_strings; ++j) {
                 printf("%s in %s\n", patterns[i], strings[j]);
                 match_test(patterns[i], strings[j]);
             }

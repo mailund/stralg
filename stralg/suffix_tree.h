@@ -12,19 +12,19 @@ struct range {
     const char *from;
     const char *to;
 };
-static inline size_t range_length(struct range r) {
+static inline uint32_t range_length(struct range r) {
     return r.to - r.from;
 }
 
 struct suffix_tree_node {
-    size_t leaf_label;
+    uint32_t leaf_label;
     struct range range;
     struct suffix_tree_node *parent;
     struct suffix_tree_node *sibling;
     struct suffix_tree_node *child;
-    struct suffix_tree_node *suffix;
+    struct suffix_tree_node *suffix_link;
 };
-static inline size_t edge_length(struct suffix_tree_node *n) {
+static inline uint32_t edge_length(struct suffix_tree_node *n) {
     return range_length(n->range);
 }
 
@@ -34,7 +34,7 @@ struct suffix_tree_node_pool {
 };
 struct suffix_tree {
     const char *string;
-    size_t length;
+    uint32_t length;
     struct suffix_tree_node *root;
     struct suffix_tree_node_pool pool;
 };
@@ -42,7 +42,7 @@ struct suffix_tree {
 struct suffix_tree *naive_suffix_tree(const char *string);
 struct suffix_tree *mccreight_suffix_tree(const char *string);
 struct suffix_tree *lcp_suffix_tree(const char *string,
-                                    size_t *sa, size_t *lcp);
+                                    uint32_t *sa, uint32_t *lcp);
 
 void annotate_suffix_links(struct suffix_tree *st);
 
@@ -51,7 +51,7 @@ void free_suffix_tree(struct suffix_tree *st);
 
 // Suffix array and LCP
 void st_compute_sa_and_lcp(struct suffix_tree *st,
-                           size_t *sa, size_t *lcp);
+                           uint32_t *sa, uint32_t *lcp);
 
 // Iteration
 struct st_leaf_iter {
@@ -93,7 +93,7 @@ struct st_approx_frame {
     bool leading; // for avoiding leading deletions
     const char *x;
     const char *end;
-    size_t match_depth;
+    uint32_t match_depth;
     const char *p;
     char cigar_op;
     char *cigar;
@@ -109,7 +109,7 @@ struct internal_st_approx_iter {
 struct internal_st_approx_match {
     const char *cigar;
     struct suffix_tree_node *match_root;
-    size_t match_depth;
+    uint32_t match_depth;
 };
 
 
@@ -131,9 +131,9 @@ struct st_approx_match_iter {
 };
 struct st_approx_match {
     struct suffix_tree_node *root;
-    size_t match_length;
-    size_t match_depth;
-    size_t match_label;
+    uint32_t match_length;
+    uint32_t match_depth;
+    uint32_t match_label;
     const char *cigar;
 };
 void init_st_approx_iter(struct st_approx_match_iter *iter,
@@ -145,7 +145,7 @@ bool next_st_approx_match(struct st_approx_match_iter *iter,
 void dealloc_st_approx_iter(struct st_approx_match_iter *iter);
 
 
-size_t get_string_depth(struct suffix_tree *st,
+uint32_t get_string_depth(struct suffix_tree *st,
                           struct suffix_tree_node *v);
 void get_edge_label      (struct suffix_tree *st,
                           struct suffix_tree_node *node,

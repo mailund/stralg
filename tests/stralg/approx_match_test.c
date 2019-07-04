@@ -9,10 +9,10 @@
 #define BUFFER_SIZE 1024
 #define PRINT_RESULTS
 
-static char *match_string(size_t idx, const char *string, const char *cigar)
+static char *match_string(uint32_t idx, const char *string, const char *cigar)
 {
     char *new_string = malloc(BUFFER_SIZE);
-    sprintf(new_string, "%zu %s %s", idx, string, cigar);
+    sprintf(new_string, "%u %s %s", idx, string, cigar);
     return new_string;
 }
 
@@ -30,7 +30,7 @@ static void exact_approach(const char *string, const char *pattern,
                            const char *alphabet,
                            int dist, struct string_vector *results)
 {
-    size_t n = (size_t)strlen(string);
+    uint32_t n = (uint32_t)strlen(string);
     
     struct edit_pattern edit_pattern;
     struct match match;
@@ -44,7 +44,7 @@ static void exact_approach(const char *string, const char *pattern,
             continue;
         }
         
-        size_t m = (size_t)strlen(edit_pattern.pattern);
+        uint32_t m = (uint32_t)strlen(edit_pattern.pattern);
         // If the exact matchers work, I can pick any of them.
         // I use the border array search.
         struct border_match_iter match_iter;
@@ -64,7 +64,7 @@ static void exact_approach(const char *string, const char *pattern,
 static void print_cigar_list(index_list *list, string_vector *patterns)
 {
     while (list) {
-        size_t idx = unbox_index(list->data);
+        uint32_t idx = unbox_index(list->data);
         printf("[%lu,%s]->", idx, string_vector_get(patterns, idx));
         list = list->next;
     }
@@ -105,7 +105,7 @@ static void aho_corasick_approach(const char *string,
     struct index_linked_list *cigar_table[patterns.used];
     struct trie trie;
     init_trie(&trie);
-    for (size_t i = 0; i < patterns.used; ++i) {
+    for (uint32_t i = 0; i < patterns.used; ++i) {
         char *pattern = string_vector_get(&patterns, i);
         struct trie *node = get_trie_node(&trie, pattern);
         if (node && node->string_label >= 0) {
@@ -119,22 +119,22 @@ static void aho_corasick_approach(const char *string,
     }
     compute_failure_links(&trie);
     
-    size_t pattern_lengths[patterns.used];
-    for (size_t i = 0; i < patterns.used; ++i) {
-        pattern_lengths[i] = (size_t)strlen(string_vector_get(&patterns, i));
+    uint32_t pattern_lengths[patterns.used];
+    for (uint32_t i = 0; i < patterns.used; ++i) {
+        pattern_lengths[i] = (uint32_t)strlen(string_vector_get(&patterns, i));
     }
     
     struct ac_iter ac_iter;
     struct ac_match ac_match;
     
-    init_ac_iter(&ac_iter, string, (size_t)strlen(string), pattern_lengths, &trie);
+    init_ac_iter(&ac_iter, string, (uint32_t)strlen(string), pattern_lengths, &trie);
     while (next_ac_match(&ac_iter, &ac_match)) {
-        size_t pattern_idx = ac_match.string_label;
+        uint32_t pattern_idx = ac_match.string_label;
         const char *pattern = string_vector_get(&patterns, pattern_idx);
         // there might be more than one cigar per pattern
         struct index_linked_list *pattern_cigars = cigar_table[pattern_idx];
         while (pattern_cigars) {
-            size_t cigar_index = pattern_cigars->data;
+            uint32_t cigar_index = pattern_cigars->data;
             const char *cigar = string_vector_get(&cigars, cigar_index);
             char *hit = match_string(ac_match.index, pattern, cigar);
             string_vector_append(results, hit);
@@ -183,7 +183,7 @@ static void bwt_match(struct suffix_array *sa,
     // We need this to get the string we actually matched
     // from the remapped stuff.
     // FIXME: check if this is the correct length needed.
-    size_t n = (size_t) (3 * strlen(pattern) + 1);
+    uint32_t n = (uint32_t) (3 * strlen(pattern) + 1);
     char rev_mapped_match[n];
     
     struct bwt_approx_iter iter;
@@ -289,9 +289,9 @@ static void test_exact(const char *pattern, const char *string,
     printf("----------------------------------------------------\n");
     printf("---------------- REMAPPING MAPPERS -----------------\n");
     printf("----------------------------------------------------\n");
-    size_t n = (size_t)strlen(string);
+    uint32_t n = (uint32_t)strlen(string);
     char remapped_string[n + 1];
-    size_t m = (size_t)strlen(pattern);
+    uint32_t m = (uint32_t)strlen(pattern);
     char remapped_pattern[m + 1];
     
     struct remap_table remap_table;
@@ -355,9 +355,9 @@ static void test_approx(const char *pattern, const char *string,
     printf("OK\n");
     printf("----------------------------------------------------\n");
     
-    size_t n = (size_t)strlen(string);
+    uint32_t n = (uint32_t)strlen(string);
     char remappe_string[n + 1];
-    size_t m = (size_t)strlen(pattern);
+    uint32_t m = (uint32_t)strlen(pattern);
     char remapped_pattern[m + 1];
     
     struct remap_table remap_table;
@@ -455,8 +455,8 @@ int main(int argc, char **argv)
         "ccgc",
         "acgc"
     };
-    size_t no_strings = sizeof(strings) / sizeof(const char *);
-    printf("no strings: %zu\n", no_strings);
+    uint32_t no_strings = sizeof(strings) / sizeof(const char *);
+    printf("no strings: %u\n", no_strings);
     const char *patterns[] = {
         "acg", "ac", "a", "g", "c",
         "acgc", "aaa",
@@ -464,12 +464,12 @@ int main(int argc, char **argv)
         // longer than the string
         "acggc"
     };
-    size_t no_patterns = sizeof(patterns) / sizeof(const char *);
+    uint32_t no_patterns = sizeof(patterns) / sizeof(const char *);
     
     if (exact) {
         printf("EXACT MATCHING...\n");
-        for (size_t i = 0; i < no_patterns; ++i) {
-            for (size_t j = 0; j < no_strings; ++j) {
+        for (uint32_t i = 0; i < no_patterns; ++i) {
+            for (uint32_t j = 0; j < no_strings; ++j) {
                 printf("%s in %s\n", patterns[i], strings[j]);
                 test_exact(patterns[i], strings[j], alphabet);
             }
@@ -482,11 +482,11 @@ int main(int argc, char **argv)
         int edits[] = {
             1, 2
         };
-        size_t no_edits = sizeof(edits) / sizeof(int);
+        uint32_t no_edits = sizeof(edits) / sizeof(int);
         
-        for (size_t i = 0; i < no_patterns; ++i) {
-            for (size_t j = 0; j < no_strings; ++j) {
-                for (size_t k = 0; k < no_edits; ++k) {
+        for (uint32_t i = 0; i < no_patterns; ++i) {
+            for (uint32_t j = 0; j < no_strings; ++j) {
+                for (uint32_t k = 0; k < no_edits; ++k) {
                     // avoid patterns that can turn to empty strings.
                     if (strlen(patterns[i]) <= edits[k]) continue;
                     

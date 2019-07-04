@@ -9,8 +9,8 @@
 
 void init_ac_iter(struct ac_iter *iter,
                   const char *text,
-                  size_t n,
-                  const size_t *pattern_lengths,
+                  uint32_t n,
+                  const uint32_t *pattern_lengths,
                   struct trie *patterns_trie
                   )
 {
@@ -32,9 +32,9 @@ void init_ac_iter(struct ac_iter *iter,
 
 
 #if 0
-void aho_corasick_match(const char *text, size_t n, struct trie *patterns,
+void aho_corasick_match(const char *text, uint32_t n, struct trie *patterns,
                         ac_callback_func callback, void *callback_data) {
-    size_t j = 0;
+    uint32_t j = 0;
     struct trie *v = patterns;
     
     while (j < n) {

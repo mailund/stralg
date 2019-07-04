@@ -51,7 +51,7 @@
   ((queue)->front == 0 && (queue)->back == 0)
 
 #define queue_length(list_type, queue) { \
-    size_t i = 0;                        \
+    uint32_t i = 0;                        \
     for (list_type *link = queue->front; \
       link;                              \
       link = link->next) {               \
@@ -85,19 +85,19 @@ static inline void free_index_queue(struct index_queue *queue) {
 static inline bool is_index_queue_empty(const struct index_queue *queue) {
     return is_queue_empty(queue);
 }
-static inline size_t index_queue_front(const struct index_queue *queue) {
+static inline uint32_t index_queue_front(const struct index_queue *queue) {
     assert(queue->front != 0);
     return queue->front->data;
 }
 
-static inline void enqueue_index(struct index_queue *queue, size_t index) {
+static inline void enqueue_index(struct index_queue *queue, uint32_t index) {
     enqueue(struct index_linked_list, new_index_link, queue, index);
 }
 static inline void dequeue_index(struct index_queue *queue) {
     dequeue(struct index_linked_list, queue);
 }
 
-static inline size_t index_queue_length(struct index_queue *queue) {
+static inline uint32_t index_queue_length(struct index_queue *queue) {
     queue_length(struct index_linked_list, queue);
 }
 
@@ -138,7 +138,7 @@ static inline void dequeue_pointer(struct pointer_queue *queue) {
     dequeue(struct pointer_linked_list, queue);
 }
 
-static inline size_t pointer_queue_length(struct pointer_queue *queue) {
+static inline uint32_t pointer_queue_length(struct pointer_queue *queue) {
     queue_length(struct pointer_linked_list, queue);
 }
 

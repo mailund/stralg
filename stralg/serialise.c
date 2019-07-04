@@ -24,7 +24,7 @@ void write_complete_bwt_info_fname(const char *fname, const struct bwt_table *bw
 
 struct bwt_table *read_complete_bwt_info(FILE *f)
 {
-    size_t str_len;
+    uint32_t str_len;
     char *str = read_string_len(f, &str_len);
     struct suffix_array *sa = read_suffix_array(f, str);
     struct remap_table *remap_table = read_remap_table(f);

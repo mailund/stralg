@@ -33,11 +33,11 @@ int main(int argc, char **argv)
         printf("the iterator said there was a record, %p\n", &rec);
         printf("name: \"%s\"\n", rec.name);
         printf("seq: \"%s\"\n", rec.seq);
-        printf("seq len %zu\n", rec.seq_len);
+        printf("seq len %u\n", rec.seq_len);
         
         fprintf(outfile, "name: \"%s\"\n", rec.name);
         fprintf(outfile, "seq: \"%s\"\n", rec.seq);
-        fprintf(outfile, "seq len %zu\n", rec.seq_len);
+        fprintf(outfile, "seq len %u\n", rec.seq_len);
     }
     dealloc_fasta_iter(&iter);
     fclose(outfile);

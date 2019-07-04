@@ -22,7 +22,7 @@ static void compare_suffix_path_labels(struct suffix_tree *st,
     char string_buf[st->length + 1];
     char suffix_string_buf[st->length + 1];
     get_path_string(st, v, string_buf);
-    get_path_string(st, v->suffix, suffix_string_buf);
+    get_path_string(st, v->suffix_link, suffix_string_buf);
     //printf("'%s' -> '%s'\n", string_buf, suffix_string_buf);
 
     // special case with the root...

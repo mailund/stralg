@@ -13,12 +13,12 @@ static void test_expected(const struct bwt_table *bwt_table)
     const struct remap_table *remap_table = bwt_table->remap_table;
     struct suffix_array *sa = bwt_table->sa;
     
-    size_t expected_c[] = {
+    uint32_t expected_c[] = {
         0, 1, 5, 6, 8
        //  0, 0, 4, 5, 7
     };
-    for (size_t i = 0; i < remap_table->alphabet_size; ++i) {
-        printf("C[%zu] == %zu\n", i, bwt_table->c_table[i]);
+    for (uint32_t i = 0; i < remap_table->alphabet_size; ++i) {
+        printf("C[%u] == %u\n", i, bwt_table->c_table[i]);
         assert(bwt_table->c_table[i] == expected_c[i]);
     }
     
@@ -26,7 +26,7 @@ static void test_expected(const struct bwt_table *bwt_table)
     print_o_table(bwt_table);
     printf("\n");
     
-    size_t expected_o[] = {
+    uint32_t expected_o[] = {
         /* $ */ 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1,
         /* i */ 0, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 3, 4,
         /* m */ 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1,
@@ -35,8 +35,8 @@ static void test_expected(const struct bwt_table *bwt_table)
     };
     for (unsigned char a = 0; a < remap_table->alphabet_size; ++a) {
         printf("O(%d,-) == ", a);
-        for (size_t i = 0; i < sa->length; ++i) {
-            printf("%zu/%lu ", O(a, i), expected_o[o_index(a, i, bwt_table)]);
+        for (uint32_t i = 0; i < sa->length; ++i) {
+            printf("%u/%u ", O(a, i), expected_o[o_index(a, i, bwt_table)]);
             assert(O(a, i) == expected_o[o_index(a, i, bwt_table)]);
         }
         printf("\n");
@@ -45,7 +45,7 @@ static void test_expected(const struct bwt_table *bwt_table)
 
 static void test_reverse_expected(struct bwt_table *bwt_table)
 {
-    size_t expected_ro[] = {
+    uint32_t expected_ro[] = {
         /* $ */ 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
         /* i */ 0, 0, 0, 0, 0, 0, 1, 1, 2, 2, 2, 3, 4,
         /* m */ 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
@@ -54,8 +54,8 @@ static void test_reverse_expected(struct bwt_table *bwt_table)
     };
     for (unsigned char a = 0; a < bwt_table->remap_table->alphabet_size; ++a) {
         printf("RO(%d,-) == ", a);
-        for (size_t i = 0; i < bwt_table->sa->length; ++i) {
-            printf("%zu/%lu ", O(a, i), expected_ro[o_index(a, i, bwt_table)]);
+        for (uint32_t i = 0; i < bwt_table->sa->length; ++i) {
+            printf("%u/%u ", O(a, i), expected_ro[o_index(a, i, bwt_table)]);
             assert(RO(a, i) == expected_ro[o_index(a, i, bwt_table)]);
         }
         printf("\n");
@@ -69,20 +69,20 @@ static void forward_search(struct bwt_table *bwt_table,
                            const char *rev_string,
                            const char *pattern)
 {
-    size_t n = bwt_table->sa->length;
-    size_t m = strlen(pattern);
-    size_t L = 0, R = n, i = 0;
+    uint32_t n = bwt_table->sa->length;
+    uint32_t m = strlen(pattern);
+    uint32_t L = 0, R = n, i = 0;
     
     while (i < m && L < R) {
         unsigned char a = pattern[i];
         assert(a > 0); // only the sentinel is null
         assert(a < bwt_table->remap_table->alphabet_size);
         
-        printf("iteration %lu: [%lu,%lu]\n", i, L, R);
-        for (size_t i = L; i < R; ++i) {
-            size_t j = rsa->array[i];
-            size_t idx = ((n - j - 1) < m) ? 11 : (n - 1 - m - j);
-            printf("%2lu: %s -> %2lu %s\n", j, rev_string + i, idx, string + idx);
+        printf("iteration %u: [%u,%u]\n", i, L, R);
+        for (uint32_t i = L; i < R; ++i) {
+            uint32_t j = rsa->array[i];
+            uint32_t idx = ((n - j - 1) < m) ? 11 : (n - 1 - m - j);
+            printf("%2u: %s -> %2u %s\n", j, rev_string + i, idx, string + idx);
         }
         printf("\n");
 
@@ -91,11 +91,11 @@ static void forward_search(struct bwt_table *bwt_table,
         i++;
     }
     
-    printf("n == %lu\n", n);
-    printf("[%lu,%lu]\n", L, R);
-    for (size_t i = L; i < R; ++i) {
-        size_t j = rsa->array[i];
-        printf("%2lu: %s -> %s\n", j, rev_string, string + (n - 1) - m - j);
+    printf("n == %u\n", n);
+    printf("[%u,%u]\n", L, R);
+    for (uint32_t i = L; i < R; ++i) {
+        uint32_t j = rsa->array[i];
+        printf("%2u: %s -> %s\n", j, rev_string, string + (n - 1) - m - j);
     }
     printf("\n");
 }
@@ -113,11 +113,11 @@ int main(int argc, char **argv)
     struct suffix_array *sa;
     struct bwt_table bwt_table;
     
-    size_t n = (size_t)strlen(string);
+    uint32_t n = (uint32_t)strlen(string);
     char remapped[n + 1];
     
     // to shut up static analysis
-    for (size_t i = 0; i < n + 1; ++i) {
+    for (uint32_t i = 0; i < n + 1; ++i) {
         remapped[i] = '\0';
     }
     
@@ -125,19 +125,19 @@ int main(int argc, char **argv)
     remap(remapped, string, &remap_table);
     
     printf("remapped = ");
-    for (size_t i = 0; i < n + 1; ++i) {
+    for (uint32_t i = 0; i < n + 1; ++i) {
         printf("%d", (int)remapped[i]);
     }
     printf("\n");
     printf("remapped length == %lu\n", strlen(remapped) + 1);
     
     sa = qsort_sa_construction(remapped);
-    printf("n == %zu\n", n);
+    printf("n == %u\n", n);
     assert(sa->length == n + 1);
     
-    for (size_t i = 0; i < sa->length; ++i) {
-        printf("sa[%2zu] = %2zu = ", i, sa->array[i]);
-        for (size_t j = sa->array[i]; j < sa->length; ++j) {
+    for (uint32_t i = 0; i < sa->length; ++i) {
+        printf("sa[%2u] = %2u = ", i, sa->array[i]);
+        for (uint32_t j = sa->array[i]; j < sa->length; ++j) {
             printf("%d", remapped[j]);
         }
         printf("\n");
@@ -197,8 +197,8 @@ int main(int argc, char **argv)
     char *rev_string = str_copy(string);
     str_inplace_rev(rev_string);
     
-    for (size_t i = 0; i < rsa->length; ++i) {
-        printf("SA[%2lu] = %2lu : %s\n", i, rsa->array[i],
+    for (uint32_t i = 0; i < rsa->length; ++i) {
+        printf("SA[%2u] = %2u : %s\n", i, rsa->array[i],
                rev_string + rsa->array[i]);
     }
     

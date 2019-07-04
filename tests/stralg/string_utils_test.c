@@ -47,13 +47,13 @@ static void test_serialise(void)
     assert(strcmp(str, other_string) == 0);
     free(other_string);
     
-    size_t str_len;
+    uint32_t str_len;
     other_string = read_string_len_fname(fname, &str_len);
-    assert((size_t)str_len == strlen(str) + 1);
+    assert((uint32_t)str_len == strlen(str) + 1);
     assert(strcmp(str, other_string) == 0);
     free(other_string);
     
-    size_t prefix_len = 4;
+    uint32_t prefix_len = 4;
     write_string_len_fname(fname, str, prefix_len);
     other_string = read_string_len_fname(fname, &str_len);
     assert(str_len == prefix_len);

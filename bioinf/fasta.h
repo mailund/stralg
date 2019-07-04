@@ -22,10 +22,10 @@ void free_fasta_records(
 struct fasta_record {
     const char *name;
     const char *seq;
-    size_t seq_len;
+    uint32_t seq_len;
 };
 
-size_t number_of_fasta_records(struct fasta_records *records);
+uint32_t number_of_fasta_records(struct fasta_records *records);
 
 bool lookup_fasta_record_by_name(
     struct fasta_records *file,

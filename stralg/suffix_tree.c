@@ -39,7 +39,7 @@ new_node(struct suffix_tree *st, const char *from, const char *to)
     v->parent = 0;
     v->sibling = 0;
     v->child = 0;
-    v->suffix = 0;
+    v->suffix_link = 0;
     
     return v;
 }
@@ -172,7 +172,7 @@ static struct suffix_tree *alloc_suffix_tree(const char *string)
 {
     struct suffix_tree *st = malloc(sizeof(struct suffix_tree));
     st->string = string;
-    size_t slen = (size_t)strlen(string);
+    uint32_t slen = (uint32_t)strlen(string);
     st->length = slen + 1; // I am using '\0' as sentinel
     
     // this is the max number of nodes in a tree where all
@@ -180,13 +180,13 @@ static struct suffix_tree *alloc_suffix_tree(const char *string)
     // when the string is empty -- it should really only happen
     // in testing, but never the less. In that case, there should be
     // two and not one node (the root and a single child.
-    size_t pool_size = st->length == 1 ? 2 : (2 * st->length - 1);
+    uint32_t pool_size = st->length == 1 ? 2 : (2 * st->length - 1);
     st->pool.nodes = malloc(pool_size * sizeof(struct suffix_tree_node));
     st->pool.next_node = st->pool.nodes;
 
     st->root = new_node(st, 0, 0);
     st->root->parent = st->root;
-    st->root->suffix = st->root;
+    st->root->suffix_link = st->root;
 
     return st;
 }
@@ -205,7 +205,7 @@ struct suffix_tree *naive_suffix_tree(const char *string)
     st->root->child = first;
     first->parent = st->root;
     const char *xend = st->string + st->length;
-    for (size_t i = 1; i < st->length; ++i) {
+    for (uint32_t i = 1; i < st->length; ++i) {
         struct suffix_tree_node *leaf = naive_insert(st, st->root, string + i, xend);
         leaf->leaf_label = i;
     }
@@ -226,13 +226,13 @@ static void append_child(struct suffix_tree_node *v, struct suffix_tree_node *w)
 
 static struct suffix_tree_node *
 lcp_insert(struct suffix_tree *st,
-           size_t i, size_t *sa, size_t *lcp,
+           uint32_t i, uint32_t *sa, uint32_t *lcp,
            struct suffix_tree_node *v)
 {
     struct suffix_tree_node *new_leaf = new_node(st, st->string + sa[i] + lcp[i], st->string + st->length);
     new_leaf->leaf_label = sa[i];
-    size_t length_up = st->length - sa[i-1] - lcp[i];
-    size_t v_edge_len = range_length(v->range);
+    uint32_t length_up = st->length - sa[i-1] - lcp[i];
+    uint32_t v_edge_len = range_length(v->range);
     
     while ((length_up >= v_edge_len) && (v_edge_len != 0)) {
         v = v->parent;
@@ -252,17 +252,17 @@ lcp_insert(struct suffix_tree *st,
 }
 
 struct suffix_tree *lcp_suffix_tree(const char *string,
-                                    size_t *sa, size_t *lcp)
+                                    uint32_t *sa, uint32_t *lcp)
 {
     struct suffix_tree *st = alloc_suffix_tree(string);
     
-    size_t first_label = sa[0];
+    uint32_t first_label = sa[0];
     struct suffix_tree_node *v = new_node(st, st->string + sa[0], st->string + st->length);
     v->leaf_label = first_label;
     st->root->child = v;
     v->parent = st->root;
     
-    for (size_t i = 1; i < st->length; ++i) {
+    for (uint32_t i = 1; i < st->length; ++i) {
         v = lcp_insert(st, i, sa, lcp, v);
     }
 
@@ -278,7 +278,7 @@ static struct suffix_tree_node * fast_scan(struct suffix_tree *st,
     assert(w); // must be here when we search for a suffix
     
     // jump down the edge
-    size_t n = range_length(w->range);
+    uint32_t n = range_length(w->range);
     const char *new_x = x + n;
     if (new_x == xend) {
         // Found the node we should end in
@@ -294,7 +294,7 @@ static struct suffix_tree_node * fast_scan(struct suffix_tree *st,
         //    v |--------| w (s,t)
         //     x|---|xend       (but x and xend might not be in (s,t))
         //        k
-        size_t k = xend - x;
+        uint32_t k = xend - x;
         assert(k > 0);
         const char *split_point = w->range.from + k;
         return split_edge(st, w, split_point);
@@ -334,14 +334,14 @@ static struct suffix_tree_node *suffix_link(struct suffix_tree *st,
         // the general case
         const char *x = v->range.from;
         const char *xend = v->range.to;
-        return fast_scan(st, v->parent->suffix, x, xend);
+        return fast_scan(st, v->parent->suffix_link, x, xend);
     }
 }
 
 static void set_suffix_links(struct suffix_tree *st,
                              struct suffix_tree_node *v)
 {
-    v->suffix = suffix_link(st, v);
+    v->suffix_link = suffix_link(st, v);
     
     // recursion
     struct suffix_tree_node *child = v->child;
@@ -365,19 +365,19 @@ struct suffix_tree *mccreight_suffix_tree(const char *string)
     leaf->parent = st->root; st->root->child = leaf;
     leaf->leaf_label = 0;
     
-    for (size_t i = 1; i < st->length; ++i) {
+    for (uint32_t i = 1; i < st->length; ++i) {
         
         struct suffix_tree_node *p = leaf->parent;
         struct suffix_tree_node *v = suffix_link(st, p);
-        p->suffix = v;
+        p->suffix_link = v;
 
-        assert(p->suffix); // please don't be null
-        assert(p->suffix->child); // please be an inner node
+        assert(p->suffix_link); // please don't be null
+        assert(p->suffix_link->child); // please be an inner node
         
         if (leaf->parent == st->root) {
-            leaf = naive_insert(st, p->suffix, string + i, st->string + st->length);
+            leaf = naive_insert(st, p->suffix_link, string + i, st->string + st->length);
         } else {
-            leaf = naive_insert(st, p->suffix, leaf->range.from, leaf->range.to);
+            leaf = naive_insert(st, p->suffix_link, leaf->range.from, leaf->range.to);
         }
         
         leaf->leaf_label = i;
@@ -404,12 +404,12 @@ void get_edge_label(struct suffix_tree *st,
                     struct suffix_tree_node *node,
                     char *buffer)
 {
-    size_t n = range_length(node->range);
+    uint32_t n = range_length(node->range);
     strncpy(buffer, node->range.from, n);
     buffer[n] = '\0';
 }
 
-size_t get_string_depth(struct suffix_tree *st, struct suffix_tree_node *v)
+uint32_t get_string_depth(struct suffix_tree *st, struct suffix_tree_node *v)
 {
     if (v->parent != v) { // not the root
         assert(v->range.from >= st->string);
@@ -419,7 +419,7 @@ size_t get_string_depth(struct suffix_tree *st, struct suffix_tree_node *v)
         assert(v->range.to > v->range.from);
     }
 
-    size_t depth = 0;
+    uint32_t depth = 0;
     while (v->parent != v) {
         depth += range_length(v->range);
         v = v->parent;
@@ -432,7 +432,7 @@ void get_path_string(struct suffix_tree *st,
                      struct suffix_tree_node *v,
                      char *buffer)
 {
-    size_t offset = get_string_depth(st, v);
+    uint32_t offset = get_string_depth(st, v);
 
     char edge_buffer[st->length + 1];
     char *s = buffer + offset; *s = 0;
@@ -442,7 +442,7 @@ void get_path_string(struct suffix_tree *st,
     // that do not end in a leaf, we do.
     
     while (v->parent != v) {
-        size_t n = range_length(v->range);
+        uint32_t n = range_length(v->range);
         s -= n;
         strncpy(s, v->range.from, n);
         get_edge_label(st, v, edge_buffer);
@@ -567,7 +567,7 @@ static void push_frame(struct st_approx_frame *sentinel,
                        struct suffix_tree_node *v,
                        bool leading,
                        const char *x, const char *end,
-                       size_t match_depth,
+                       uint32_t match_depth,
                        const char *p,
                        char cigar_op, char *cigar,
                        int edit)
@@ -590,7 +590,7 @@ static void pop_frame(struct st_approx_frame *sentinel,
                       struct suffix_tree_node **v,
                       bool *leading,
                       const char **x, const char **end,
-                      size_t *match_depth,
+                      uint32_t *match_depth,
                       const char **p,
                       char *cigar_op, char **cigar,
                       int *edit)
@@ -615,7 +615,7 @@ static void push_children(struct internal_st_approx_iter *iter,
                           struct suffix_tree *st,
                           struct suffix_tree_node *v,
                           bool leading,
-                          size_t match_depth,
+                          uint32_t match_depth,
                           char *cigar,
                           const char *p, int edits)
 {
@@ -637,7 +637,7 @@ void init_internal_st_approx_iter(struct internal_st_approx_iter *iter,
                       const char *p,
                       int edits)
 {
-    size_t m = (size_t)(strlen(p) + 4*edits + 1); // one edit can max cost four characters
+    uint32_t m = (uint32_t)(strlen(p) + 4*edits + 1); // one edit can max cost four characters
     iter->st = st;
     iter->sentinel.next = 0;
     iter->full_cigar_buf = malloc(m + 1); iter->full_cigar_buf[0] = '\0';
@@ -663,7 +663,7 @@ bool next_internal_st_approx_match(struct internal_st_approx_iter *iter,
     const char *x; const char *end;
     const char *p; char *cigar;
     int edit;
-    size_t match_depth;
+    uint32_t match_depth;
     char cigar_op;
     
     // we need to know this one so we never move past the end
@@ -793,15 +793,15 @@ void dealloc_st_approx_iter(struct st_approx_match_iter *iter)
 
 // Build suffix array and LCP
 struct sa_lcp_data {
-    size_t *sa;
-    size_t *lcp;
-    size_t idx;
+    uint32_t *sa;
+    uint32_t *lcp;
+    uint32_t idx;
 };
 static void lcp_traverse(struct suffix_tree *st,
                          struct suffix_tree_node *n,
                          struct sa_lcp_data *data,
-                         size_t node_depth,
-                         size_t branch_depth)
+                         uint32_t node_depth,
+                         uint32_t branch_depth)
 {
     if (!n->child) {
         // Leaf
@@ -813,7 +813,7 @@ static void lcp_traverse(struct suffix_tree *st,
         // The first child should be treated differently than
         // the rest; it has a different branch depth
         struct suffix_tree_node *child = n->child;
-        size_t this_depth = node_depth + edge_length(n);
+        uint32_t this_depth = node_depth + edge_length(n);
         lcp_traverse(st, child, data, this_depth, branch_depth);
         for (child = child->sibling; child; child = child->sibling) {
             // handle the remaining children
@@ -825,7 +825,7 @@ static void lcp_traverse(struct suffix_tree *st,
 }
 
 void st_compute_sa_and_lcp(struct suffix_tree *st,
-                           size_t *sa, size_t *lcp)
+                           uint32_t *sa, uint32_t *lcp)
 {
     struct sa_lcp_data data;
     data.sa = sa; data.lcp = lcp; data.idx = 0;
@@ -844,7 +844,7 @@ static void print_out_edges(FILE *f,
     
     if (!child) {
         // this is a leaf
-        fprintf(f, "\"%p\" [label=\"%zu\"];\n", from, from->leaf_label);
+        fprintf(f, "\"%p\" [label=\"%u\"];\n", from, from->leaf_label);
         return;
     }
     
@@ -856,15 +856,15 @@ static void print_out_edges(FILE *f,
     
     while (child) {
         get_edge_label(st, child, label_buffer);
-        size_t from_idx = child->range.from - st->string;
-        size_t to_idx = child->range.to - st->string;
-        fprintf(f, "\"%p\" -> \"%p\" [label=\"%s (%zu,%zu)\"];\n",
+        uint32_t from_idx = child->range.from - st->string;
+        uint32_t to_idx = child->range.to - st->string;
+        fprintf(f, "\"%p\" -> \"%p\" [label=\"%s (%u,%u)\"];\n",
                 from, child, label_buffer, from_idx, to_idx);
         fprintf(f, "\"%p\" -> \"%p\" [style=\"dashed\"];\n",
                 child, child->parent);
-        if (child->suffix) {
+        if (child->suffix_link) {
             fprintf(f, "\"%p\" -> \"%p\" [style=\"dotted\", color=blue];\n",
-                    child, child->suffix);
+                    child, child->suffix_link);
         }
         print_out_edges(f, st, child, label_buffer);
         child = child->sibling;
@@ -881,9 +881,9 @@ void st_print_dot(struct suffix_tree *st,
     fprintf(file, "digraph {\n");
     fprintf(file, "node[shape=circle];\n");
     // root special case (rest handled in recursion)
-    if (root->suffix)
+    if (root->suffix_link)
         fprintf(file, "\"%p\" -> \"%p\" [style=\"dotted\", color=blue];\n",
-                root, root->suffix);
+                root, root->suffix_link);
     print_out_edges(file, st, root, buffer);
     fprintf(file, "}\n");
 }

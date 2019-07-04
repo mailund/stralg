@@ -8,10 +8,10 @@
 #include <string.h>
 
 /*
-static char *build_equal(size_t size)
+static char *build_equal(uint32_t size)
 {
     char *s = malloc(size + 1);
-    for (size_t i = 0; i < size; ++i) {
+    for (uint32_t i = 0; i < size; ++i) {
         s[i] = 'A';
     }
     s[size] = '\0';
@@ -19,13 +19,13 @@ static char *build_equal(size_t size)
     return s;
 }
 */
-static char *build_random(size_t size)
+static char *build_random(uint32_t size)
 {
     const char *alphabet = "ACGT";
     int n = strlen(alphabet);
     char *s = malloc(size + 1);
     
-    for (size_t i = 0; i < size; ++i) {
+    for (uint32_t i = 0; i < size; ++i) {
         s[i] = alphabet[rand() % n];
     }
     s[size] = '\0';
@@ -33,10 +33,10 @@ static char *build_random(size_t size)
     return s;
 }
 /*
-static char *build_random_large(size_t size)
+static char *build_random_large(uint32_t size)
 {
     char *s = malloc(size + 1);
-    for (size_t i = 0; i < size; ++i) {
+    for (uint32_t i = 0; i < size; ++i) {
         char random_letter = rand();
         if (random_letter == 0) {
             random_letter = 1; // avoid the sentinel
@@ -49,7 +49,7 @@ static char *build_random_large(size_t size)
 }
 */
 
-static void get_performance(size_t size)
+static void get_performance(uint32_t size)
 {
     char *s, *rs, *revrs;
     
@@ -74,7 +74,7 @@ static void get_performance(size_t size)
     init_bwt_table(&bwt_table, sa, 0, &remap_table);
     bwt_end = clock();
     
-    printf("BWT-no-D %lu %lu %lu\n", size,
+    printf("BWT-no-D %u %lu %lu\n", size,
            sa_end - sa_begin, bwt_end - bwt_begin);
     
     free_suffix_array(sa);
@@ -95,7 +95,7 @@ static void get_performance(size_t size)
     init_bwt_table(&bwt_table, sa, 0, &remap_table);
     bwt_end = clock();
     
-    printf("BWT-with-D %lu %lu %lu\n", size,
+    printf("BWT-with-D %u %lu %lu\n", size,
            sa_end - sa_begin, bwt_end - bwt_begin);
     
     free_suffix_array(rsa);
@@ -114,7 +114,7 @@ int main(int argc, const char **argv)
     srand(time(NULL));
     
 #if 0 // for comparison
-    for (size_t n = 0; n < 10000; n += 500) {
+    for (uint32_t n = 0; n < 10000; n += 500) {
         for (int rep = 0; rep < 5; ++rep) {
             get_performance(n);
         }
@@ -122,7 +122,7 @@ int main(int argc, const char **argv)
     
 #else // for profiling
     
-    for (size_t n = 0; n < 50000; n += 500) {
+    for (uint32_t n = 0; n < 50000; n += 500) {
         for (int rep = 0; rep < 5; ++rep) {
             get_performance(n);
         }

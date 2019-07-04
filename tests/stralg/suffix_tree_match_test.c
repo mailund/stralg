@@ -14,7 +14,7 @@ static void print_leaves(struct suffix_tree_node *from)
     
     if (!child) {
         // this is a leaf
-        printf("%zu\n", from->leaf_label);
+        printf("%u\n", from->leaf_label);
         return;
     }
     
@@ -53,14 +53,14 @@ static void test_suffix_tree_match(struct index_vector *naive_matches, const cha
     dealloc_st_leaf_iter(&st_iter);
     
     printf("suffix tree matches:\n");
-    for (size_t i = 0; i < st_matches->used; ++i)
-        printf("%zu ", index_vector_get(st_matches, i));
+    for (uint32_t i = 0; i < st_matches->used; ++i)
+        printf("%u ", index_vector_get(st_matches, i));
     printf("\n");
     
     sort_index_vector(st_matches); // st is not in same order as naive
     printf("sorted suffix tree matches:\n");
-    for (size_t i = 0; i < st_matches->used; ++i)
-        printf("%zu ", index_vector_get(st_matches, i));
+    for (uint32_t i = 0; i < st_matches->used; ++i)
+        printf("%u ", index_vector_get(st_matches, i));
     printf("\n");
     
     // Compare the two
@@ -71,8 +71,8 @@ static void test_suffix_tree_match(struct index_vector *naive_matches, const cha
 
 static void test_matching(const char *pattern, char *string) {
     struct index_vector *naive_matches  = alloc_index_vector(10);
-    size_t n = (size_t)strlen(string);
-    size_t m = (size_t)strlen(pattern);
+    uint32_t n = (uint32_t)strlen(string);
+    uint32_t m = (uint32_t)strlen(pattern);
     struct naive_match_iter naive_iter;
     struct match match;
     init_naive_match_iter(&naive_iter, string, n, pattern, m);
@@ -82,8 +82,8 @@ static void test_matching(const char *pattern, char *string) {
     dealloc_naive_match_iter(&naive_iter);
     
     printf("naive matches:\n");
-    for (size_t i = 0; i < naive_matches->used; ++i)
-        printf("%zu ", index_vector_get(naive_matches, i));
+    for (uint32_t i = 0; i < naive_matches->used; ++i)
+        printf("%u ", index_vector_get(naive_matches, i));
     printf("\n");
     
     
@@ -91,8 +91,8 @@ static void test_matching(const char *pattern, char *string) {
     struct suffix_tree *st = naive_suffix_tree(string);
     test_suffix_tree_match(naive_matches, pattern, st, string);
     
-    size_t sa[st->length];
-    size_t lcp[st->length];
+    uint32_t sa[st->length];
+    uint32_t lcp[st->length];
     st_compute_sa_and_lcp(st, sa, lcp);
     
     free_suffix_tree(st);
@@ -131,14 +131,14 @@ int main(int argc, const char **argv)
             "acacaca",
             "acataca",
         };
-        size_t no_strings = sizeof(strings) / sizeof(const char *);
+        uint32_t no_strings = sizeof(strings) / sizeof(const char *);
         const char *patterns[] = {
             "aca", "ac", "ca", "a", "c", "acg", "cg", "g",
         };
-        size_t no_patterns = sizeof(patterns) / sizeof(const char *);
+        uint32_t no_patterns = sizeof(patterns) / sizeof(const char *);
         
-        for (size_t i = 0; i < no_patterns; ++i) {
-            for (size_t j = 0; j < no_strings; ++j) {
+        for (uint32_t i = 0; i < no_patterns; ++i) {
+            for (uint32_t j = 0; j < no_strings; ++j) {
                 printf("%s in %s\n", patterns[i], strings[j]);
                 test_matching(patterns[i], strings[j]);
             }

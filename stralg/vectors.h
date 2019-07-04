@@ -27,12 +27,12 @@
 
 /// MARK: Index vector
 struct index_vector {
-    size_t *data;
-    size_t size;
-    size_t used;
+    uint32_t *data;
+    uint32_t size;
+    uint32_t used;
 };
 
-static inline void init_index_vector(struct index_vector *vec, size_t init_size)
+static inline void init_index_vector(struct index_vector *vec, uint32_t init_size)
 {
     vector_init(vec, init_size);
 }
@@ -40,7 +40,7 @@ static inline void dealloc_index_vector(struct index_vector *vec)
 {
     dealloc_vector(vec);
 }
-static inline struct index_vector *alloc_index_vector(size_t init_size)
+static inline struct index_vector *alloc_index_vector(uint32_t init_size)
 {
     struct index_vector *vec = malloc(sizeof(struct index_vector));
     init_index_vector(vec, init_size);
@@ -51,17 +51,17 @@ static inline void free_index_vector(struct index_vector *vec)
     dealloc_index_vector(vec);
     free(vec);
 }
-static inline void index_vector_append(struct index_vector *vec, size_t index) {
+static inline void index_vector_append(struct index_vector *vec, uint32_t index) {
     vector_append(vec, index);
 }
 
-static inline size_t
-index_vector_get(struct index_vector *vec, size_t i)
+static inline uint32_t
+index_vector_get(struct index_vector *vec, uint32_t i)
 {
     return vector_get(vec, i);
 }
 static inline void
-index_vector_set(struct index_vector *vec, size_t i, size_t val)
+index_vector_set(struct index_vector *vec, uint32_t i, uint32_t val)
 {
     vector_set(vec, i, val);
 }
@@ -74,11 +74,11 @@ void print_index_vector(struct index_vector *vec);
 
 struct string_vector {
     char **data;
-    size_t size;
-    size_t used;
+    uint32_t size;
+    uint32_t used;
 };
 
-static inline void init_string_vector(struct string_vector *vec, size_t init_size)
+static inline void init_string_vector(struct string_vector *vec, uint32_t init_size)
 {
     vector_init(vec, init_size);
 }
@@ -90,12 +90,12 @@ static inline void dealloc_string_vector(struct string_vector *vec)
 #define alloc_string_vector   alloc_vector
 #define free_string_vector    free_vector
 
-static inline char *string_vector_get(struct string_vector *vec, size_t idx)
+static inline char *string_vector_get(struct string_vector *vec, uint32_t idx)
 {
     return vector_get(vec, idx);
 }
 static inline void string_vector_set(struct string_vector *vec,
-                                     size_t idx, char *string)
+                                     uint32_t idx, char *string)
 {
     vector_set(vec, idx, string);
 }

@@ -72,7 +72,7 @@ static void map(struct fasta_records *records,
 static void map_naive(const char *edit_str, const char *edit_cigar,
                       struct fastq_record *fastq_record, struct fasta_record *fasta_record)
 {
-    size_t readlen = (size_t)strlen(edit_str);
+    uint32_t readlen = (uint32_t)strlen(edit_str);
     struct naive_match_iter iter;
     init_naive_match_iter(
         &iter, fasta_record->seq,
@@ -98,7 +98,7 @@ static void map_naive(const char *edit_str, const char *edit_cigar,
 static void map_border(const char *edit_str, const char *edit_cigar,
                        struct fastq_record *fastq_record, struct fasta_record *fasta_record)
 {
-    size_t readlen = strlen(edit_str);
+    uint32_t readlen = strlen(edit_str);
     struct border_match_iter iter;
     init_border_match_iter(
                           &iter, fasta_record->seq,
@@ -126,7 +126,7 @@ static void map_border(const char *edit_str, const char *edit_cigar,
 static void map_kmp(const char *edit_str, const char *edit_cigar,
                     struct fastq_record *fastq_record, struct fasta_record *fasta_record)
 {
-    size_t readlen = strlen(edit_str);
+    uint32_t readlen = strlen(edit_str);
     struct kmp_match_iter iter;
     init_kmp_match_iter(&iter, fasta_record->seq,
                         fasta_record->seq_len,
@@ -152,7 +152,7 @@ static void map_kmp(const char *edit_str, const char *edit_cigar,
 static void map_bmh(const char *edit_str, const char *edit_cigar,
                     struct fastq_record *fastq_record, struct fasta_record *fasta_record)
 {
-    size_t readlen = strlen(edit_str);
+    uint32_t readlen = strlen(edit_str);
     struct bmh_match_iter iter;
     init_bmh_match_iter(&iter, fasta_record->seq,
                         fasta_record->seq_len,

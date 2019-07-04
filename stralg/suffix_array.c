@@ -11,7 +11,7 @@ static struct suffix_array *allocate_sa(char *string)
     struct suffix_array *sa =
     (struct suffix_array*)malloc(sizeof(struct suffix_array));
     sa->string = string;
-    sa->length = (size_t)strlen(string) + 1;
+    sa->length = (uint32_t)strlen(string) + 1;
     sa->array = malloc(sa->length * sizeof(*sa->array));
     
     sa->inverse = 0;
@@ -53,7 +53,7 @@ struct suffix_array *qsort_sa_construction(char *string)
     qsort(suffixes, sa->length, sizeof(char *), construction_cmpfunc);
     
     for (int i = 0; i < sa->length; i++)
-        sa->array[i] = (size_t)(suffixes[i] - string);
+        sa->array[i] = (uint32_t)(suffixes[i] - string);
     
     free(suffixes);
     
@@ -63,31 +63,32 @@ struct suffix_array *qsort_sa_construction(char *string)
 /// MARK: Skew algorithm
 
 // Map from indices in s to indices in s12
-inline static size_t map_s_s12(size_t k) {
+inline static uint32_t map_s_s12(uint32_t k) {
     return 2 * (k / 3) + (k % 3) - 1;
 }
 
 // map from an index in u to an index in s
-inline static size_t map_u_s(size_t i, size_t m)
+inline static uint32_t map_u_s(uint32_t i, uint32_t m)
 {
     // first: u -> s12
-    size_t k = (i < m) ? (2 * i + 1) : (2 * (i - m - 1));
+    uint32_t k = (i < m) ? (2 * i + 1) : (2 * (i - m - 1));
     return k + k / 2 + 1; // then s12 -> s
 }
 
 struct skew_buffers {
-    size_t *sa12;
-    size_t *sa3;
-    uint32_t *u;
+    uint32_t *sa12;                // 2/3n +
+    uint32_t *sa3;                 // 1/3n = n
+    uint32_t *u;                   // 2/3n +
 
-    size_t radix_buckets[256];
-    size_t radix_accsum[256];
-    size_t *radix_values0;
-    size_t *radix_values1;
-    size_t *radix_values[2];
+    uint32_t radix_buckets[256];
+    uint32_t radix_accsum[256];
+    uint32_t *radix_values0;      // 2/3n +
+    uint32_t *radix_values1;      // 2/3n = 2n
+    uint32_t *radix_values[2];
     
-    size_t *isa;
-    size_t *lex_nos;
+    uint32_t *isa;                //    n = n
+    uint32_t *lex_nos;            // 2/3n = 2/3n
+                                //      = 8/3n
 };
 
 // All these macros work as long as the skew_buffers structure
@@ -105,51 +106,51 @@ struct skew_buffers {
 
 
 
-static void radix_sort(uint32_t *s, size_t n,
-                       size_t *sa, size_t m,
-                       size_t offset, uint32_t alph_size,
+static void radix_sort(uint32_t *s, uint32_t n,
+                       uint32_t *sa, uint32_t m,
+                       uint32_t offset, uint32_t alph_size,
                        struct skew_buffers *shared_buffers)
 {
     int32_t mask = (1 << 8) - 1;
     bool radix_index = 0;
     
-    size_t *input, *output;
+    uint32_t *input, *output;
     
-    memcpy(shared_buffers->radix_values0, sa, m * sizeof(size_t));
+    memcpy(shared_buffers->radix_values0, sa, m * sizeof(uint32_t));
     
 #define RAWKEY(i) ((input[(i)] + offset >= n) ? 0 : s[input[(i)] + offset])
 #define KEY(i)    ((RAWKEY((i)) >> shift) & mask)
     
-    for (size_t byte = 0, shift = 0;
-         byte < 4 && alph_size > 0;
+    for (uint32_t byte = 0, shift = 0;
+         byte < sizeof(*s) && alph_size > 0;
          byte++, shift += 8, alph_size >>= 8) {
         
-        memset(shared_buffers->radix_buckets, 0, 256 * sizeof(size_t));
+        memset(shared_buffers->radix_buckets, 0, 256 * sizeof(uint32_t));
         input = shared_buffers->radix_values[radix_index];
         output = shared_buffers->radix_values[!radix_index];
         radix_index = !radix_index;
         
-        for (size_t i = 0; i < m; i++) {
+        for (uint32_t i = 0; i < m; i++) {
             // count keys in each bucket
             B(KEY(i))++;
         }
-        size_t sum = 0;
-        for (size_t i = 0; i < 256; i++) {
+        uint32_t sum = 0;
+        for (uint32_t i = 0; i < 256; i++) {
             // get the accumulated sum for offsets
             shared_buffers->radix_accsum[i] = sum;
             sum += B(i);
         }
         assert(sum == m);
-        for (size_t i = 0; i < m; ++i) {
+        for (uint32_t i = 0; i < m; ++i) {
             // move input to their sorted position
             output[AS(KEY(i))++] = input[i];
         }
     }
     
-    memcpy(sa, output, m * sizeof(size_t));
+    memcpy(sa, output, m * sizeof(uint32_t));
 }
 
-inline static void radix_sort_3(uint32_t *s, size_t n, size_t m,
+inline static void radix_sort_3(uint32_t *s, uint32_t n, uint32_t m,
                                 uint32_t alph_size,
                                 struct skew_buffers *shared_buffers)
 {
@@ -158,7 +159,7 @@ inline static void radix_sort_3(uint32_t *s, size_t n, size_t m,
     radix_sort(s, n, shared_buffers->sa12, m, 0, alph_size, shared_buffers);
 }
 
-inline static bool equal3(uint32_t *s, size_t n, size_t i, size_t j)
+inline static bool equal3(uint32_t *s, uint32_t n, uint32_t i, uint32_t j)
 {
     for (int k = 0; k < 3; ++k) {
         if (i + k >= n) return false;
@@ -169,14 +170,14 @@ inline static bool equal3(uint32_t *s, size_t n, size_t i, size_t j)
 }
 
 
-static int32_t lex3sort(uint32_t *s, size_t n, size_t m12,
+static int32_t lex3sort(uint32_t *s, uint32_t n, uint32_t m12,
                         uint32_t alph_size,
                         struct skew_buffers *shared_buffers)
 {
     assert(m12 > 0);
     
     // set up s12
-    for (size_t i = 0, j = 0; i < n; ++i) {
+    for (uint32_t i = 0, j = 0; i < n; ++i) {
         if (i % 3 != 0) {
             SA12(j) = i;
             j++;
@@ -186,10 +187,10 @@ static int32_t lex3sort(uint32_t *s, size_t n, size_t m12,
     // sort s12
     radix_sort_3(s, n, m12, alph_size, shared_buffers);
     
-    size_t no = 1; // reserve 0 for sentinel
+    uint32_t no = 1; // reserve 0 for sentinel
     LEX3(0) = 1;
 
-    for (size_t i = 1; i < m12; ++i) {
+    for (uint32_t i = 1; i < m12; ++i) {
         if (!equal3(s, n, SA12(i), SA12(i - 1))) {
             no++;
         }
@@ -200,28 +201,28 @@ static int32_t lex3sort(uint32_t *s, size_t n, size_t m12,
 }
 
 
-static void construct_u(size_t *lex_nos, size_t m12, uint32_t *u)
+static void construct_u(uint32_t *lex_nos, uint32_t m12, uint32_t *u)
 {
-    size_t j = 0;
+    uint32_t j = 0;
     // I first put those mod 3 == 2 so the first "half"
     // is always (m12 + 1) / 2 (the expression rounds down).
-    for (size_t i = 1; i < m12; i += 2) {
+    for (uint32_t i = 1; i < m12; i += 2) {
         u[j++] = lex_nos[i];
     }
     assert(j == m12 / 2);
     u[j++] = 0; // add centre sentinel
-    for (size_t i = 0; i < m12; i += 2) {
+    for (uint32_t i = 0; i < m12; i += 2) {
         u[j++] = lex_nos[i];
     }
     assert(j == m12 + 1);
 }
 
-static void construct_sa3(size_t m12, size_t m3, size_t n,
+static void construct_sa3(uint32_t m12, uint32_t m3, uint32_t n,
                           uint32_t *s,
                           uint32_t alph_size,
                           struct skew_buffers *shared_buffers)
 {
-    size_t j = 0;
+    uint32_t j = 0;
     
     // if the last position divides 3 we don't
     // have information in sa12, but we know it
@@ -230,8 +231,8 @@ static void construct_sa3(size_t m12, size_t m3, size_t n,
         SA3(j++) = n - 1;
     }
     
-    for (size_t i = 0; i < m12; ++i) {
-        size_t pos = SA12(i);
+    for (uint32_t i = 0; i < m12; ++i) {
+        uint32_t pos = SA12(i);
         if (pos % 3 == 1) {
             SA3(j++) = pos - 1;
         }
@@ -241,7 +242,7 @@ static void construct_sa3(size_t m12, size_t m3, size_t n,
     radix_sort(s, n, shared_buffers->sa3, m3, 0, alph_size, shared_buffers);
 }
 
-inline static bool less(size_t i, size_t j, uint32_t *s, size_t n, size_t *isa)
+inline static bool less(uint32_t i, uint32_t j, uint32_t *s, uint32_t n, uint32_t *isa)
 {
     // Since we do not have the terminal sentinel
     // in this algorithm we need to test the indices
@@ -264,29 +265,29 @@ inline static bool less(size_t i, size_t j, uint32_t *s, size_t n, size_t *isa)
     return less(i + 1, j + 1, s, n, isa);
 }
 
-static void merge_suffix_arrays(uint32_t *s, size_t m12, size_t m3,
-                                size_t *sa, struct skew_buffers *shared_buffers)
+static void merge_suffix_arrays(uint32_t *s, uint32_t m12, uint32_t m3,
+                                uint32_t *sa, struct skew_buffers *shared_buffers)
 {
-    size_t i = 0, j = 0, k = 0;
-    size_t n = m12 + m3;
+    uint32_t i = 0, j = 0, k = 0;
+    uint32_t n = m12 + m3;
     
     // we are essentially building sa[i] (although
     // not sorting between 12 and 3, and then doing
     // isa[sa[i]] = i. Just both at the same time.
-    for (size_t i = 1, j = 0; j < m12; i += 3, j += 2) {
+    for (uint32_t i = 1, j = 0; j < m12; i += 3, j += 2) {
         //shared_buffers->isa[sa12[j]] = i;
         ISA(SA12(j)) = i;
     }
-    for (size_t i = 2, j = 1; j < m12; i += 3, j += 2) {
+    for (uint32_t i = 2, j = 1; j < m12; i += 3, j += 2) {
         ISA(SA12(j)) = i;
     }
-    for (size_t i = 0, j = 0; j < m3; i += 3, j++) {
+    for (uint32_t i = 0, j = 0; j < m3; i += 3, j++) {
         ISA(SA3(j)) = i;
     }
     
     while (i < m12 && j < m3) {
-        size_t ii = SA12(i);
-        size_t jj = SA3(j);
+        uint32_t ii = SA12(i);
+        uint32_t jj = SA3(j);
         
         if (less(ii, jj, s, n, shared_buffers->isa)) {
             sa[k++] = ii;
@@ -306,30 +307,30 @@ static void merge_suffix_arrays(uint32_t *s, size_t m12, size_t m3,
     assert(k == n);
 }
 
-static void skew_rec(uint32_t *s, size_t n,
+static void skew_rec(uint32_t *s, uint32_t n,
                      uint32_t alph_size,
-                     size_t *sa,
+                     uint32_t *sa,
                      struct skew_buffers *shared_buffers)
 {
     assert(n > 1); // should be guaranteed by skew().
     
     // n - 1 to adjust for 0 indexing and + 1 to pick zero
-    size_t m3 = (n - 1) / 3 + 1;
-    size_t m12 = n - m3;
+    uint32_t m3 = (n - 1) / 3 + 1;
+    uint32_t m12 = n - m3;
     
     assert(m3 > 0); // by + 1 it isn't possible.
     assert(m12 > 0); // size n >= 2 it should never by zero.
     
-    size_t mapped_alphabet_size = lex3sort(s, n, m12, alph_size, shared_buffers);
+    uint32_t mapped_alphabet_size = lex3sort(s, n, m12, alph_size, shared_buffers);
     
     // the +1 here is because we leave space for the sentinel
     if (mapped_alphabet_size != m12 + 1) {
 #warning Can I eliminate these two buffers?
         uint32_t *u = malloc((m12 + 1) * sizeof(*u));
         //uint32_t *u = shared_buffers->u;
-            
+        
         assert(u);
-        size_t *sau = malloc((m12 + 1) * sizeof(*sau));
+        uint32_t *sau = malloc((m12 + 1) * sizeof(*sau));
         assert(sau);
         
         construct_u(shared_buffers->lex_nos, m12, u);
@@ -340,7 +341,7 @@ static void skew_rec(uint32_t *s, size_t n,
         assert(u[mm] == 0);
         assert(sau[0] == mm);
         
-        for (size_t i = 1; i < m12 + 1; ++i) {
+        for (uint32_t i = 1; i < m12 + 1; ++i) {
             SA12(i - 1) = map_u_s(sau[i], mm);
         }
         
@@ -353,9 +354,9 @@ static void skew_rec(uint32_t *s, size_t n,
 }
 
 
-static void skew(const char *x, size_t *sa)
+static void skew(const char *x, uint32_t *sa)
 {
-    size_t n = strlen(x);
+    uint32_t n = strlen(x);
     // trivial special cases
     if (n == 0) {
         sa[0] = 0;
@@ -371,29 +372,29 @@ static void skew(const char *x, size_t *sa)
     // the sentinel for center points in u strings.
     
     uint32_t *s = malloc(n * sizeof(uint32_t));
-    for (size_t i = 0; i < n; ++i) {
+    for (uint32_t i = 0; i < n; ++i) {
         s[i] = (unsigned char)x[i];
         assert(s[i] < 256);
     }
     
-    size_t m3 = (n - 1) / 3 + 1;
-    size_t m12 = n - m3;
+    uint32_t m3 = (n - 1) / 3 + 1;
+    uint32_t m12 = n - m3;
     struct skew_buffers shared_buffers;
-    shared_buffers.radix_values0 = malloc(m12 * sizeof(size_t));
+    shared_buffers.radix_values0 = malloc(m12 * sizeof(uint32_t));
     assert(shared_buffers.radix_values0);
-    shared_buffers.radix_values1 = malloc(m12 * sizeof(size_t));
+    shared_buffers.radix_values1 = malloc(m12 * sizeof(uint32_t));
     assert(shared_buffers.radix_values1);
     shared_buffers.radix_values[0] = shared_buffers.radix_values0;
     shared_buffers.radix_values[1] = shared_buffers.radix_values1;
-    shared_buffers.isa = malloc(n * sizeof(size_t));
+    shared_buffers.isa = malloc(n * sizeof(uint32_t));
     assert(shared_buffers.isa);
-    shared_buffers.lex_nos = malloc(m12 * sizeof(size_t));
+    shared_buffers.lex_nos = malloc(m12 * sizeof(uint32_t));
     assert(shared_buffers.lex_nos);
-    shared_buffers.sa12 = malloc(m12 * sizeof(size_t));
+    shared_buffers.sa12 = malloc(m12 * sizeof(uint32_t));
     assert(shared_buffers.sa12);
-    shared_buffers.sa3 = malloc(m3 * sizeof(size_t));
+    shared_buffers.sa3 = malloc(m3 * sizeof(uint32_t));
     assert(shared_buffers.sa3);
-    shared_buffers.sa3 = malloc(m3 * sizeof(size_t));
+    shared_buffers.sa3 = malloc(m3 * sizeof(uint32_t));
     assert(shared_buffers.sa3);
     shared_buffers.u = malloc((m12 + 1) * sizeof(uint32_t));
 
@@ -428,7 +429,7 @@ void compute_inverse(struct suffix_array *sa)
     if (sa->inverse) return; // only compute if it is needed
     
     sa->inverse = malloc(sa->length * sizeof(*sa->inverse));
-    for (size_t i = 0; i < sa->length; ++i)
+    for (uint32_t i = 0; i < sa->length; ++i)
         sa->inverse[sa->array[i]] = i;
 }
 
@@ -440,14 +441,14 @@ void compute_lcp(struct suffix_array *sa)
     
     compute_inverse(sa);
     sa->lcp[0] = 0;
-    size_t l = 0;
-    for (size_t i = 0; i < sa->length; ++i) {
-        size_t j = sa->inverse[i];
+    uint32_t l = 0;
+    for (uint32_t i = 0; i < sa->length; ++i) {
+        uint32_t j = sa->inverse[i];
         
         // Don't handle index 0; lcp[0] is always zero.
         if (j == 0) continue;
         
-        size_t k = sa->array[j - 1];
+        uint32_t k = sa->array[j - 1];
         while (sa->string[k + l] == sa->string[i + l])
             ++l;
         sa->lcp[j] = l;
@@ -458,12 +459,12 @@ void compute_lcp(struct suffix_array *sa)
 /// MARK: Searching
 
 
-static size_t binary_search(const char *key, size_t key_len,
+static uint32_t binary_search(const char *key, uint32_t key_len,
                               struct suffix_array *sa)
 {
-    size_t low = 0;
-    size_t high = sa->length;
-    size_t mid;
+    uint32_t low = 0;
+    uint32_t high = sa->length;
+    uint32_t mid;
     int cmp;
     
     while (low < high) {
@@ -486,11 +487,11 @@ static size_t binary_search(const char *key, size_t key_len,
 // when searching, we cannot simply use bsearch because we want
 // to get a lower bound if the key isn't in the array -- bsearch
 // would give us NULL in that case.
-size_t lower_bound_search(struct suffix_array *sa, const char *key)
+uint32_t lower_bound_search(struct suffix_array *sa, const char *key)
 {
-    size_t key_len = (size_t)strlen(key);
+    uint32_t key_len = (uint32_t)strlen(key);
     assert(key_len > 0); // I cannot handle empty strings!
-    size_t mid = binary_search(key, key_len, sa);
+    uint32_t mid = binary_search(key, key_len, sa);
     
     if (mid == sa->length)
         return mid; // we hit the end.
@@ -509,9 +510,9 @@ void init_sa_match_iter(struct sa_match_iter *iter,
 {
     iter->sa = sa;
     
-    size_t key_len = (size_t)strlen(key);
+    uint32_t key_len = (uint32_t)strlen(key);
     assert(key_len > 0); // I cannot handle empty strings!
-    size_t mid = binary_search(key, key_len, sa);
+    uint32_t mid = binary_search(key, key_len, sa);
     
     int cmp;
     if (mid == sa->length ||
@@ -529,12 +530,12 @@ void init_sa_match_iter(struct sa_match_iter *iter,
     
     assert(cmp == 0);
     // find lower and upper bound
-    size_t lower = mid;
+    uint32_t lower = mid;
     while (lower > 0 && strncmp(sa->string + sa->array[lower], key, key_len) >= 0) {
         lower--;
     }
     iter->i = iter->L = lower + 1;
-    size_t upper = mid;
+    uint32_t upper = mid;
     while (upper < sa->length &&
            strncmp(sa->string + sa->array[upper], key, key_len) == 0) {
         upper++;
@@ -588,14 +589,14 @@ struct suffix_array *read_suffix_array_fname(const char *fname,
 
 void print_suffix_array(struct suffix_array *sa)
 {
-    for (size_t i = 0; i < sa->length; ++i) {
-        printf("SA[%3zu] = %3zu\t%s\n",
+    for (uint32_t i = 0; i < sa->length; ++i) {
+        printf("SA[%3u] = %3u\t%s\n",
                i, sa->array[i], sa->string + sa->array[i]);
     }
     if (sa->lcp) {
         printf("\n");
-        for (size_t i = 0; i < sa->length; ++i) {
-            printf("lcp[%3zu] =%3zuzu\t%s\n",
+        for (uint32_t i = 0; i < sa->length; ++i) {
+            printf("lcp[%3u] =%3uzu\t%s\n",
                    i, sa->lcp[i], sa->string + sa->array[i]);
         }
         
@@ -613,7 +614,7 @@ bool identical_suffix_arrays(const struct suffix_array *sa1,
     if (strcmp(sa1->string, sa2->string) != 0)
         return false;
     
-    for (size_t i = 0; i < sa1->length; ++i) {
+    for (uint32_t i = 0; i < sa1->length; ++i) {
         if (sa1->array[i] != sa2->array[i])
             return false;
     }

@@ -36,9 +36,9 @@
 struct bwt_table {
     struct remap_table  *remap_table;
     struct suffix_array *sa;
-    size_t *c_table;
-    size_t *o_table;
-    size_t *ro_table;
+    uint32_t *c_table;
+    uint32_t *o_table;
+    uint32_t *ro_table;
 };
 
 /**
@@ -53,7 +53,7 @@ struct bwt_table {
  
  @return the number at O[a,i].
  */
-static inline size_t o_index(unsigned char a, size_t i,
+static inline uint32_t o_index(unsigned char a, uint32_t i,
                              const struct bwt_table *table)
 {
     return a * (table->sa->length + 1) + i;
@@ -181,9 +181,9 @@ struct bwt_table *build_complete_table(const char *string,
  */
 struct bwt_exact_match_iter {
     const struct suffix_array *sa;
-    size_t L;
+    uint32_t L;
     int64_t i;
-    size_t R;
+    uint32_t R;
 };
 /**
  Struct holding information about the location of a match.
@@ -192,7 +192,7 @@ struct bwt_exact_match_iter {
  You do not need to initialise it nor deallocate it.
  */
 struct bwt_exact_match {
-    size_t pos;
+    uint32_t pos;
 };
 
 /**
@@ -255,14 +255,14 @@ struct bwt_approx_iter {
     struct bwt_table *bwt_table;
     const char *remapped_pattern;
     
-    size_t L, R, next_interval;
+    uint32_t L, R, next_interval;
     struct index_vector  Ls;
     struct index_vector  Rs;
     struct string_vector cigars;
     struct index_vector  match_lengths;
     
     int edits;
-    size_t m;
+    uint32_t m;
     char *cigar_buf;
     int *D_table;
 };
@@ -285,8 +285,8 @@ struct bwt_approx_iter {
  */
 struct bwt_approx_match {
     const char *cigar;
-    size_t position;
-    size_t match_length;
+    uint32_t position;
+    uint32_t match_length;
 };
 /**
  Initialise the data in an approximative iterator.

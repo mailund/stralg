@@ -48,7 +48,7 @@ static void preprocess(const char *fasta_fname)
         exit(EXIT_FAILURE);
     }
     
-    size_t no_records = number_of_fasta_records(fasta_records);
+    uint32_t no_records = number_of_fasta_records(fasta_records);
     fwrite(&no_records, sizeof(no_records), 1, outfile);
     
     struct fasta_iter iter;
@@ -56,7 +56,7 @@ static void preprocess(const char *fasta_fname)
     init_fasta_iter(&iter, fasta_records);
     while (next_fasta_record(&iter, &rec)) {
         fprintf(stderr, "Serialising record %s\n", rec.name);
-        fprintf(stderr, "Length: %zu\n", rec.seq_len);
+        fprintf(stderr, "Length: %u\n", rec.seq_len);
         write_string(outfile, rec.name);
         struct bwt_table *table = build_complete_table(rec.seq, false);
         write_complete_bwt_info(outfile, table);
@@ -130,9 +130,9 @@ static struct string_table *read_string_tables(const char *fasta_fname)
     fprintf(stderr, "reading preprocessed data.\n");
     
     struct string_table *tables = 0;
-    size_t no_records;
+    uint32_t no_records;
     fread(&no_records, sizeof(no_records), 1, infile);
-    for (size_t i = 0; i < no_records; ++i) {
+    for (uint32_t i = 0; i < no_records; ++i) {
         char *name = read_string(infile);
         fprintf(stderr, "%s\n", name);
         struct bwt_table *bwt_table = read_complete_bwt_info(infile);

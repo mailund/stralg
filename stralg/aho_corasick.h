@@ -26,16 +26,16 @@ struct ac_iter {
     // The string we search in.
     const char *text;
     // The length of `text`
-    size_t n;
+    uint32_t n;
 
     // The length of each individual pattern
-    const size_t *pattern_lengths;
+    const uint32_t *pattern_lengths;
     // The trie holding the patterns.
     struct trie *patterns_trie;
 
     // State of the algorithm.
     bool nested;
-    size_t j;
+    uint32_t j;
     struct trie *v, *w;
     struct output_list *hits;
 };
@@ -55,7 +55,7 @@ struct ac_match {
     /// The number of the pattern matched.
     long long string_label;
     /// The position in the text where we have a match.
-    size_t index;
+    uint32_t index;
 };
 
 
@@ -74,8 +74,8 @@ struct ac_match {
 void init_ac_iter(
     struct ac_iter *iter,
     const char *text,
-    size_t n,
-    const size_t *pattern_lengths,
+    uint32_t n,
+    const uint32_t *pattern_lengths,
     struct trie *patterns_trie
 );
 

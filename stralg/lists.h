@@ -16,11 +16,11 @@
 // MARK: Index lists
 struct index_linked_list {
     struct index_linked_list *next;
-    size_t data;
+    uint32_t data;
 };
 
 static inline struct index_linked_list *
-new_index_link(size_t val, struct index_linked_list *tail)
+new_index_link(uint32_t val, struct index_linked_list *tail)
 {
     new_link(struct index_linked_list, val, tail);
 }

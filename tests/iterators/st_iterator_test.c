@@ -9,10 +9,10 @@
 #define BUFFER_SIZE 2048
 #define PRINT 0
 
-static char *match_string(size_t idx, const char *cigar)
+static char *match_string(uint32_t idx, const char *cigar)
 {
     char *new_string = malloc(BUFFER_SIZE);
-    sprintf(new_string, "%zu %s", idx, cigar);
+    sprintf(new_string, "%u %s", idx, cigar);
     return new_string;
 }
 
@@ -79,7 +79,7 @@ static void search_edge(struct search_data *data,
         init_st_leaf_iter(&leaf_iter, data->st, v);
         struct st_leaf_iter_result res;
         while (next_st_leaf(&leaf_iter, &res)) {
-            size_t position = res.leaf->leaf_label;
+            uint32_t position = res.leaf->leaf_label;
             char *m = match_string(position, data->cigar_buf);
             string_vector_append(data->results, m);
         }
@@ -125,7 +125,7 @@ static void simple_match(struct suffix_tree *st,
                          int edits,
                          struct string_vector *results)
 {
-    size_t m = (size_t)(strlen(p) + 4*edits + 1); // one edit can max cost four characters
+    uint32_t m = (uint32_t)(strlen(p) + 4*edits + 1); // one edit can max cost four characters
 
     struct search_data data;
     data.st = st;
@@ -171,7 +171,7 @@ static void ld_search_edge(struct search_data *data,
         init_st_leaf_iter(&leaf_iter, data->st, v);
         struct st_leaf_iter_result res;
         while (next_st_leaf(&leaf_iter, &res)) {
-            size_t position = res.leaf->leaf_label;
+            uint32_t position = res.leaf->leaf_label;
             char *m = match_string(position, data->cigar_buf);
             string_vector_append(data->results, m);
         }
@@ -220,7 +220,7 @@ static void ld_match(struct suffix_tree *st,
                              int edits,
                              struct string_vector *results)
 {
-    size_t m = (size_t)(strlen(p) + 4*edits + 1); // one edit can max cost four characters
+    uint32_t m = (uint32_t)(strlen(p) + 4*edits + 1); // one edit can max cost four characters
     
     struct search_data data;
     data.st = st;
@@ -336,7 +336,7 @@ int main(int argc, char **argv)
     const int edits[] = {
         0, 1, 2
     };
-    size_t no_edits = sizeof(edits) / sizeof(*edits);
+    uint32_t no_edits = sizeof(edits) / sizeof(*edits);
 
     if (argc == 3) {
         // LCOV_EXCL_START
@@ -350,7 +350,7 @@ int main(int argc, char **argv)
             return EXIT_FAILURE;
         }
         
-        for (size_t k = 0; k < no_edits; ++k) {
+        for (uint32_t k = 0; k < no_edits; ++k) {
             struct suffix_tree *st = naive_suffix_tree(string);
             test_matching(st, string, pattern, edits[k]);
         }
@@ -367,15 +367,15 @@ int main(int argc, char **argv)
             "acacaca",
             "acataca",
         };
-        size_t no_strings = sizeof(strings) / sizeof(const char *);
+        uint32_t no_strings = sizeof(strings) / sizeof(const char *);
         const char *patterns[] = {
             "aca", "ac", "ca", "a", "c", "acg", "cg", "g",
         };
-        size_t no_patterns = sizeof(patterns) / sizeof(const char *);
+        uint32_t no_patterns = sizeof(patterns) / sizeof(const char *);
         
-        for (size_t i = 0; i < no_patterns; ++i) {
-            for (size_t j = 0; j < no_strings; ++j) {
-                for (size_t k = 0; k < no_edits; ++k) {
+        for (uint32_t i = 0; i < no_patterns; ++i) {
+            for (uint32_t j = 0; j < no_strings; ++j) {
+                for (uint32_t k = 0; k < no_edits; ++k) {
                     struct suffix_tree *st = naive_suffix_tree(strings[j]);
                     test_matching(st, strings[j], patterns[i], edits[k]);
 

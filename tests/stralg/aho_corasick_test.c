@@ -26,9 +26,9 @@ int main(int argc, char * argv[])
         "bab"
     };
     int N = sizeof(patterns)/sizeof(char*);
-    size_t pattern_lengths[N];
+    uint32_t pattern_lengths[N];
     for (int i = 0; i < N; ++i) {
-        pattern_lengths[i] = (size_t)strlen(patterns[i]);
+        pattern_lengths[i] = (uint32_t)strlen(patterns[i]);
     }
     struct trie *patterns_trie = build_my_trie(patterns, N);
 
@@ -37,15 +37,15 @@ int main(int argc, char * argv[])
     struct ac_iter iter; struct ac_match match;
     init_ac_iter(
         &iter,
-        text, (size_t)strlen(text),
+        text, (uint32_t)strlen(text),
         pattern_lengths,
         patterns_trie
     );
     while (next_ac_match(&iter, &match)) {
         char *pattern = patterns[match.string_label];
-        size_t length = pattern_lengths[match.string_label];
+        uint32_t length = pattern_lengths[match.string_label];
         printf(
-               "hit for pattern %s at index %zu (...%s)\n",
+               "hit for pattern %s at index %u (...%s)\n",
             pattern, match.index, text + match.index
         );
         assert(strncmp(pattern, text + match.index, length) == 0);

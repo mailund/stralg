@@ -52,7 +52,7 @@ static void test_search(struct suffix_array *sa)
 static void test_inverse(struct suffix_array *sa)
 {
     compute_inverse(sa);
-    for (size_t i = 0; i < sa->length; ++i) {
+    for (uint32_t i = 0; i < sa->length; ++i) {
         assert(sa->inverse[sa->array[i]] == i);
         assert(sa->array[sa->inverse[i]] == i);
     }
@@ -74,7 +74,7 @@ static void test_lcp(struct suffix_array *sa)
     //assert(sa->lcp[0] == sa->lcp[sa->length]);
     assert(sa->lcp[0] == 0);
 
-    for (size_t i = 1; i < sa->length; ++i) {
+    for (uint32_t i = 1; i < sa->length; ++i) {
         int l = lcp(sa->string + sa->array[i-1], sa->string + sa->array[i]);
         assert(sa->lcp[i] == l);
     }
@@ -86,13 +86,13 @@ static void test_sa(struct suffix_array *sa, char *string)
     compute_lcp(sa);
     
     for (int i = 0; i < sa->length; ++i)
-        printf("sa[%d] == %zu\t%s\n", i, sa->array[i], string + sa->array[i]);
+        printf("sa[%d] == %u\t%s\n", i, sa->array[i], string + sa->array[i]);
     printf("\n");
     for (int i = 0; i < sa->length; ++i)
-        printf("isa[%d] == %zu\t%s\n", i, sa->inverse[i], string + i);
+        printf("isa[%d] == %u\t%s\n", i, sa->inverse[i], string + i);
     printf("\n");
     for (int i = 0; i < sa->length; ++i)
-        printf("lcp[%2d] == %2zu\t%s\n", i, sa->lcp[i], string + sa->array[i]);
+        printf("lcp[%2d] == %2u\t%s\n", i, sa->lcp[i], string + sa->array[i]);
     printf("\n");
     
     test_order(sa);
@@ -140,8 +140,8 @@ int main(int argc, char *argv[])
     print_suffix_array(sa);
     printf("\n");
     
-    size_t hit = lower_bound_search(sa, "cag");
-    printf("hit: SA[%zu]=%lu\n", hit, sa->array[hit]);
+    uint32_t hit = lower_bound_search(sa, "cag");
+    printf("hit: SA[%u]=%u\n", hit, sa->array[hit]);
     printf("does cag match '%s'?\n", sa->string + sa->array[hit]);
     
     free_suffix_array(sa);
@@ -152,7 +152,7 @@ int main(int argc, char *argv[])
     printf("\n");
     
     hit = lower_bound_search(sa, "cag");
-    printf("hit: SA[%zu]=%zu\n", hit, sa->array[hit]);
+    printf("hit: SA[%u]=%u\n", hit, sa->array[hit]);
     printf("does cag match '%s'?\n", sa->string + sa->array[hit]);
     
     free_suffix_array(sa);

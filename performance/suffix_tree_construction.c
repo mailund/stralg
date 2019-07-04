@@ -6,10 +6,10 @@
 #include <time.h>
 #include <string.h>
 
-static char *build_equal(size_t size)
+static char *build_equal(uint32_t size)
 {
     char *s = malloc(size + 1);
-    for (size_t i = 0; i < size; ++i) {
+    for (uint32_t i = 0; i < size; ++i) {
         s[i] = 'A';
     }
     s[size] = '\0';
@@ -17,13 +17,13 @@ static char *build_equal(size_t size)
     return s;
 }
 
-static char *build_random(size_t size)
+static char *build_random(uint32_t size)
 {
     const char *alphabet = "ACGT";
     int n = strlen(alphabet);
     char *s = malloc(size + 1);
 
-    for (size_t i = 0; i < size; ++i) {
+    for (uint32_t i = 0; i < size; ++i) {
         s[i] = alphabet[rand() % n];
     }
     s[size] = '\0';
@@ -31,10 +31,10 @@ static char *build_random(size_t size)
     return s;
 }
 
-static char *build_random_large(size_t size)
+static char *build_random_large(uint32_t size)
 {
     char *s = malloc(size + 1);
-    for (size_t i = 0; i < size; ++i) {
+    for (uint32_t i = 0; i < size; ++i) {
         char random_letter = rand();
         if (random_letter == 0) {
             random_letter = 1; // avoid the sentinel
@@ -50,7 +50,7 @@ static char *build_random_large(size_t size)
 
 
 
-static void get_performance(size_t size)
+static void get_performance(uint32_t size)
 {
 #if 1 // for comparison
     char *s;
@@ -62,14 +62,14 @@ static void get_performance(size_t size)
     begin = clock();
     st = naive_suffix_tree(s);
     end = clock();
-    printf("naive equal %lu %f\n", size, (double)(end - begin) / CLOCKS_PER_SEC);
+    printf("naive equal %u %f\n", size, (double)(end - begin) / CLOCKS_PER_SEC);
     free_suffix_tree(st);
     
     
     begin = clock();
     st = mccreight_suffix_tree(s);
     end = clock();
-    printf("McCreight equal %lu %f\n", size, (double)(end - begin) / CLOCKS_PER_SEC);
+    printf("McCreight equal %u %f\n", size, (double)(end - begin) / CLOCKS_PER_SEC);
     free_suffix_tree(st);
     
     free(s);
@@ -79,14 +79,14 @@ static void get_performance(size_t size)
     begin = clock();
     st = naive_suffix_tree(s);
     end = clock();
-    printf("naive random %lu %f\n", size, (double)(end - begin) / CLOCKS_PER_SEC);
+    printf("naive random %u %f\n", size, (double)(end - begin) / CLOCKS_PER_SEC);
     free_suffix_tree(st);
     
     
     begin = clock();
     st = mccreight_suffix_tree(s);
     end = clock();
-    printf("McCreight random %lu %f\n", size, (double)(end - begin) / CLOCKS_PER_SEC);
+    printf("McCreight random %u %f\n", size, (double)(end - begin) / CLOCKS_PER_SEC);
     free_suffix_tree(st);
     
     free(s);
@@ -96,14 +96,14 @@ static void get_performance(size_t size)
     begin = clock();
     st = naive_suffix_tree(s);
     end = clock();
-    printf("naive random_large %lu %f\n", size, (double)(end - begin) / CLOCKS_PER_SEC);
+    printf("naive random_large %u %f\n", size, (double)(end - begin) / CLOCKS_PER_SEC);
     free_suffix_tree(st);
     
     
     begin = clock();
     st = mccreight_suffix_tree(s);
     end = clock();
-    printf("McCreight random_large %lu %f\n", size, (double)(end - begin) / CLOCKS_PER_SEC);
+    printf("McCreight random_large %u %f\n", size, (double)(end - begin) / CLOCKS_PER_SEC);
     free_suffix_tree(st);
     
     free(s);
@@ -157,7 +157,7 @@ int main(int argc, const char **argv)
     srand(time(NULL));
     
 #if 1 // for comparison
-    for (size_t n = 0; n < 10000; n += 500) {
+    for (uint32_t n = 0; n < 10000; n += 500) {
         for (int rep = 0; rep < 5; ++rep) {
             get_performance(n);
         }
@@ -165,7 +165,7 @@ int main(int argc, const char **argv)
 
 #else // for profiling
 
-    for (size_t n = 0; n < 50000; n += 500) {
+    for (uint32_t n = 0; n < 50000; n += 500) {
         for (int rep = 0; rep < 5; ++rep) {
             get_performance(n);
         }

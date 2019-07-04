@@ -69,7 +69,7 @@ void init_edit_iter(
     const char *alphabet,
     int max_edit_distance
 ) {
-    size_t n = (size_t)strlen(pattern) + max_edit_distance + 10;
+    uint32_t n = (uint32_t)strlen(pattern) + max_edit_distance + 10;
 
     iter->pattern = pattern;
     iter->alphabet = alphabet;
@@ -119,8 +119,8 @@ static void recursive_generator(const char *pattern, char *buffer, char *cigar,
         
     } else if (max_edit_distance == 0) {
         // we can't edit any more, so just move pattern to buffer and call back
-        size_t rest = strlen(pattern);
-        for (size_t i = 0; i < rest; ++i) {
+        uint32_t rest = strlen(pattern);
+        for (uint32_t i = 0; i < rest; ++i) {
             buffer[i] = pattern[i];
             if (options->extended_cigars)
                 cigar[i] = '=';
@@ -201,8 +201,8 @@ bool next_edit_pattern(
 
     } else if (frame->max_dist == 0) {
         // we can't edit any more, so just move pattern to buffer and call back
-        size_t rest = (size_t)strlen(pattern);
-        for (size_t i = 0; i < rest; ++i) {
+        uint32_t rest = (uint32_t)strlen(pattern);
+        for (uint32_t i = 0; i < rest; ++i) {
               buffer[i] = pattern[i];
               cigar[i] = 'M';
         }
