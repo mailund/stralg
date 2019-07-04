@@ -248,22 +248,6 @@ if ((j) >= n) return false;         \
 if (s[(i)] < s[(j)]) return true;   \
 if (s[(i)] > s[(j)]) return false;  \
 }
-
-/*
- inline static bool less(uint32_t i, uint32_t j,
-                        uint32_t *s, uint32_t n,
-                        struct skew_buffers *shared_buffers)
-{
-    CHECK_INDEX(i, j);
-    if (i % 3 == 1) {
-        return ISA(i + 1) < ISA(j + 1);
-    } else {
-        CHECK_INDEX(i + 1, j + 1);
-        return ISA(i + 2) < ISA(j + 2);
-    }
-}
-*/
-
 #define CHECK_ISA(i,j) \
     (((j) >= n) ? false : ((i) >= n) || ISA((i)) < ISA((j)))
 
@@ -271,21 +255,12 @@ inline static bool less(uint32_t i, uint32_t j, uint32_t *s, uint32_t n,
                         struct skew_buffers *shared_buffers)
 {
     CHECK_INDEX(i, j);
-    
-    // test for j should not be necessary at the end.
-    if ((i % 3 == 1) && (j % 3 == 0)) {
+    if (i % 3 == 1) {
         return CHECK_ISA(i + 1, j + 1);
+    } else {
+        CHECK_INDEX(i + 1, j + 1);
+        return CHECK_ISA(i + 2, j + 2);
     }
-    
-    // Check cases where we have the indices in the
-    // same arrays
-    if (((i % 3 == 0) && (j % 3 == 0))||((i % 3 != 0) && (j % 3 != 0))) {
-        return ISA(i) < ISA(j);
-    }
-    
-    // Recurse otherwise; they will end up in the same
-    // arrays after max two recursions
-    return less(i + 1, j + 1, s, n, shared_buffers);
 }
 
 // Just for readability in the merge
