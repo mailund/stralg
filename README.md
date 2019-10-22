@@ -1,4 +1,3 @@
-
 # stralg
 
 [![TravisCI Status](https://travis-ci.org/mailund/stralg.svg?branch=master)](https://travis-ci.org/mailund/stralg)
@@ -132,4 +131,3 @@ struct fasta_file *load_fasta_file(
 ```
 
 It is acceptable to use a goto when handling errors inside a function.
-

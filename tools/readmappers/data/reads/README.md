@@ -11,6 +11,3 @@ has n sequences of length m and with at most d edits. It was simulated as
 	python scripts/simulate-fastq.py -n 10 -m 10 -d 1 data/genomes/hg38-1000000.fa
 	
 I have sampled from the `hg38-1000000.fa` for all the simulations.
-
-
-
