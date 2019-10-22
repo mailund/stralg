@@ -3,6 +3,7 @@
 [![TravisCI Status](https://travis-ci.org/mailund/stralg.svg?branch=master)](https://travis-ci.org/mailund/stralg)
 [![codecov](https://codecov.io/gh/mailund/stralg/branch/master/graph/badge.svg)](https://codecov.io/gh/mailund/stralg)
 [![Coverage Status](https://coveralls.io/repos/github/mailund/stralg/badge.svg?branch=master)](https://coveralls.io/github/mailund/stralg?branch=master)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/4f8b3ef7896141b7ad4ace6f55d7ddc1)](https://www.codacy.com/manual/mailund/stralg?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=mailund/stralg&amp;utm_campaign=Badge_Grade)
 
 Small library of string algorithms
 
