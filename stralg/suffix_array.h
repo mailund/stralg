@@ -12,9 +12,9 @@ struct suffix_array {
     uint32_t length;
     uint32_t *array;
 
-    // these arrays are optional but used in extended suffix arrays.
-    // they aren't all used at the same time, and we could get rid of some
-    // after we have used them, but I just keep them here
+    // These arrays are optional but used in extended suffix arrays.
+    // They aren't all used at the same time, and we could get rid of some
+    // after we have used them, but I just keep them for now
     uint32_t *inverse;
     uint32_t *lcp;
 };

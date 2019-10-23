@@ -20,10 +20,10 @@ d=1
 N=5
 
 # Reference genome
-reference=../data/gorGor3-small-noN.fa
+reference=$1 #../data/gorGor3-small-noN.fa
 
 # Reads
-reads=../data/sim-reads-d2-tiny.fq
+reads=$2 # ../data/sim-reads-d2-tiny.fq
 
 ## =============================================================
 
@@ -84,9 +84,9 @@ for mapper in $mappers; do
 	echo "Evaluating $(tput setaf 4)$(tput bold)${mapper}$(tput sgr0) : "
 
 	### Preprocessing --------------------------------------------------------------------------------
-	if [ -x ${mapper}.preprocess ]; then
+	if [ -x "${mapper}.preprocess" ]; then
 		printf "   • Preprocessing $(tput setaf 4)$(tput bold)evaluation/${mapper}.preprocess$(tput sgr0) "
-		./${mapper}.preprocess  ${reference} >> $log_file 2>&1
+		./"${mapper}.preprocess  ${reference}" >> $log_file 2>&1
 		if [ $? -eq 0 ]; then
     		success
 		else
@@ -100,19 +100,19 @@ for mapper in $mappers; do
 	fi
 
 	### Measuring running time -----------------------------------------------------------------------
-	if [ -x ${mapper}.run ]; then
+	if [ -x "${mapper}.run" ]; then
 		printf "   • Read-mapping using $(tput setaf 4)$(tput bold)evaluation/${mapper}.run$(tput sgr0) "
 		mapper_cmd=./${mapper}.run
-	elif [ -e ${mapper}.run ]; then
+	elif [ -e "${mapper}.run" ]; then
 			failure "The file $(tput setaf 4)$(tput bold)evaluation/${mapper}.run$(tput sgr0) exists but is not executable!"
 	else
 		# if we don't have a run script we call the read-mapper directly
 		printf "   • Read-mapping using $(tput setaf 4)$(tput bold)mappers_src/${mapper}$(tput sgr0) "
-		mapper_cmd=../mappers_src/${mapper}
+		mapper_cmd="../mappers_src/${mapper}"
 	fi
 	for ((i = 0; i < $N; i++)); do
 		walltime=`command time -p ${mapper_cmd} -d $d ${reference} ${reads} 2>&1 1> /dev/null | awk '/^real/ { print $2 }'`
-		printf "%-${mapper_field_length}s %10s\n" ${mapper} ${walltime} >> $report_file
+		printf "%-${mapper_field_length}s %10s\n ${mapper} ${walltime}" >> $report_file
 	done
 	success
 
