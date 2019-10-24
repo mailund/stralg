@@ -5,6 +5,11 @@
 #include <string.h>
 #include <assert.h>
 
+// The strlen results are all smaller than this but
+// Codacy complains that a string might not be
+// zero-terminated so I use strnlen instead.
+#define MAX_STRLEN 1000000
+
 static void test_complete_bwt(void)
 {
     char *str = "acgtadtadadfasdfing";
@@ -12,7 +17,7 @@ static void test_complete_bwt(void)
     // Build all the data structures...
     struct remap_table remap_table;
     init_remap_table(&remap_table, str);
-    char remapped_str[strlen(str) + 1];
+    char remapped_str[strnlen(str, MAX_STRLEN) + 1];
     remap(remapped_str, str, &remap_table);
     struct suffix_array *sa = qsort_sa_construction(remapped_str);
     struct bwt_table bwt_table;
@@ -20,14 +25,14 @@ static void test_complete_bwt(void)
     
     // Serialise and load them back...
     const char *temp_template = "/tmp/temp.XXXXXX";
-    char fname[strlen(temp_template) + 1];
+    char fname[strnlen(temp_template, MAX_STRLEN) + 1];
     strcpy(fname, temp_template);
     mkstemp(fname);
     write_complete_bwt_info_fname(fname, &bwt_table);
     struct bwt_table *other_table = read_complete_bwt_info_fname(fname);
     
-    assert(strlen(bwt_table.sa->string) + 1 == bwt_table.sa->length);
-    assert(strlen(other_table->sa->string) + 1 == other_table->sa->length);
+    assert(strnlen(bwt_table.sa->string, MAX_STRLEN) + 1 == bwt_table.sa->length);
+    assert(strnlen(other_table->sa->string, MAX_STRLEN) + 1 == other_table->sa->length);
     // Now check equality
     assert(equivalent_bwt_tables(&bwt_table, other_table));
     
