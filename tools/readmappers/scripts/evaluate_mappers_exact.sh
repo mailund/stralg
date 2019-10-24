@@ -110,7 +110,7 @@ for mapper in $mappers; do
 		printf "   • Read-mapping using $(tput setaf 4)$(tput bold)mappers_src/${mapper}$(tput sgr0) "
 		mapper_cmd=""../mappers_src/${mapper}""
 	fi
-	for ((i = 0; i < $N; i++)); do
+	for ((i = 0; i < N; i++)); do
 		walltime=$(command time -p "${mapper_cmd}" -d "$d ${reference} ${reads}" 2>&1 1> /dev/null | awk '/^real/ { print $2 }')
 		printf "%-${mapper_field_length}s %10s\n ${mapper} ${walltime}" >> "$report_file"
 	done
@@ -137,7 +137,7 @@ echo
 if type Rscript > /dev/null; then
 	echo "$(tput setaf 4)$(tput bold)Analysing report with R$(tput sgr0)"
 	Rscript analyse-report.R $report_file
-	echo -n "Results plotted in $(tput setaf 2)$(tput bold)`basename $report_file`.png$(tput sgr0) "
+	echo -n "Results plotted in $(tput setaf 2)$(tput bold)$(basename $report_file).png$(tput sgr0) "
 	success
 else
 	printf "You do not have R installed, so the report plot is not updated. $(tput setaf 1)$(tput bold)✘$(tput sgr0)\n"
