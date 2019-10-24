@@ -40,7 +40,7 @@ function success() {
 }
 function failure() {
 	err_msg=$1
-	echo "$(tput setaf 1)$(tput bold)↪$(tput sgr0) " $err_msg
+	echo "$(tput setaf 1)$(tput bold)↪$(tput sgr0) " "$err_msg"
 	echo
 }
 function failure_tick() {
@@ -54,14 +54,14 @@ function header() {
 
 ## Test that the data is there
 printf "Testing that the reference $(tput setaf 4)$(tput bold)${reference}$(tput sgr0) exists "
-if [ -e $reference ]; then
+if [ -e "$reference" ]; then
 	success
 else
 	failure_tick "Could not find the reference genome file. "
 	exit 1
 fi
 printf "Testing that the reads file $(tput setaf 4)$(tput bold)${reads}$(tput sgr0) exists "
-if [ -e $reads ]; then
+if [ -e "$reads" ]; then
 	success
 else
 	failure_tick "Could not find the reads file. "
@@ -77,10 +77,10 @@ header "Preprocessing reference genomes"
 for i in ${!names[@]}; do
 	cmd=${preprocess_cmds[$i]}
 	name=${names[$i]}
-	log_file=logs/$name.preprocess.log
+	log_file="logs/$name.preprocess.log"
 
 	printf "   • Preprocessing: $(tput setaf 4)$(tput bold)${name}$(tput sgr0) "
-	$cmd &> $log_file
+	"$cmd" &> "$log_file"
 	if [ $? -eq 0 ]; then
 		success
 	else
@@ -95,7 +95,7 @@ refsam=logs/reference.sam
 logfile=logs/reference.log
 header "Building reference SAM file"
 printf "   • Writing reference to $(tput setaf 4)$(tput bold)${refsam}$(tput sgr0) "
-$refcmd 2> $log_file | sort > $refsam
+"$refcmd" 2> "$log_file" | sort > "$refsam"
 if [ $? -eq 0 ]; then
 	success
 else
@@ -113,7 +113,7 @@ for i in ${!names[@]}; do
 	samfile=logs/$name.sam
 
 	printf "   • Mapping: $(tput setaf 4)$(tput bold)${name}$(tput sgr0) "
-	$cmd  2> $log_file | sort > $samfile
+	"$cmd"  2> "$log_file" | sort > "$samfile"
 	if [ $? -eq 0 ]; then
 		success
 	else
@@ -126,11 +126,11 @@ echo
 header "Comparing results"
 for i in ${!names[@]}; do
 	name=${names[$i]}
-	samfile=logs/$name.sam
+	samfile="logs/$name.sam"
 
 	printf "   • $(tput setaf 4)$(tput bold)${name}$(tput sgr0): "
 	printf "comparing $(tput setaf 4)${samfile}$(tput sgr0) to $(tput setaf 4)${refsam}$(tput sgr0) "
-	cmp $refsam $samfile &> /dev/null
+	cmp "$refsam" "$samfile" &> /dev/null
 	if [ $? -eq 0 ]; then
 		success
 	else

@@ -20,10 +20,10 @@ log_file=../test.log
 d=1
 
 # Reference genome
-reference=../data/gorGor3-small-noN.fa
+reference=$1 #../data/gorGor3-small-noN.fa
 
 # Reads
-reads=../data/sim-reads-d2-tiny.fq
+reads=$2 #../data/sim-reads-d2-tiny.fq
 
 ## =============================================================
 
@@ -138,7 +138,7 @@ for mapper in $mappers; do
 			if [ $? -eq 0 ]; then
    				success
 			else
-   				failure_tick "Preprocessing failed. Check $(tput setaf 4)$(tput bold)`basename ${log_file}`$(tput sgr0) for further information."
+   				failure_tick "Preprocessing failed. Check $(tput setaf 4)$(tput bold)$(basename ${log_file})$(tput sgr0) for further information."
 					cat ${log_file}
 					exit 1
 			fi

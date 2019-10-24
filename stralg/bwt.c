@@ -434,6 +434,7 @@ struct bwt_table *read_bwt_table(FILE *f,
     bool has_ro_table;
     fread(&has_ro_table, sizeof(bool), 1, f);
     if (has_ro_table) {
+        assert(bwt_table->ro_table);
         fread(bwt_table->ro_table,
               sizeof(*bwt_table->ro_table),
               o_table_length, f);

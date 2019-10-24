@@ -111,7 +111,7 @@ for mapper in $mappers; do
 		mapper_cmd="../mappers_src/${mapper}"
 	fi
 	for ((i = 0; i < $N; i++)); do
-		walltime=`command time -p ${mapper_cmd} -d $d ${reference} ${reads} 2>&1 1> /dev/null | awk '/^real/ { print $2 }'`
+		walltime=$(command time -p "${mapper_cmd} -d $d ${reference} ${reads}" 2>&1 1> /dev/null | awk '/^real/ { print $2 }')
 		printf "%-${mapper_field_length}s %10s\n ${mapper} ${walltime}" >> $report_file
 	done
 	success
@@ -120,9 +120,9 @@ for mapper in $mappers; do
 	success
 done
 
-header=`head -n 1 $report_file`
-major_rule=`printf "%${#header}s" |tr " " "="`
-minor_rule=`printf "%${#header}s" |tr " " "-"`
+header=$(head -n 1 $report_file)
+major_rule=$(printf "%${#header}s" |tr " " "=")
+minor_rule=$(printf "%${#header}s" |tr " " "-")
 
 echo
 echo "$(tput setaf 2)$(tput bold)Results of the evaluation:$(tput sgr0)"
@@ -130,6 +130,7 @@ echo "$(tput setaf 4)$(tput bold)${major_rule}$(tput sgr0)"
 echo "$(tput setaf 4)$(tput bold)${header}$(tput sgr0)"
 echo "$(tput setaf 4)$(tput bold)${minor_rule}$(tput sgr0)"
 tail -n +2 $report_file
+echo
 echo "$(tput setaf 4)$(tput bold)${minor_rule}$(tput sgr0)"
 echo
 

@@ -14,8 +14,10 @@ void parse_sam_line(const char *line_buffer, char *read_name_buffer,
                     char *cigar_buffer, char *pattern_buffer,
                     enum error_codes *error)
 {
+    // the field limits of 1000 here are arbitrary but it shouldn't
+    // read arbitrarely large input
     int no_matched = sscanf(
-        line_buffer, "%s %*d %s %d %*d %s * %*d %*d %s %*s\n", read_name_buffer,
+        line_buffer, "%1000s %*d %1000s %d %*d %1000s * %*d %*d %1000s %*1000s\n", read_name_buffer,
         ref_name_buffer, match_index, cigar_buffer, pattern_buffer);
     if (no_matched != 5) {
         *error = MALFORMED_FILE;

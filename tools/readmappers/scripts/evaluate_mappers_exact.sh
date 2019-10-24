@@ -20,10 +20,10 @@ d=0
 N=5
 
 # Reference genome
-reference=../data/gorGor3-small-noN.fa
+reference=$1
 
 # Reads
-reads=../data/sim-reads-d2-tiny.fq
+reads=$2
 
 ## =============================================================
 
@@ -44,7 +44,7 @@ function success() {
 }
 function failure() {
 	err_msg=$1
-	echo "$(tput setaf 1)$(tput bold)↪$(tput sgr0) " $err_msg
+	echo "$(tput setaf 1)$(tput bold)↪$(tput sgr0) " "$err_msg"
 	echo
 	exit 1
 }
@@ -84,35 +84,35 @@ for mapper in $mappers; do
 	echo "Evaluating $(tput setaf 4)$(tput bold)${mapper}$(tput sgr0) : "
 
 	### Preprocessing --------------------------------------------------------------------------------
-	if [ -x ${mapper}.preprocess ]; then
+	if [ -x "${mapper}.preprocess" ]; then
 		printf "   • Preprocessing $(tput setaf 4)$(tput bold)evaluation/${mapper}.preprocess$(tput sgr0) "
 		./${mapper}.preprocess  ${reference} >> $log_file 2>&1
 		if [ $? -eq 0 ]; then
     		success
 		else
-    		failure_tick "Preprocessing failed. Check $(tput setaf 4)$(tput bold)`basename ${log_file}`$(tput sgr0) for further information."
+    		failure_tick "Preprocessing failed. Check $(tput setaf 4)$(tput bold)$(basename ${log_file})$(tput sgr0) for further information."
 		fi
 
 	else
-		if [ -e ${mapper}.preprocess ]; then
+		if [ -e "${mapper}.preprocess" ]; then
 			failure "The file $(tput setaf 4)$(tput bold)evaluation/${mapper}.preprocess$(tput sgr0) exists but is not executable!"
 		fi
 	fi
 
 	### Measuring running time -----------------------------------------------------------------------
-	if [ -x ${mapper}.run ]; then
+	if [ -x "${mapper}.run" ]; then
 		printf "   • Read-mapping using $(tput setaf 4)$(tput bold)evaluation/${mapper}.run$(tput sgr0) "
-		mapper_cmd=./${mapper}.run
-	elif [ -e ${mapper}.run ]; then
+		mapper_cmd="./${mapper}.run"
+	elif [ -e "${mapper}.run" ]; then
 			failure "The file $(tput setaf 4)$(tput bold)evaluation/${mapper}.run$(tput sgr0) exists but is not executable!"
 	else
 		# if we don't have a run script we call the read-mapper directly
 		printf "   • Read-mapping using $(tput setaf 4)$(tput bold)mappers_src/${mapper}$(tput sgr0) "
-		mapper_cmd=../mappers_src/${mapper}
+		mapper_cmd=""../mappers_src/${mapper}""
 	fi
 	for ((i = 0; i < $N; i++)); do
-		walltime=`command time -p ${mapper_cmd} -d $d ${reference} ${reads} 2>&1 1> /dev/null | awk '/^real/ { print $2 }'`
-		printf "%-${mapper_field_length}s %10s\n" ${mapper} ${walltime} >> $report_file
+		walltime=$(command time -p "${mapper_cmd}" -d "$d ${reference} ${reads}" 2>&1 1> /dev/null | awk '/^real/ { print $2 }')
+		printf "%-${mapper_field_length}s %10s\n ${mapper} ${walltime}" >> "$report_file"
 	done
 	success
 
@@ -120,9 +120,9 @@ for mapper in $mappers; do
 	success
 done
 
-header=`head -n 1 $report_file`
-major_rule=`printf "%${#header}s" |tr " " "="`
-minor_rule=`printf "%${#header}s" |tr " " "-"`
+header=$(head -n 1 $report_file)
+major_rule=$(printf "%${#header}s" |tr " " "=")
+minor_rule=$(printf "%${#header}s" |tr " " "-")
 
 echo
 echo "$(tput setaf 2)$(tput bold)Results of the evaluation:$(tput sgr0)"
