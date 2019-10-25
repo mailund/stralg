@@ -112,6 +112,7 @@ int main(int argc, const char **argv)
     if (err != NO_ERROR) {
         // LCOV_EXCL_START
         fprintf(stderr, "Couldn't read fasta file %s\n", fastafn);
+        fclose(outfile);
         free_fasta_records(records);
         return EXIT_FAILURE;
         // LCOV_EXCL_STOP
