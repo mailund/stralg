@@ -44,7 +44,7 @@ function success() {
 }
 function failure() {
 	err_msg=$1
-	echo "$(tput setaf 1)$(tput bold)↪$(tput sgr0) " "$err_msg"
+	echo "$(tput setaf 1)$(tput bold)↪$(tput sgr0) ${err_msg}"
 	echo
 	exit 1
 }
@@ -56,7 +56,7 @@ function failure_tick() {
 
 ## Test that the data is there
 printf "Testing that the reference $(tput setaf 4)$(tput bold)${reference}$(tput sgr0) exists "
-if [ -e $reference ]; then
+if [ -e "$reference" ]; then
 	success
 else
 	failure_tick "Could not find the reference genome file. "
@@ -75,7 +75,7 @@ fi
 if [ -e $log_file ]; then
 	rm $log_file
 fi
-printf "%-${mapper_field_length}s %10s\n" mapper time > $report_file
+printf "%-${mapper_field_length}s %10s\n" mapper time > "$report_file"
 
 touch $log_file
 
@@ -108,7 +108,7 @@ for mapper in $mappers; do
 	else
 		# if we don't have a run script we call the read-mapper directly
 		printf "   • Read-mapping using $(tput setaf 4)$(tput bold)mappers_src/${mapper}$(tput sgr0) "
-		mapper_cmd=""../mappers_src/${mapper}""
+		mapper_cmd="../mappers_src/${mapper}"
 	fi
 	for ((i = 0; i < N; i++)); do
 		walltime=$(command time -p "${mapper_cmd}" -d "$d ${reference} ${reads}" 2>&1 1> /dev/null | awk '/^real/ { print $2 }')

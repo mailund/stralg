@@ -122,3 +122,4 @@ performance/suffix_tree_construction.txt
 performance/suffix_array_construction
 tools/evaluation-approximative.log
 tools/evaluation-report-approximative.txt
+performance/bwt_construction
