@@ -33,8 +33,8 @@ reads=$2
 
 ## IO code
 mapper_field_length=10
-for mapper in $mappers; do
-	if [[ $mapper_field_length -lt ${#mapper} ]]; then
+for mapper in "$mappers"; do
+	if [[ $"mapper_field_length" -lt ${#mapper} ]]; then
 		mapper_field_length=${#mapper}
 	fi
 done
@@ -44,7 +44,7 @@ function success() {
 }
 function failure() {
 	err_msg=$1
-	echo "$(tput setaf 1)$(tput bold)↪$(tput sgr0) " "$err_msg"
+	echo "$(tput setaf 1)$(tput bold)↪$(tput sgr0) ${err_msg}"
 	echo
 	exit 1
 }
@@ -56,7 +56,7 @@ function failure_tick() {
 
 ## Test that the data is there
 printf "Testing that the reference $(tput setaf 4)$(tput bold)${reference}$(tput sgr0) exists "
-if [ -e $reference ]; then
+if [ -e "$reference" ]; then
 	success
 else
 	failure_tick "Could not find the reference genome file. "
@@ -69,15 +69,15 @@ else
 fi
 
 ## Run evaluation of all mappers...
-if [ -e $report_file ]; then
+if [ -e "$report_file" ]; then
 	mv $report_file{,.bak}
 fi
-if [ -e $log_file ]; then
-	rm $log_file
+if [ -e "$log_file" ]; then
+	rm "$log_file"
 fi
-printf "%-${mapper_field_length}s %10s\n" mapper time > $report_file
+printf "%-${mapper_field_length}s %10s\n" mapper time > "$report_file"
 
-touch $log_file
+touch "$log_file"
 
 for mapper in $mappers; do
 	echo
@@ -86,7 +86,7 @@ for mapper in $mappers; do
 	### Preprocessing --------------------------------------------------------------------------------
 	if [ -x "${mapper}.preprocess" ]; then
 		printf "   • Preprocessing $(tput setaf 4)$(tput bold)evaluation/${mapper}.preprocess$(tput sgr0) "
-		./${mapper}.preprocess  ${reference} >> $log_file 2>&1
+		"./${mapper}.preprocess  ${reference}" >> "$log_file" 2>&1
 		if [ $? -eq 0 ]; then
     		success
 		else
