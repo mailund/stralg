@@ -2,6 +2,8 @@
 #include <lists.h>
 #include <stdlib.h>
 
+/*
+
 #define free_list(list_type, list) {                  \
     while (list) {                                    \
         list_type *next = list->next;                 \
@@ -20,4 +22,6 @@ void free_pointer_list(struct pointer_linked_list *list)
     free_list(struct pointer_linked_list, list);
 }
 
+
+*/
 
