@@ -108,7 +108,7 @@ for mapper in $mappers; do
 	else
 		# if we don't have a run script we call the read-mapper directly
 		printf "   • Read-mapping using $(tput setaf 4)$(tput bold)mappers_src/${mapper}$(tput sgr0) "
-		mapper_cmd=""../mappers_src/${mapper}""
+		mapper_cmd="../mappers_src/${mapper}"
 	fi
 	for ((i = 0; i < N; i++)); do
 		walltime=$(command time -p "${mapper_cmd}" -d "$d ${reference} ${reads}" 2>&1 1> /dev/null | awk '/^real/ { print $2 }')

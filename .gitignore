@@ -137,3 +137,4 @@ tools/readmappers/logs/Exact.map.log
 tools/readmappers/logs/Exact.preprocess.log
 tools/readmappers/logs/Exact.sam
 tools/readmappers/logs/reference.sam
+performance/bwt_construction
