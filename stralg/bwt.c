@@ -117,12 +117,11 @@ struct bwt_table *build_complete_table(const char *string, bool include_reverse)
     // qsort is for random strings, so that is the choice for now
     struct suffix_array *sa = qsort_sa_construction(remapped_str);
 
-    char *rev_remapped_str = 0;
     
     
     struct suffix_array *rsa = 0;
     if (include_reverse) {
-        rev_remapped_str = str_copy_n(remapped_str, n);
+        char *rev_remapped_str = str_copy_n(remapped_str, n);
         str_inplace_rev_n(rev_remapped_str, n);
         // also here use the fastest algorithm here
         rsa = qsort_sa_construction(rev_remapped_str);
@@ -320,8 +319,6 @@ void init_bwt_approx_iter(struct bwt_approx_iter *iter,
     
     // Start searching
     uint32_t L = 0, R = bwt_table->sa->length; int i = m - 1;
-    uint32_t new_L;
-    uint32_t new_R;
     
     struct remap_table *remap_table = bwt_table->remap_table;
     char *cigar = iter->cigar_buf;
@@ -331,8 +328,8 @@ void init_bwt_approx_iter(struct bwt_approx_iter *iter,
     // Iterating alphabet from 1 so I don't include the sentinel.
     for (unsigned char a = 1; a < remap_table->alphabet_size; ++a) {
         
-        new_L = C(a) + O(a, L);
-        new_R = C(a) + O(a, R);
+        uint32_t new_L = C(a) + O(a, L);
+        uint32_t new_R = C(a) + O(a, R);
         
         int edit_cost = (a == match_a) ? 0 : 1;
         if (edits - edit_cost < 0) continue;
