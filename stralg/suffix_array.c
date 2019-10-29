@@ -384,7 +384,6 @@ static void skew(const char *x, uint32_t *sa)
     shared_buffers.helper_buffers[1] = shared_buffers.helper_buffer1;
     shared_buffers.sa12 = malloc(m12 * sizeof(uint32_t));
     shared_buffers.sa3 = malloc(m3 * sizeof(uint32_t));
-    shared_buffers.sa3 = malloc(m3 * sizeof(uint32_t));
 
     skew_rec(s, n, 256, sa + 1, &shared_buffers); // do not include index zero
     sa[0] = n; // but set it to the sentinel here
@@ -448,12 +447,10 @@ static uint32_t binary_search(const char *key, uint32_t key_len,
 {
     uint32_t low = 0;
     uint32_t high = sa->length;
-    uint32_t mid;
-    int cmp;
-    
+
     while (low < high) {
-        mid = low + (high-low) / 2;
-        cmp = strncmp(key, sa->string + sa->array[mid], key_len);
+        uint32_t mid = low + (high-low) / 2;
+        int cmp = strncmp(key, sa->string + sa->array[mid], key_len);
         if (cmp < 0) {
             high = mid - 1;
         } else if (cmp > 0) {
