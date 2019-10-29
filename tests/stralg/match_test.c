@@ -482,14 +482,10 @@ static void match_test(const char *pattern, char *string)
 
 int main(int argc, char * argv[])
 {
-    char *string;
-    const char *pattern;
-    const char *fname;
-    
     if (argc == 3) {
-        pattern = argv[1];
-        fname = argv[2];
-        string = load_file(fname);
+        const char *pattern = argv[1];
+        const char *fname = argv[2];
+        char *string = load_file(fname);
         // LCOV_EXCL_START
         if (!string) {
             printf("Couldn't read file %s\n", fname);
