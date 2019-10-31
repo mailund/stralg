@@ -42,8 +42,7 @@ static void test_suffix_tree_match(struct index_vector *naive_matches, const cha
     
     
     printf("Depth-first leaves:\n");
-    if (match_root)
-        print_leaves(match_root);
+    print_leaves(match_root);
     
     struct index_vector *st_matches = alloc_index_vector(100);
     init_st_leaf_iter(&st_iter, st, match_root);

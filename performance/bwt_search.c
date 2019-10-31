@@ -114,13 +114,12 @@ static unsigned long get_performance(struct bwt_table *bwt_table, uint32_t m, fl
     assert(m > 0);
     
     clock_t search_begin, search_end;
-    char *p;
 
     search_begin = clock();
     for (uint32_t j = 0; j < 10; ++j) {
-        p = sample_string(bwt_table->sa->string,
-                        bwt_table->sa->length,
-                        m);
+        char *p = sample_string(bwt_table->sa->string,
+                                bwt_table->sa->length,
+                                m);
         edit_string(p, bwt_table, m, err);
         search(bwt_table, p, edits);
         free(p);

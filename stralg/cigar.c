@@ -17,7 +17,7 @@ void correct_cigar(char *buffer, const char *cigar)
 {
     while (*cigar) {
         const char *next = scan(cigar);
-        buffer = buffer + sprintf(buffer, "%lu%c", next - cigar, *cigar);
+        buffer = buffer + sprintf(buffer, "%d%c", (int)(next - cigar), *cigar);
         cigar = next;
     }
     *buffer = '\0';

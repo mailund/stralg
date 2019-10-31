@@ -12,7 +12,7 @@
 static char *match_string(uint32_t idx, const char *string, const char *cigar)
 {
     char *new_string = malloc(BUFFER_SIZE);
-    sprintf(new_string, "%u %s %s", idx, string, cigar);
+    sprintf(new_string, "%lu %s %s", (unsigned long)idx, string, cigar);
     return new_string;
 }
 

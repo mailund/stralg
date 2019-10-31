@@ -62,7 +62,7 @@ else
 	failure_tick "Could not find the reference genome file. "
 fi
 printf "Testing that the reads file $(tput setaf 4)$(tput bold)${reads}$(tput sgr0) exists "
-if [ -e $reads ]; then
+if [ -e "$reads" ]; then
 	success
 else
 	failure_tick "Could not find the reads file. "
