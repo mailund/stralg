@@ -48,6 +48,14 @@ int main(int argc, char **argv)
         assert(i == back);
     }
     
+    char buf[10], buf2[10];
+    remap_between0(buf, string, string + 3, &table);
+    rev_remap(buf2, buf, &table);
+    assert(strcmp(buf2, "aca") == 0);
+    char *buf3 = backmapped(&table, buf);
+    assert(strcmp(buf3, "aca") == 0);
+    free(buf3);
+    
     remap(mapped, string, &table);
     for (uint32_t i = 0; i < n + 1; ++i) {
         printf("mapped[%u] == %d\n", i, mapped[i]);
