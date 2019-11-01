@@ -66,5 +66,23 @@ int main(int argc, const char **argv)
     assert(strcmp(string_vector_get(&svec, 1), "baz") == 0);
     assert(strcmp(string_vector_get(&svec, 2), "foo") == 0);
 
+    struct string_vector svec2;
+    init_string_vector(&svec2, 2);
+    string_vector_append(&svec2, "foo");
+    string_vector_append(&svec2, "bar");
+    string_vector_append(&svec2, "qux");
+    string_vector_append(&svec2, "qax");
+
+    struct string_vector first, second;
+    init_string_vector(&first, 2);
+    init_string_vector(&second, 2);
+    
+    split_string_vectors(&svec, &svec2, &first, &second);
+    assert(first.used == 1);
+    assert(second.used = 2);
+    assert(strcmp(string_vector_get(&first, 0), "baz") == 0);
+    assert(strcmp(string_vector_get(&second, 0), "qax") == 0);
+    assert(strcmp(string_vector_get(&second, 1), "qux") == 0);
+
     return EXIT_SUCCESS;
 }

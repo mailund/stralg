@@ -23,7 +23,8 @@ static int index_cmpfunc (const void *void_a, const void *void_b) {
     if (index_a  < index_b) return -1;
     if (index_a == index_b) return  0;
     if (index_a  > index_b) return  1;
-    return 42; // we can't reach this point but we get a warning anyway
+    // we can't reach this point but we get a warning anyway
+    return 42; // LCOV_EXCL_LINE
 }
 
 void sort_index_vector(struct index_vector *vec)
