@@ -83,6 +83,15 @@ int main(int argc, const char **argv)
     assert(strcmp(string_vector_get(&first, 0), "baz") == 0);
     assert(strcmp(string_vector_get(&second, 0), "qax") == 0);
     assert(strcmp(string_vector_get(&second, 1), "qux") == 0);
+    
+    first.used = 0;
+    second.used = 0;
+    split_string_vectors(&svec2, &svec, &first, &second);
+    assert(first.used == 2);
+    assert(second.used = 1);
+    assert(strcmp(string_vector_get(&second, 0), "baz") == 0);
+    assert(strcmp(string_vector_get(&first, 0), "qax") == 0);
+    assert(strcmp(string_vector_get(&first, 1), "qux") == 0);
 
     return EXIT_SUCCESS;
 }
