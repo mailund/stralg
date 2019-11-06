@@ -161,29 +161,27 @@ void init_kmp_match_iter(
     iter->text = text;       iter->n = n;
     iter->pattern = pattern; iter->m = m;
     iter->j = 0;             iter->i = 0;
-    iter->max_match_len = n - m;
 
     // Build prefix border array -- I allocate with calloc
     // because the static analyser otherwise think it can contain
     // garbage values after the initialisation.
-    uint32_t *prefixtab = calloc(m, sizeof(uint32_t));
-    prefixtab[0] = 0;
+    uint32_t *ba = calloc(m, sizeof(uint32_t));
+    ba[0] = 0;
     for (uint32_t i = 1; i < m; ++i) {
-        uint32_t k = prefixtab[i - 1];
+        uint32_t k = ba[i - 1];
         while (k > 0 && pattern[i] != pattern[k])
-            k = prefixtab[k - 1];
-        prefixtab[i] = (pattern[i] == pattern[k]) ? k + 1 : 0;
+            k = ba[k - 1];
+        ba[i] = (pattern[i] == pattern[k]) ? k + 1 : 0;
     }
 
     // Modify it so the we avoid borders where the following
     // letters match
     for (uint32_t i = 0; i < m - 1; i++) {
-        prefixtab[i] =
-            (pattern[prefixtab[i]] != pattern[i + 1] || prefixtab[i] == 0) ?
-            prefixtab[i] : prefixtab[prefixtab[i] - 1];
+        if (ba[i] > 0 && pattern[ba[i]] == pattern[i + 1])
+            ba[i] = ba[ba[i] - 1];
     }
 
-    iter->prefixtab = prefixtab;
+    iter->ba = ba;
 }
 
 bool next_kmp_match(
@@ -195,7 +193,6 @@ bool next_kmp_match(
     uint32_t i = iter->i;
     uint32_t m = iter->m;
     uint32_t n = iter->n;
-    uint32_t max_match_index = iter->max_match_len;
     const char *text = iter->text;
     const char *pattern = iter->pattern;
     
@@ -206,7 +203,7 @@ bool next_kmp_match(
 
     // Remember that j matches the first i
     // items into the string, so + i.
-    while (j <= max_match_index + i) {
+    while (j <= n - m + i) {
         // Match as far as we can
         while (i < m && text[j] == pattern[i]) {
             i++; j++;
@@ -218,7 +215,7 @@ bool next_kmp_match(
         
         // Update indices
         if (i == 0) j++;
-        else i = iter->prefixtab[i - 1];
+        else i = iter->ba[i - 1];
         
         // If we have a hit...
         if (we_have_a_match) {
@@ -234,7 +231,7 @@ bool next_kmp_match(
 void dealloc_kmp_match_iter(
     struct kmp_match_iter *iter
 ) {
-    free(iter->prefixtab);
+    free(iter->ba);
 }
 
 

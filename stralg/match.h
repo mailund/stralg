@@ -49,8 +49,7 @@ void dealloc_border_match_iter(
 struct kmp_match_iter {
     const char *text;    uint32_t n;
     const char *pattern; uint32_t m;
-    uint32_t *prefixtab;
-    uint32_t max_match_len;
+    uint32_t *ba;
     uint32_t j, i;
 };
 void init_kmp_match_iter(
