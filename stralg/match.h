@@ -69,7 +69,8 @@ struct bmh_match_iter {
     const char *text;    uint32_t n;
     const char *pattern; uint32_t m;
     // Implicitly assuming that the alphabet is eight bits!
-    uint32_t jump_table[256];
+    // Signed so we can indicate no occurrence
+    int32_t rightmost[256];
     uint32_t j;
 };
 void init_bmh_match_iter(

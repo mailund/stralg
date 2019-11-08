@@ -119,38 +119,6 @@ void dealloc_border_match_iter(
     free(iter->border_array);
 }
 
-#if 0
-static void ba_search(char * key, char * buffer)
-{
-    unsigned long n = strlen(buffer);
-    unsigned long m = strlen(key);
-    unsigned long ba[m];
-
-    // This is necessary because n and m are unsigned so the
-    // "j < n - m + 1" loop test can suffer from an overflow.
-    if (m > n)) return false;
-    if (m == 0) return false;
-
-    
-    ba[0] = 0;
-    for (int i = 1; i < m; ++i) {
-        int b = ba[i-1];
-        while (b > 0 && key[i] != key[b])
-            b = ba[b-1];
-        ba[i] = (key[i] == key[b]) ? b + 1 : 0;
-    }
-
-    unsigned long b = 0;
-    for (unsigned long i = 0; i < n; ++i) {
-        while (b > 0 && buffer[i] != key[b])
-            b = ba[b-1];
-        b = (buffer[i] == key[b]) ? b + 1 : 0;
-        if (b == m)
-            report(i - m + 1);
-    }
-}
-#endif
-
 
 void init_kmp_match_iter(
     struct kmp_match_iter *iter,
@@ -244,41 +212,46 @@ void init_bmh_match_iter(
     iter->text = text; iter->n = n;
     iter->pattern = pattern; iter->m = m;
     for (uint32_t k = 0; k < 256; k++) {
-        iter->jump_table[k] = m;
+        iter->rightmost[k] = -1;
     }
     for (uint32_t k = 0; k < m - 1; k++) {
-        iter->jump_table[(unsigned char)pattern[k]] = m - k - 1;
+        iter->rightmost[(unsigned char)pattern[k]] = k;
     }
 }
+
+#define MAX(a,b) (((a) > (b)) ? (a) : (b))
+#define BMH_JUMP() \
+    MAX(i - rightmost[(unsigned char)text[j + i]], \
+        (int32_t)m - \
+          rightmost[(unsigned char)text[j + m - 1]] - 1)
 
 bool next_bmh_match(
     struct bmh_match_iter *iter,
     struct match *match
 ) {
-    // aliasing to make the code easier to read...
+    // Aliasing to make the code easier to read...
     const char *text = iter->text;
     const char *pattern = iter->pattern;
     uint32_t n = iter->n;
     uint32_t m = iter->m;
-    uint32_t *jump_table = iter->jump_table;
+    int32_t *rightmost = iter->rightmost;
 
-    // This is necessary because n and m are unsigned so the
-    // "j < n - m + 1" loop test can suffer from an overflow.
     if (m > strlen(text)) return false;
     if (m == 0) return false;
 
-    
-    for (uint32_t j = iter->j;
-         j < n - m + 1;
-         j += jump_table[(unsigned char)text[j + m - 1]]) {
-
-        uint32_t i = m - 1;
+    // We need to handle negative numbers, and we have already
+    // assumed that indices into the pattern can fit into
+    // this type
+    int32_t i = m - 1;
+    for (uint32_t j = iter->j; j < n - m + 1; j += BMH_JUMP()) {
+        
+        i = m - 1;
         while (i > 0 && pattern[i] == text[j + i]) {
             i--;
         }
         if (i == 0 && pattern[0] == text[j]) {
             match->pos = j;
-            iter->j = j + jump_table[(unsigned char)text[j + m - 1]];
+            iter->j = j + BMH_JUMP();
             return true;
         }
     }
