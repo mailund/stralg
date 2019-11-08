@@ -294,7 +294,7 @@ static struct suffix_tree_node * fast_scan(struct suffix_tree *st,
         //    v |--------| w (s,t)
         //     x|---|xend       (but x and xend might not be in (s,t))
         //        k
-        uint32_t k = xend - x;
+        uint32_t k = (uint32_t)(xend - x);
         assert(k > 0);
         const char *split_point = w->range.from + k;
         return split_edge(st, w, split_point);
@@ -856,8 +856,8 @@ static void print_out_edges(FILE *f,
     
     while (child) {
         get_edge_label(st, child, label_buffer);
-        uint32_t from_idx = child->range.from - st->string;
-        uint32_t to_idx = child->range.to - st->string;
+        uint32_t from_idx = (uint32_t)(child->range.from - st->string);
+        uint32_t to_idx = (uint32_t)(child->range.to - st->string);
         fprintf(f, "\"%p\" -> \"%p\" [label=\"%s (%u,%u)\"];\n",
                 from, child, label_buffer, from_idx, to_idx);
         fprintf(f, "\"%p\" -> \"%p\" [style=\"dashed\"];\n",

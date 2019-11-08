@@ -108,7 +108,7 @@ void completely_free_bwt_table(struct bwt_table *bwt_table)
 
 struct bwt_table *build_complete_table(const char *string, bool include_reverse)
 {
-    uint32_t n = strlen(string);
+    uint32_t n = (uint32_t)strlen(string);
     char *remapped_str = malloc(n + 1);
     struct remap_table  *remap_table = alloc_remap_table(string);
     remap(remapped_str, string, remap_table);
@@ -221,7 +221,7 @@ static void rec_approx_matching(struct bwt_approx_iter *iter,
         // I could before but having all the traversal as an iterator
         // is very slow.
         
-        uint32_t cig_len = cigar - iter->cigar_buf;
+        uint32_t cig_len = (uint32_t)(cigar - iter->cigar_buf);
         char *my_cigar = str_copy_n(iter->cigar_buf, cig_len);
         str_inplace_rev(my_cigar);
         char *real_cigar = malloc(iter->m + 4 * iter->edits + 1);
@@ -286,7 +286,7 @@ void init_bwt_approx_iter(struct bwt_approx_iter *iter,
     init_index_vector(&iter->match_lengths, 10);
     
     if (bwt_table->ro_table) {
-        uint32_t m = strlen(remapped_pattern);
+        uint32_t m = (uint32_t)strlen(remapped_pattern);
         iter->D_table = malloc(m * sizeof(int));
         
         int min_edits = 0;
@@ -307,7 +307,7 @@ void init_bwt_approx_iter(struct bwt_approx_iter *iter,
     }
     
     assert(remapped_pattern);
-    uint32_t m = strlen(remapped_pattern);
+    uint32_t m = (uint32_t)strlen(remapped_pattern);
     assert(m > 0);
     // one edit can max cost four characters
     uint32_t buf_size = m + 4 * edits + 1;

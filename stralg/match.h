@@ -4,6 +4,7 @@
 #include <stddef.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <lists.h>
 
 struct match {
     uint32_t pos;
@@ -71,6 +72,7 @@ struct bmh_match_iter {
     // Implicitly assuming that the alphabet is eight bits!
     // Signed so we can indicate no occurrence
     int32_t rightmost[256];
+    struct index_linked_list *rightmost_table[256];
     uint32_t j;
 };
 void init_bmh_match_iter(

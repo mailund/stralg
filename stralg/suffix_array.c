@@ -354,7 +354,7 @@ static void skew_rec(uint32_t *s, uint32_t n,
 
 static void skew(const char *x, uint32_t *sa)
 {
-    uint32_t n = strlen(x);
+    uint32_t n = (uint32_t)strlen(x);
     // trivial special cases
     if (n == 0) {
         sa[0] = 0;

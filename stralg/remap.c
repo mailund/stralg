@@ -171,7 +171,7 @@ void print_remap_table(const struct remap_table *table)
 
 char *backmapped(struct remap_table *table, const char *x)
 {
-    uint32_t n = strlen(x);
+    uint32_t n = (uint32_t)strlen(x);
     char *result = malloc(n + 1);
     rev_remap(result, x, table);
     return result;

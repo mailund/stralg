@@ -13,7 +13,7 @@ struct range {
     const char *to;
 };
 static inline uint32_t range_length(struct range r) {
-    return r.to - r.from;
+    return (uint32_t)(r.to - r.from);
 }
 
 struct suffix_tree_node {

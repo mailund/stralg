@@ -4,12 +4,12 @@
 
 char *str_copy(const char *x)
 {
-    return str_copy_n(x, strlen(x));
+    return str_copy_n(x, (uint32_t)strlen(x));
 }
 
 void str_inplace_rev(char *x)
 {
-    str_inplace_rev_n(x, strlen(x));
+    str_inplace_rev_n(x, (uint32_t)strlen(x));
 }
 
 char *str_copy_n(const char *x, uint32_t n)

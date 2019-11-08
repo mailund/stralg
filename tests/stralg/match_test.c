@@ -17,8 +17,8 @@
 static void naive_search(const char *x, const char *p,
                          struct index_vector *res)
 {
-    uint32_t n = strlen(x);
-    uint32_t m = strlen(p);
+    uint32_t n = (uint32_t)strlen(x);
+    uint32_t m = (uint32_t)strlen(p);
     
     // otherwise the loop test can go horribly wrong
     if ((long long)n < (long long)m) {
@@ -38,16 +38,16 @@ static void naive_search(const char *x, const char *p,
 static void border_search(const char *x, const char *p,
                           struct index_vector *res)
 {
-    uint32_t n = strlen(x);
-    uint32_t m = strlen(p);
+    uint32_t n = (uint32_t)strlen(x);
+    uint32_t m = (uint32_t)strlen(p);
     int b = 0;
     
     if ((long long)n < (long long)m) {
         return;
     }
 
-    
-    int *ba = malloc(m * sizeof(int));
+    assert(m > 0);
+    int *ba = calloc(m, sizeof(int)); // calloc to satisfy static analysis
     ba[0] = 0;
     for (int i = 1; i < m; ++i) {
         int b = ba[i - 1];
@@ -71,8 +71,8 @@ static void border_search(const char *x, const char *p,
 static void kmp_search(const char *x, const char *p,
                        struct index_vector *res)
 {
-    uint32_t n = strlen(x);
-    uint32_t m = strlen(p);
+    uint32_t n = (uint32_t)strlen(x);
+    uint32_t m = (uint32_t)strlen(p);
     
     if ((long long)n < (long long)m) {
         return;
@@ -107,7 +107,7 @@ static void kmp_search(const char *x, const char *p,
         }
         
         if (i == m) {
-            index_vector_append(res, j - m);
+            index_vector_append(res, (uint32_t)(j - m));
         }
         if (i == 0) j++;
         else i = prefixtab[i - 1];
@@ -119,8 +119,8 @@ static void kmp_search(const char *x, const char *p,
 static void bmh_search(const char *x, const char *p,
                        struct index_vector *res)
 {
-    uint32_t n = strlen(x);
-    uint32_t m = strlen(p);
+    uint32_t n = (uint32_t)strlen(x);
+    uint32_t m = (uint32_t)strlen(p);
     
     if ((long long)n < (long long)m) {
         return;
@@ -503,7 +503,8 @@ int main(int argc, char * argv[])
             "acacaca",
             "acataca",
             "acgc",
-            "ccgc"
+            "ccgc",
+            "aaaaaaaaa"
         };
         uint32_t no_strings = sizeof(strings) / sizeof(const char *);
         const char *patterns[] = {

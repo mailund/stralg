@@ -203,6 +203,28 @@ void dealloc_kmp_match_iter(
 }
 
 
+static void
+print_list(struct index_linked_list *list)
+{
+    while (list) {
+        printf("(%d)->", list->data);
+        list = list->next;
+    }
+    printf("|\n");
+}
+
+
+static int32_t find_rightmost(struct index_linked_list *list, int32_t i)
+{
+    while (list) {
+        if (list->data < i) {
+            return list->data;
+        }
+        list = list->next;
+    }
+    return -1;
+}
+
 void init_bmh_match_iter(
     struct bmh_match_iter *iter,
     const char *text, uint32_t n,
@@ -213,17 +235,21 @@ void init_bmh_match_iter(
     iter->pattern = pattern; iter->m = m;
     for (uint32_t k = 0; k < 256; k++) {
         iter->rightmost[k] = -1;
+        iter->rightmost_table[k] = 0;
     }
     for (uint32_t k = 0; k < m - 1; k++) {
         iter->rightmost[(unsigned char)pattern[k]] = k;
+        iter->rightmost_table[(unsigned char)pattern[k]] =
+            new_index_link(k,
+                iter->rightmost_table[(unsigned char)pattern[k]]);
     }
 }
 
+
 #define MAX(a,b) (((a) > (b)) ? (a) : (b))
 #define BMH_JUMP() \
-    MAX(i - rightmost[(unsigned char)text[j + i]], \
-        (int32_t)m - \
-          rightmost[(unsigned char)text[j + m - 1]] - 1)
+    MAX(i - find_rightmost(iter->rightmost_table[(unsigned char)text[j + i]], i), \
+        (int32_t)m - rightmost[(unsigned char)text[j + m - 1]] - 1)
 
 bool next_bmh_match(
     struct bmh_match_iter *iter,
@@ -235,6 +261,7 @@ bool next_bmh_match(
     uint32_t n = iter->n;
     uint32_t m = iter->m;
     int32_t *rightmost = iter->rightmost;
+    //struct index_linked_list **rightmost_table = iter->rightmost_table;
 
     if (m > strlen(text)) return false;
     if (m == 0) return false;
@@ -261,5 +288,7 @@ bool next_bmh_match(
 void dealloc_bmh_match_iter(
     struct bmh_match_iter *iter
 ) {
-    // nop
+    for (uint32_t k = 0; k < 256; k++) {
+        free_index_list(iter->rightmost_table[k]);
+    }
 }

@@ -4,16 +4,6 @@
 #include <stdlib.h>
 #include <stdint.h>
 
-/// NB: new_link() handles the return.
-// It is slightly more complicated otherwise, since we then need to get hold
-// of the link after we set the values and return this to the caller of the
-// macro. This is much simpler
-#define new_link(list_type, val, tail) {          \
-    list_type *link = malloc(sizeof(list_type));  \
-    link->data = val; link->next = tail;          \
-    return link;                                  \
-}
-
 // MARK: Index lists
 struct index_linked_list {
     struct index_linked_list *next;
@@ -23,7 +13,10 @@ struct index_linked_list {
 static inline struct index_linked_list *
 new_index_link(uint32_t val, struct index_linked_list *tail)
 {
-    new_link(struct index_linked_list, val, tail);
+    struct index_linked_list *link =
+        malloc(sizeof(struct index_linked_list));
+    link->data = val; link->next = tail;
+    return link;
 }
 void free_index_list(struct index_linked_list *list);
 
@@ -36,7 +29,10 @@ struct pointer_linked_list {
 static inline struct pointer_linked_list *
 new_pointer_link(void *val, struct pointer_linked_list *tail)
 {
-    new_link(struct pointer_linked_list, val, tail);
+    struct pointer_linked_list *link =
+        malloc(sizeof(struct pointer_linked_list));
+    link->data = val; link->next = tail;
+    return link;
 }
 void free_pointer_list(struct pointer_linked_list *list);
 
