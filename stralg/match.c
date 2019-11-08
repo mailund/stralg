@@ -203,17 +203,6 @@ void dealloc_kmp_match_iter(
 }
 
 
-static void
-print_list(struct index_linked_list *list)
-{
-    while (list) {
-        printf("(%d)->", list->data);
-        list = list->next;
-    }
-    printf("|\n");
-}
-
-
 static int32_t find_rightmost(struct index_linked_list *list, int32_t i)
 {
     while (list) {
