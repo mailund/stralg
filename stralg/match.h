@@ -88,4 +88,27 @@ void dealloc_bmh_match_iter(
     struct bmh_match_iter *iter
 );
 
+struct bm_match_iter {
+    const char *text;    uint32_t n;
+    const char *pattern; uint32_t m;
+    // Implicitly assuming that the alphabet is eight bits!
+    // Signed so we can indicate no occurrence
+    int32_t rightmost[256];
+    struct index_linked_list *rightmost_table[256];
+    uint32_t j;
+};
+void init_bm_match_iter(
+    struct bmh_match_iter *iter,
+    const char *text, uint32_t n,
+    const char *pattern, uint32_t m
+);
+bool next_bm_match(
+    struct bmh_match_iter *iter,
+    struct match *match
+);
+void dealloc_bm_match_iter(
+    struct bmh_match_iter *iter
+);
+
+
 #endif

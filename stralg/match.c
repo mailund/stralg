@@ -53,6 +53,31 @@ void dealloc_naive_match_iter(
     // nothing to do here...
 }
 
+
+/// Border match
+
+static void compute_border_array(uint32_t *ba, const char *x, uint32_t m)
+{
+    ba[0] = 0;
+    for (uint32_t i = 1; i < m; ++i) {
+        uint32_t b = ba[i - 1];
+        while (b > 0 && x[i] != x[b])
+            b = ba[b - 1];
+        ba[i] = (x[i] == x[b]) ? b + 1 : 0;
+    }
+}
+
+// The extended border array have borders that differ
+// on the following character.
+static void compute_extended_border_array(uint32_t *ba, const char *x, uint32_t m)
+{
+    compute_border_array(ba, x, m);
+    for (uint32_t i = 0; i < m - 1; i++) {
+        if (ba[i] > 0 && x[ba[i]] == x[i + 1])
+            ba[i] = ba[ba[i] - 1];
+    }
+}
+
 void init_border_match_iter(
     struct border_match_iter *iter,
     const char *text, uint32_t n,
@@ -65,13 +90,7 @@ void init_border_match_iter(
     iter->i = iter->b = 0;
 
     uint32_t *ba = malloc(m * sizeof(uint32_t));
-    ba[0] = 0;
-    for (uint32_t i = 1; i < m; ++i) {
-        uint32_t b = ba[i - 1];
-        while (b > 0 && pattern[i] != pattern[b])
-            b = ba[b - 1];
-        ba[i] = (pattern[i] == pattern[b]) ? b + 1 : 0;
-    }
+    compute_border_array(ba, pattern, m);
     iter->border_array = ba;
 }
 
@@ -135,19 +154,7 @@ void init_kmp_match_iter(
     // garbage values after the initialisation.
     uint32_t *ba = calloc(m, sizeof(uint32_t));
     ba[0] = 0;
-    for (uint32_t i = 1; i < m; ++i) {
-        uint32_t k = ba[i - 1];
-        while (k > 0 && pattern[i] != pattern[k])
-            k = ba[k - 1];
-        ba[i] = (pattern[i] == pattern[k]) ? k + 1 : 0;
-    }
-
-    // Modify it so the we avoid borders where the following
-    // letters match
-    for (uint32_t i = 0; i < m - 1; i++) {
-        if (ba[i] > 0 && pattern[ba[i]] == pattern[i + 1])
-            ba[i] = ba[ba[i] - 1];
-    }
+    compute_extended_border_array(ba, pattern, m);
 
     iter->ba = ba;
 }
@@ -281,3 +288,74 @@ void dealloc_bmh_match_iter(
         free_index_list(iter->rightmost_table[k]);
     }
 }
+
+
+void init_bm_match_iter(
+    struct bmh_match_iter *iter,
+    const char *text, uint32_t n,
+    const char *pattern, uint32_t m
+) {
+    iter->j = 0;
+    iter->text = text; iter->n = n;
+    iter->pattern = pattern; iter->m = m;
+    for (uint32_t k = 0; k < 256; k++) {
+        iter->rightmost[k] = -1;
+        iter->rightmost_table[k] = 0;
+    }
+    for (uint32_t k = 0; k < m - 1; k++) {
+        iter->rightmost[(unsigned char)pattern[k]] = k;
+        iter->rightmost_table[(unsigned char)pattern[k]] =
+            new_index_link(k,
+                iter->rightmost_table[(unsigned char)pattern[k]]);
+    }
+}
+
+
+/// Boyer-Moore
+
+#define BM_JUMP() \
+    MAX(i - find_rightmost(iter->rightmost_table[(unsigned char)text[j + i]], i), \
+        (int32_t)m - rightmost[(unsigned char)text[j + m - 1]] - 1)
+
+bool next_bm_match(
+    struct bmh_match_iter *iter,
+    struct match *match
+) {
+    // Aliasing to make the code easier to read...
+    const char *text = iter->text;
+    const char *pattern = iter->pattern;
+    uint32_t n = iter->n;
+    uint32_t m = iter->m;
+    int32_t *rightmost = iter->rightmost;
+    //struct index_linked_list **rightmost_table = iter->rightmost_table;
+
+    if (m > strlen(text)) return false;
+    if (m == 0) return false;
+
+    // We need to handle negative numbers, and we have already
+    // assumed that indices into the pattern can fit into
+    // this type
+    int32_t i = m - 1;
+    for (uint32_t j = iter->j; j < n - m + 1; j += BMH_JUMP()) {
+        
+        i = m - 1;
+        while (i > 0 && pattern[i] == text[j + i]) {
+            i--;
+        }
+        if (i == 0 && pattern[0] == text[j]) {
+            match->pos = j;
+            iter->j = j + BMH_JUMP();
+            return true;
+        }
+    }
+    return false;
+}
+
+void dealloc_bm_match_iter(
+    struct bmh_match_iter *iter
+) {
+    for (uint32_t k = 0; k < 256; k++) {
+        free_index_list(iter->rightmost_table[k]);
+    }
+}
+
