@@ -79,6 +79,9 @@ int main(int argc, const char **args)
     for (int i = 0; i < m; ++i) {
         assert(computed_rba[i] == rba[i]);
     }
+    
+    free(rev_x);
+    
 
     uint32_t computed_xrba[m];
     uint32_t xrba[] = {
@@ -97,12 +100,9 @@ int main(int argc, const char **args)
         3  // ababacbabaaba($)
     };
 
-    
-    
-    
     compute_reverse_border_array(computed_rba, x, m);
     for (int i = 0; i < m; ++i) {
-        printf("computed_rba[%u] = %u; rba[%i] = %u\n", i,
+        printf("computed_rba[%u] = %u; rba[%u] = %u\n", i,
                computed_rba[i], i, rba[m - i - 1]);
         assert(computed_rba[i] == rba[m - i - 1]);
     }
@@ -110,12 +110,21 @@ int main(int argc, const char **args)
 
     compute_reverse_extended_border_array(computed_xrba, x, m);
     for (int i = 0; i < m; ++i) {
-        printf("computed_xrba[%u] = %u; xrba[%i] = %u\n", i, computed_xrba[i], i, xrba[m - i - 1]);
+        printf("computed_xrba[%u] = %u; xrba[%u] = %u\n", i, computed_xrba[i], i, xrba[m - i - 1]);
         assert(computed_xrba[i] == xrba[m - i - 1]);
     }
     printf("\n");
     
-    free(rev_x);
+    
+    uint32_t Z[m];
+    uint32_t Z_expected[] = {
+      0, 0, 1, 3, 0, 2, 0, 0, 3, 0, 3, 0, 1
+    };
+    compute_z_array(x, m, Z);
+    for (int i = 0; i < m; ++i) {
+        assert(Z[i] == Z_expected[i]);
+        printf("Z[%.2u] = %u\n", i, Z[i]);
+    }
     
     return EXIT_SUCCESS;
 }
