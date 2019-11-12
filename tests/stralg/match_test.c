@@ -151,7 +151,6 @@ static void bmh_search(const char *x, const char *p,
 
 
 
-
 typedef bool (*iteration_func)(
     void *iter,
     void *match
@@ -216,6 +215,7 @@ static void simple_exact_matchers(struct index_vector *naive,
     struct index_vector border; init_index_vector(&border, 10);
     struct index_vector kmp;    init_index_vector(&kmp, 10);
     struct index_vector bmh;    init_index_vector(&bmh, 10);
+    struct index_vector bm;     init_index_vector(&bm, 10);
     
     struct index_vector real_naive; init_index_vector(&real_naive, 10);
     
@@ -265,6 +265,7 @@ static void simple_exact_matchers(struct index_vector *naive,
     dealloc_index_vector(&real_naive);
 
     
+    
     printf("border algorithm.\n");
     struct border_match_iter border_iter;
     iter_test(
@@ -295,14 +296,26 @@ static void simple_exact_matchers(struct index_vector *naive,
               (iter_dealloc_func)dealloc_bmh_match_iter,
               &bmh
               );
-    
+    printf("BM algorithm.\n");
+    struct bm_match_iter bm_iter;
+    iter_test(
+              string, pattern,
+              &bm_iter,
+              (iter_init_func)init_bm_match_iter,
+              (iteration_func)next_bm_match,
+              (iter_dealloc_func)dealloc_bm_match_iter,
+              &bm
+              );
+
     assert(index_vector_equal(naive, &border));
     assert(index_vector_equal(naive, &kmp));
     assert(index_vector_equal(naive, &bmh));
+    assert(index_vector_equal(naive, &bm));
     
     dealloc_index_vector(&border);
     dealloc_index_vector(&kmp);
     dealloc_index_vector(&bmh);
+    dealloc_index_vector(&bm);
 }
 
 static void general_suffix_test(struct index_vector *naive,

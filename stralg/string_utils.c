@@ -31,6 +31,20 @@ void str_inplace_rev_n(char *x, uint32_t n)
     }
 }
 
+char *str_rev_n(const char *x, uint32_t n)
+{
+    char *x_copy = str_copy_n(x, n);
+    str_inplace_rev_n(x_copy, n);
+    return x_copy;
+}
+
+char *str_rev(const char *x)
+{
+    return str_rev_n(x, strlen(x));
+}
+
+
+
 void write_string_len(FILE *f, const char *str, uint32_t len)
 {
     fwrite(&len, sizeof(len), 1, f);

@@ -21,6 +21,12 @@ void str_inplace_rev(char *x);
 void str_inplace_rev_n(char *x, uint32_t n);
 
 /**
+ * Return a reverse string
+ **/
+char *str_rev(const char *x);
+char *str_rev_n(const char *x, uint32_t n);
+
+/**
  * Serialisation: write a string to a file.
  *
  * The serialised string knows its length as well as

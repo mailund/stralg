@@ -1,5 +1,6 @@
 
 #include "match.h"
+#include "borders.h"
 
 #include <stdlib.h>
 #include <assert.h>
@@ -56,27 +57,9 @@ void dealloc_naive_match_iter(
 
 /// Border match
 
-static void compute_border_array(uint32_t *ba, const char *x, uint32_t m)
-{
-    ba[0] = 0;
-    for (uint32_t i = 1; i < m; ++i) {
-        uint32_t b = ba[i - 1];
-        while (b > 0 && x[i] != x[b])
-            b = ba[b - 1];
-        ba[i] = (x[i] == x[b]) ? b + 1 : 0;
-    }
-}
 
-// The extended border array have borders that differ
-// on the following character.
-static void compute_extended_border_array(uint32_t *ba, const char *x, uint32_t m)
-{
-    compute_border_array(ba, x, m);
-    for (uint32_t i = 0; i < m - 1; i++) {
-        if (ba[i] > 0 && x[ba[i]] == x[i + 1])
-            ba[i] = ba[ba[i] - 1];
-    }
-}
+
+
 
 void init_border_match_iter(
     struct border_match_iter *iter,
@@ -291,7 +274,7 @@ void dealloc_bmh_match_iter(
 
 
 void init_bm_match_iter(
-    struct bmh_match_iter *iter,
+    struct bm_match_iter *iter,
     const char *text, uint32_t n,
     const char *pattern, uint32_t m
 ) {
@@ -308,17 +291,20 @@ void init_bm_match_iter(
             new_index_link(k,
                 iter->rightmost_table[(unsigned char)pattern[k]]);
     }
+    
+    iter->jump1 = malloc(sizeof(uint32_t) * m);
 }
 
 
 /// Boyer-Moore
 
 #define BM_JUMP() \
-    MAX(i - find_rightmost(iter->rightmost_table[(unsigned char)text[j + i]], i), \
-        (int32_t)m - rightmost[(unsigned char)text[j + m - 1]] - 1)
+    MAX(1,1)
+    //MAX(i - find_rightmost(iter->rightmost_table[(unsigned char)text[j + i]], i), \
+      //  (int32_t)m - rightmost[(unsigned char)text[j + m - 1]] - 1)
 
 bool next_bm_match(
-    struct bmh_match_iter *iter,
+    struct bm_match_iter *iter,
     struct match *match
 ) {
     // Aliasing to make the code easier to read...
@@ -326,7 +312,7 @@ bool next_bm_match(
     const char *pattern = iter->pattern;
     uint32_t n = iter->n;
     uint32_t m = iter->m;
-    int32_t *rightmost = iter->rightmost;
+    //int32_t *rightmost = iter->rightmost;
     //struct index_linked_list **rightmost_table = iter->rightmost_table;
 
     if (m > strlen(text)) return false;
@@ -336,7 +322,7 @@ bool next_bm_match(
     // assumed that indices into the pattern can fit into
     // this type
     int32_t i = m - 1;
-    for (uint32_t j = iter->j; j < n - m + 1; j += BMH_JUMP()) {
+    for (uint32_t j = iter->j; j < n - m + 1; j += BM_JUMP()) {
         
         i = m - 1;
         while (i > 0 && pattern[i] == text[j + i]) {
@@ -344,7 +330,7 @@ bool next_bm_match(
         }
         if (i == 0 && pattern[0] == text[j]) {
             match->pos = j;
-            iter->j = j + BMH_JUMP();
+            iter->j = j + BM_JUMP();
             return true;
         }
     }
@@ -352,10 +338,11 @@ bool next_bm_match(
 }
 
 void dealloc_bm_match_iter(
-    struct bmh_match_iter *iter
+    struct bm_match_iter *iter
 ) {
     for (uint32_t k = 0; k < 256; k++) {
         free_index_list(iter->rightmost_table[k]);
     }
+    free(iter->jump1);
 }
 

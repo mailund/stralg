@@ -8,6 +8,7 @@ add_library(stralg SHARED
 	queues.h queues.c
 
 	# string algorithms
+	borders.c borders.h
 	aho_corasick.h aho_corasick.c
 	bwt.h bwt.c
 	cigar.h cigar.c
