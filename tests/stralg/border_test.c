@@ -161,6 +161,25 @@ int main(int argc, const char **args)
     }
     printf("\n");
 
+
+    const char *z = "abcacabca"; uint32_t m2 = 9;
+    uint32_t Z2[] = { 0, 0, 0, 1, 0, 4, 0, 0, 1 };
+    uint32_t Z2_computed[m2];
+    compute_z_array(z, m2, Z2_computed);
+    for (uint32_t i = 0; i < m2; ++i) {
+        printf("Z[%.2u] == %u vs %u\n", i, Z2_computed[i], Z2[i]);
+        assert(Z2_computed[i] == Z2[i]);
+    }
+    printf("\n");
+
+    uint32_t Z1[] = { 0, 1, 0, 0, 4, 0, 2, 0, 0, 0 };
+    uint32_t Z1_computed[m1];
+    compute_reverse_z_array(y, m1, Z1_computed);
+    for (uint32_t i = 0; i < m1; ++i) {
+        printf("Z[%.2u] == %u vs %u\n", i, Z1[i], Z1_computed[i]);
+        assert(Z1[i] == Z1_computed[i]);
+    }
+    printf("\n");
     
     return EXIT_SUCCESS;
 }
