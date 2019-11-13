@@ -116,6 +116,7 @@ int main(int argc, const char **args)
     printf("\n");
     
     
+    
     uint32_t Z[m];
     uint32_t Z_expected[] = {
       0, 0, 1, 3, 0, 2, 0, 0, 3, 0, 3, 0, 1
@@ -125,6 +126,41 @@ int main(int argc, const char **args)
         assert(Z[i] == Z_expected[i]);
         printf("Z[%.2u] = %u\n", i, Z[i]);
     }
+
+    const char *y = "dabcacabca";
+    uint32_t rba1[] = {
+        0,
+        4, 3, 2,
+        1, 2, 1,
+        0, 0, 0
+    };
+    uint32_t m1 = sizeof(rba1) / sizeof(uint32_t);
+    uint32_t computed_rba1[m1];
+    compute_reverse_border_array(computed_rba1, y, m1);
+    
+    for (uint32_t i = 0; i < m1; ++i) {
+        printf("rba[%.2u] == %u, computed[%.2u] == %u\n",
+               i, rba1[i], i, computed_rba1[i]);
+        assert(rba1[i] == computed_rba1[i]);
+    }
+    printf("\n");
+
+    uint32_t xrba1[] = {
+        0,
+        4, 0, 0,
+        0, 2, 0,
+        0, 0, 0
+    };
+    uint32_t computed_xrba1[m1];
+    compute_reverse_extended_border_array(computed_xrba1, y, m1);
+    
+    for (uint32_t i = 0; i < m1; ++i) {
+        printf("xrba[%.2u] == %u, xcomputed[%.2u] == %u\n",
+               i, xrba1[i], i, computed_xrba1[i]);
+        assert(xrba1[i] == computed_xrba1[i]);
+    }
+    printf("\n");
+
     
     return EXIT_SUCCESS;
 }
