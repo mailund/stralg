@@ -141,7 +141,6 @@ struct trie *get_trie_node(struct trie *trie, const char *str)
     return trie;
 }
 
-
 static void enqueue_siblings(struct pointer_queue *queue, struct trie *siblings)
 {
     for (struct trie *s = siblings; s; s = s->sibling)

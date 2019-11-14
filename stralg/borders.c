@@ -29,8 +29,7 @@ static void intarray_rev_n(uint32_t *x, uint32_t n)
 
 void compute_reverse_border_array(uint32_t *rba, const char *x, uint32_t m)
 {
-    char *x_copy = str_copy_n(x, m);
-    str_inplace_rev_n(x_copy, m);
+    char *x_copy = str_rev_n(x, m);
     compute_border_array(rba, x_copy, m);
     intarray_rev_n(rba, m);
     

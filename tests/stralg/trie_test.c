@@ -116,6 +116,8 @@ int main(int argc, char * argv[])
     assert(bab->output->string_label == 3);
     assert(bab->output->next == b->output);
     
+    
+    
     // by writing the trie to a file, I
     // get that code tested as well ... at least
     // I test that it doesn't crash and the
