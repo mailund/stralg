@@ -161,7 +161,7 @@ int main(int argc, char **argv)
                                     &remap_tbl,
                                     pattern_buf, matched_buf, &err);
     assert(!null);
-    assert(err = MALFORMED_CIGAR);
+    assert(err == MALFORMED_CIGAR);
     null = remapped_cigar_alignment("1D2Q", remapped_pattern,
                                     remapped_string + 1,
                                     &remap_tbl,

@@ -95,7 +95,7 @@ struct bm_match_iter {
     // Signed so we can indicate no occurrence
     int32_t rightmost[256];
     struct index_linked_list *rightmost_table[256];
-    uint32_t *jump1;
+    uint32_t *jump1, *jump2;
     uint32_t j;
 };
 void init_bm_match_iter(

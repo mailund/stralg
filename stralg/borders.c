@@ -5,7 +5,7 @@
 #include <string.h>
 
 
-void compute_border_array(uint32_t *ba, const char *x, uint32_t m)
+void compute_border_array(const char *x, uint32_t m, uint32_t *ba)
 {
     ba[0] = 0;
     for (uint32_t i = 1; i < m; ++i) {
@@ -28,7 +28,7 @@ static void intarray_rev_n(uint32_t *x, uint32_t n)
 }
 
 
-void compute_reverse_border_array(uint32_t *rba, const char *x, uint32_t m)
+void compute_reverse_border_array(const char *x, uint32_t m,uint32_t *rba)
 {
     rba[m - 1] = 0;
     for (int32_t i = m - 2; i >= 0; --i) {
@@ -41,9 +41,9 @@ void compute_reverse_border_array(uint32_t *rba, const char *x, uint32_t m)
 
 // The extended border array have borders that differ
 // on the following character.
-void compute_extended_border_array(uint32_t *ba, const char *x, uint32_t m)
+void compute_extended_border_array(const char *x, uint32_t m, uint32_t *ba)
 {
-    compute_border_array(ba, x, m);
+    compute_border_array(x, m, ba);
     for (uint32_t i = 0; i < m - 1; i++) {
         if (ba[i] > 0 && x[ba[i]] == x[i + 1])
             ba[i] = ba[ba[i] - 1];
@@ -51,12 +51,12 @@ void compute_extended_border_array(uint32_t *ba, const char *x, uint32_t m)
 }
 
 
-void compute_reverse_extended_border_array(uint32_t *rba, const char *x, uint32_t m)
+void compute_reverse_extended_border_array(const char *x, uint32_t m, uint32_t *rba)
 {
     char x_copy[m];
     strncpy(x_copy, x, m);
     str_inplace_rev_n(x_copy, m);
-    compute_extended_border_array(rba, x_copy, m);
+    compute_extended_border_array(x_copy, m, rba);
     intarray_rev_n(rba, m);
 }
 
@@ -74,18 +74,13 @@ static uint32_t match(const char * s1, const char * s2)
 void compute_z_array(const char *x, uint32_t n, uint32_t *Z)
 {
     Z[0] = 0;
-    for (uint32_t i = 1; i < n; ++i) {
-        Z[i] = match(x, x + i);
-    }
-#if 0
-    Z[0] = 0;
     Z[1] = match(x, x + 1);
-    uint32_t l = 2;
-    uint32_t r = Z[1];
-    for (uint32_t k = 2; k < n; ++k) {
+    uint32_t l = 1;
+    uint32_t r = l + Z[1];
 
+    for (uint32_t k = 2; k < n; ++k) {
+        // Case 1:
         if (k >= r) {
-            
             Z[k] = match(x, x + k);
             if (Z[k] > 0) {
                 l = k;
@@ -93,19 +88,19 @@ void compute_z_array(const char *x, uint32_t n, uint32_t *Z)
             }
 
         } else {
+            // Case 2:
             uint32_t kk = k - l;
-            uint32_t len = r - k;
-            if (Z[kk] < len) {
+            if (Z[kk] < r - k) {
                 Z[k] = Z[kk];
+            
             } else {
-                uint32_t q = match(x + len, x + r);
-                Z[k] = len + q;
+                // Case 3
+                Z[k] = r - k + match(x + r - k, x + r);
                 l = k;
                 r = k + Z[k];
-            }
+              }
         }
     }
-#endif
 }
 
 void compute_reverse_z_array(const char *x, uint32_t m, uint32_t *Z)

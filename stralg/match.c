@@ -73,7 +73,7 @@ void init_border_match_iter(
     iter->i = iter->b = 0;
 
     uint32_t *ba = malloc(m * sizeof(uint32_t));
-    compute_border_array(ba, pattern, m);
+    compute_border_array(pattern, m, ba);
     iter->border_array = ba;
 }
 
@@ -137,7 +137,7 @@ void init_kmp_match_iter(
     // garbage values after the initialisation.
     uint32_t *ba = calloc(m, sizeof(uint32_t));
     ba[0] = 0;
-    compute_extended_border_array(ba, pattern, m);
+    compute_extended_border_array(pattern, m, ba);
 
     iter->ba = ba;
 }
@@ -228,7 +228,7 @@ void init_bmh_match_iter(
 #define MAX(a,b) (((a) > (b)) ? (a) : (b))
 #define BMH_JUMP() \
     MAX(i - find_rightmost(iter->rightmost_table[(unsigned char)text[j + i]], i), \
-        (int32_t)m - rightmost[(unsigned char)text[j + m - 1]] - 1)
+        (int32_t)m - iter->rightmost[(unsigned char)text[j + m - 1]] - 1)
 
 bool next_bmh_match(
     struct bmh_match_iter *iter,
@@ -239,8 +239,6 @@ bool next_bmh_match(
     const char *pattern = iter->pattern;
     uint32_t n = iter->n;
     uint32_t m = iter->m;
-    int32_t *rightmost = iter->rightmost;
-    //struct index_linked_list **rightmost_table = iter->rightmost_table;
 
     if (m > strlen(text)) return false;
     if (m == 0) return false;
@@ -307,15 +305,21 @@ void init_bm_match_iter(
         // one of the other rules will be used.
         iter->jump1[m - rZ[i] - 1] = m - i - 1;
     }
+
+    iter->jump2 = malloc(sizeof(uint32_t) * m);
+    for (uint32_t i = 0; i < m; i++) {
+        iter->jump2[i] = 0;
+    }
+    uint32_t ba[m];
+    compute_border_array(iter->pattern, m, ba);
 }
 
 
 /// Boyer-Moore
-
+#define MAX(a,b) (((a) > (b)) ? (a) : (b))
+#define MIN(a,b) (((a) < (b)) ? (a) : (b))
 #define BM_JUMP() \
-    MAX(1,iter->jump1[i])
-    //MAX(i - find_rightmost(iter->rightmost_table[(unsigned char)text[j + i]], i), \
-      //  (int32_t)m - rightmost[(unsigned char)text[j + m - 1]] - 1)
+    MAX(MIN(iter->jump1[i], iter->jump2[i]), BMH_JUMP())
 
 bool next_bm_match(
     struct bm_match_iter *iter,
@@ -326,10 +330,8 @@ bool next_bm_match(
     const char *pattern = iter->pattern;
     uint32_t n = iter->n;
     uint32_t m = iter->m;
-    //int32_t *rightmost = iter->rightmost;
-    //struct index_linked_list **rightmost_table = iter->rightmost_table;
 
-    if (m > strlen(text)) return false;
+    if (m > n) return false;
     if (m == 0) return false;
 
     // We need to handle negative numbers, and we have already
