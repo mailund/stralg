@@ -7,6 +7,93 @@
 #include <string.h>
 #include <assert.h>
 
+void sample_random_string(char * str, unsigned long n)
+{
+    for (unsigned long i = 0; i < n; ++i) {
+        str[i] = "abcd"[random()&3];
+    }
+    str[n] = '\0';
+}
+
+void build_z_array_from_ba(const uint32_t * ba, uint32_t n, uint32_t * Z)
+{
+    for (uint32_t i = 0; i < n; ++i) {
+        Z[i] = 0;
+    }
+    for (uint32_t i = n; i > 0; --i) {
+        uint32_t b = ba[i-1];
+        uint32_t k = i - b;
+        while (b != 0 && Z[k] == 0) {
+            Z[k] = b;
+            b = ba[b-1];
+            k = i - b;
+        }
+    }
+}
+
+static uint32_t match(const char * s1, const char * s2)
+{
+    uint32_t n = 0;
+    while (*s1 && *s2 && (*s1 == *s2)) {
+        ++s1;
+        ++s2;
+        ++n;
+    }
+    return n;
+}
+
+void trivial_compute_z_array(const char *x, uint32_t n, uint32_t *Z)
+{
+    Z[0] = 0;
+    for (uint32_t i = 1; i < n; ++i) {
+        Z[i] = match(x, x + i);
+    }
+}
+
+static void test_random(void)
+{
+    unsigned long n = 10;
+    char test_str[n + 1];
+    uint32_t Z1[n], Z2[n];
+
+    sample_random_string(test_str, n);
+    
+    printf("RANDOM TEST: %s\n", test_str);
+    trivial_compute_z_array(test_str, n, Z1);
+    compute_z_array(test_str, n, Z2);
+    
+    for (uint32_t i = 0; i < n; ++i) {
+        assert(Z1[i] == Z2[i]);
+    }
+
+    for (uint32_t i = 0; i < n; ++i) {
+        printf("Z1[%u] == %u\n", i, Z1[i]);
+        printf("%c %c\n", test_str[Z1[i]], test_str[i + Z1[i]]);
+        //assert(test_str[Z1[i]] != test_str[i + Z1[i]]);
+    }
+    
+/*
+    compute_border_array(ba, test_str, n);
+    build_z_array_from_ba(ba, n, Z2);
+
+    printf("%s\n", test_str);
+
+    for (unsigned long i = 0; i < n; ++i)
+        printf("ba[%lu] == %lu\n", i, ba[i]);
+    printf("\n");
+    for (unsigned long i = 0; i < n; ++i)
+        printf("Z1[%lu] == %lu\n", i, Z1[i]);
+    printf("\n");
+    for (unsigned long i = 0; i < n; ++i)
+        printf("Z2[%lu] == %lu\n", i, Z2[i]);
+    printf("\n");
+
+    for (unsigned long i = 0; i < n; ++i)
+        assert(Z1[i] == Z2[i]);
+ */
+}
+
+
 int main(int argc, const char **args)
 {
     const char *x = "abaababcababa";
@@ -135,6 +222,7 @@ int main(int argc, const char **args)
         0, 0, 0
     };
     uint32_t m1 = sizeof(rba1) / sizeof(uint32_t);
+    assert(strlen(y) == m1);
     uint32_t computed_rba1[m1];
     compute_reverse_border_array(computed_rba1, y, m1);
     
@@ -181,5 +269,21 @@ int main(int argc, const char **args)
     }
     printf("\n");
     
+    
+    for (uint32_t i = 0; i < 10; i++) {
+        test_random();
+    }
+    
+    const char *ababaaba = "ababaaba";
+    uint32_t rZ_computed[strlen(ababaaba)];
+    uint32_t rZ_expected[] = {
+        1, 0, 3, 0, 3, 1, 0, 0
+    };
+    compute_reverse_z_array(ababaaba, strlen(ababaaba), rZ_computed);
+    for (uint32_t i = 0; i < strlen(ababaaba); ++i) {
+        printf("Z[%.2u] == %u vs %u\n", i, rZ_expected[i], rZ_computed[i]);
+        assert(rZ_expected[i] == rZ_computed[i]);
+    }
+
     return EXIT_SUCCESS;
 }

@@ -2,7 +2,7 @@
 #include "borders.h"
 #include "string_utils.h"
 #include <assert.h>
-
+#include <string.h>
 
 
 void compute_border_array(uint32_t *ba, const char *x, uint32_t m)
@@ -27,14 +27,25 @@ static void intarray_rev_n(uint32_t *x, uint32_t n)
     }
 }
 
+/*
 void compute_reverse_border_array(uint32_t *rba, const char *x, uint32_t m)
 {
-    char *x_copy = str_copy_n(x, m);
+    char x_copy[m];
+    strncpy(x_copy, x, m);
     str_inplace_rev_n(x_copy, m);
     compute_border_array(rba, x_copy, m);
     intarray_rev_n(rba, m);
-    
-    free(x_copy);
+}*/
+
+void compute_reverse_border_array(uint32_t *rba, const char *x, uint32_t m)
+{
+    rba[m - 1] = 0;
+    for (int32_t i = m - 2; i >= 0; --i) {
+        unsigned long b = rba[i+1];
+        while (b > 0 && x[i] != x[m - 1 - b])
+            b = rba[m - b];
+        rba[i] = (x[i] == x[m - 1 - b]) ? b + 1 : 0;
+    }
 }
 
 // The extended border array have borders that differ
@@ -51,10 +62,11 @@ void compute_extended_border_array(uint32_t *ba, const char *x, uint32_t m)
 
 void compute_reverse_extended_border_array(uint32_t *rba, const char *x, uint32_t m)
 {
-    char *x_copy = str_rev_n(x, m);
+    char x_copy[m];
+    strncpy(x_copy, x, m);
+    str_inplace_rev_n(x_copy, m);
     compute_extended_border_array(rba, x_copy, m);
     intarray_rev_n(rba, m);
-    free(x_copy);
 }
 
 static uint32_t match(const char * s1, const char * s2)
@@ -71,12 +83,18 @@ static uint32_t match(const char * s1, const char * s2)
 void compute_z_array(const char *x, uint32_t n, uint32_t *Z)
 {
     Z[0] = 0;
+    for (uint32_t i = 1; i < n; ++i) {
+        Z[i] = match(x, x + i);
+    }
+#if 0
+    Z[0] = 0;
     Z[1] = match(x, x + 1);
     uint32_t l = 2;
     uint32_t r = Z[1];
     for (uint32_t k = 2; k < n; ++k) {
 
         if (k >= r) {
+            
             Z[k] = match(x, x + k);
             if (Z[k] > 0) {
                 l = k;
@@ -96,13 +114,14 @@ void compute_z_array(const char *x, uint32_t n, uint32_t *Z)
             }
         }
     }
+#endif
 }
 
 void compute_reverse_z_array(const char *x, uint32_t m, uint32_t *Z)
 {
-    char *x_copy = str_rev_n(x, m);
+    char x_copy[m + 1];
+    strncpy(x_copy, x, m); x_copy[m] = 0;
+    str_inplace_rev_n(x_copy, m);
     compute_z_array(x_copy, m, Z);
     intarray_rev_n(Z, m);
-    free(x_copy);
-
 }

@@ -307,6 +307,18 @@ static void simple_exact_matchers(struct index_vector *naive,
               &bm
               );
 
+    printf("NAIVE =====================================\n");
+    for (uint32_t i = 0; i < naive->used; ++i) {
+        printf("%u ", naive->data[i]);
+    }
+    printf("\n");
+    printf("BM =====================================\n");
+    for (uint32_t i = 0; i < bm.used; ++i) {
+        printf("%u ", bm.data[i]);
+    }
+    printf("\n");
+    printf("=======================================\n");
+
     assert(index_vector_equal(naive, &border));
     assert(index_vector_equal(naive, &kmp));
     assert(index_vector_equal(naive, &bmh));

@@ -293,13 +293,27 @@ void init_bm_match_iter(
     }
     
     iter->jump1 = malloc(sizeof(uint32_t) * m);
+    for (uint32_t i = 0; i < m; i++) {
+        iter->jump1[i] = 0;
+    }
+    uint32_t rZ[m];
+    compute_reverse_z_array(iter->pattern, m, rZ);
+    for (uint32_t i = 0; i < m; i++) {
+        // we don't have to check if rZ[i] = 0.
+        // There, we will always write into n-0-1,
+        // i.e. the last character in the string.
+        // For the last index we set this to n - i - 1
+        // which is zero. When this jump is zero,
+        // one of the other rules will be used.
+        iter->jump1[m - rZ[i] - 1] = m - i - 1;
+    }
 }
 
 
 /// Boyer-Moore
 
 #define BM_JUMP() \
-    MAX(1,1)
+    MAX(1,iter->jump1[i])
     //MAX(i - find_rightmost(iter->rightmost_table[(unsigned char)text[j + i]], i), \
       //  (int32_t)m - rightmost[(unsigned char)text[j + m - 1]] - 1)
 
