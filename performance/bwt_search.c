@@ -25,7 +25,8 @@ static char *build_random(uint32_t size)
 static char *sample_string(const char *string, uint32_t n, uint32_t m)
 {
     uint32_t offset = rand() % (n - m);
-    char *p = str_copy_n(string + offset, m);
+#warning change type instead of cast
+    char *p = (char *)str_copy_n((uint8_t*)string + offset, m);
     return p;
 }
 
@@ -153,8 +154,9 @@ int main(int argc, const char **argv)
     sa = qsort_sa_construction(rs);
     init_bwt_table(&bwt_table, sa, 0, &remap_table);
     
-    revrs = str_copy(rs);
-    str_inplace_rev(revrs);
+#warning change type instead of cast
+    revrs = (char *)str_copy((uint8_t*)rs);
+    str_inplace_rev((uint8_t*)revrs);
     rsa = qsort_sa_construction(revrs);
     init_bwt_table(&bwt_table_D, sa, rsa, &remap_table);
     

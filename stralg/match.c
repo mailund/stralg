@@ -73,7 +73,8 @@ void init_border_match_iter(
     iter->i = iter->b = 0;
 
     uint32_t *ba = malloc(m * sizeof(uint32_t));
-    compute_border_array(pattern, m, ba);
+#warning change type instead of cast
+    compute_border_array((uint8_t *)pattern, m, ba);
     iter->border_array = ba;
 }
 
@@ -137,7 +138,8 @@ void init_kmp_match_iter(
     // garbage values after the initialisation.
     uint32_t *ba = calloc(m, sizeof(uint32_t));
     ba[0] = 0;
-    compute_extended_border_array(pattern, m, ba);
+#warning change type instead of cast
+    compute_extended_border_array((uint8_t*)pattern, m, ba);
 
     iter->ba = ba;
 }
@@ -295,7 +297,8 @@ void init_bm_match_iter(
         iter->jump1[i] = 0;
     }
     uint32_t rZ[m];
-    compute_reverse_z_array(iter->pattern, m, rZ);
+#warning change type instead of cast
+    compute_reverse_z_array((uint8_t*)iter->pattern, m, rZ);
     for (uint32_t i = 0; i < m; i++) {
         // we don't have to check if rZ[i] = 0.
         // There, we will always write into n-0-1,
@@ -311,7 +314,8 @@ void init_bm_match_iter(
         iter->jump2[i] = 0;
     }
     uint32_t ba[m];
-    compute_border_array(iter->pattern, m, ba);
+#warning change type instead of cast
+    compute_border_array((uint8_t*)iter->pattern, m, ba);
 }
 
 

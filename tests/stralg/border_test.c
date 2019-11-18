@@ -60,7 +60,8 @@ static void test_random(void)
     
     printf("RANDOM TEST: %s\n", test_str);
     trivial_compute_z_array(test_str, n, Z1);
-    compute_z_array(test_str, n, Z2);
+#warning change type instead of cast
+    compute_z_array((uint8_t*)test_str, n, Z2);
     
     for (uint32_t i = 0; i < n; ++i) {
         printf("z1[%.2u] == %.2u z2[%.2u] == %.2u\n",
@@ -116,8 +117,9 @@ int main(int argc, const char **args)
         3, // "abaababcababa"
     };
     uint32_t computed_ba[m];
-    
-    compute_border_array(x, m, computed_ba);
+
+#warning change type instead of cast
+    compute_border_array((uint8_t*)x, m, computed_ba);
     for (int i = 0; i < m; ++i) {
         assert(computed_ba[i] == ba[i]);
     }
@@ -139,7 +141,8 @@ int main(int argc, const char **args)
     };
     uint32_t computed_xba[m];
 
-    compute_extended_border_array(x, m, computed_xba);
+#warning change type instead of cast
+    compute_extended_border_array((uint8_t*)x, m, computed_xba);
     for (int i = 0; i < m; ++i) {
         assert(computed_xba[i] == xba[i]);
     }
@@ -164,8 +167,8 @@ int main(int argc, const char **args)
     
 #warning change type instead of cast
     char *rev_x = (char  *)str_rev((uint8_t *)x);
+    compute_border_array((uint8_t*)rev_x, m, computed_rba);
     
-    compute_border_array(rev_x, m, computed_rba);
     for (int i = 0; i < m; ++i) {
         assert(computed_rba[i] == rba[i]);
     }
@@ -190,7 +193,8 @@ int main(int argc, const char **args)
         3  // ababacbabaaba($)
     };
 
-    compute_reverse_border_array(x, m, computed_rba);
+#warning change type instead of cast
+    compute_reverse_border_array((uint8_t*)x, m, computed_rba);
     for (int i = 0; i < m; ++i) {
         printf("computed_rba[%u] = %u; rba[%u] = %u\n", i,
                computed_rba[i], i, rba[m - i - 1]);
@@ -198,7 +202,8 @@ int main(int argc, const char **args)
     }
     printf("\n");
 
-    compute_reverse_extended_border_array(x, m,computed_xrba);
+#warning change type instead of cast
+    compute_reverse_extended_border_array((uint8_t*)x, m,computed_xrba);
     for (uint32_t i = 0; i < m; ++i) {
         printf("computed_xrba[%u] = %u; xrba[%u] = %u\n", i, computed_xrba[i], i, xrba[m - i - 1]);
         assert(computed_xrba[i] == xrba[m - i - 1]);
@@ -211,7 +216,8 @@ int main(int argc, const char **args)
     uint32_t Z_expected[] = {
       0, 0, 1, 3, 0, 2, 0, 0, 3, 0, 3, 0, 1
     };
-    compute_z_array(x, m, Z);
+#warning change type instead of cast
+    compute_z_array((uint8_t*)x, m, Z);
     for (uint32_t i = 0; i < m; ++i) {
         assert(Z[i] == Z_expected[i]);
         printf("Z[%.2u] = %u\n", i, Z[i]);
@@ -227,7 +233,8 @@ int main(int argc, const char **args)
     uint32_t m1 = sizeof(rba1) / sizeof(uint32_t);
     assert(strlen(y) == m1);
     uint32_t computed_rba1[m1];
-    compute_reverse_border_array(y, m1, computed_rba1);
+#warning change type instead of cast
+    compute_reverse_border_array((uint8_t*)y, m1, computed_rba1);
     
     for (uint32_t i = 0; i < m1; ++i) {
         printf("rba[%.2u] == %u, computed[%.2u] == %u\n",
@@ -243,7 +250,8 @@ int main(int argc, const char **args)
         0, 0, 0
     };
     uint32_t computed_xrba1[m1];
-    compute_reverse_extended_border_array(y, m1, computed_xrba1);
+#warning change type instead of cast
+    compute_reverse_extended_border_array((uint8_t*)y, m1, computed_xrba1);
     
     for (uint32_t i = 0; i < m1; ++i) {
         printf("xrba[%.2u] == %u, xcomputed[%.2u] == %u\n",
@@ -256,7 +264,8 @@ int main(int argc, const char **args)
     const char *z = "abcacabca"; uint32_t m2 = 9;
     uint32_t Z2[] = { 0, 0, 0, 1, 0, 4, 0, 0, 1 };
     uint32_t Z2_computed[m2];
-    compute_z_array(z, m2, Z2_computed);
+#warning change type instead of cast
+    compute_z_array((uint8_t*)z, m2, Z2_computed);
     for (uint32_t i = 0; i < m2; ++i) {
         printf("Z[%.2u] == %u vs %u\n", i, Z2_computed[i], Z2[i]);
         assert(Z2_computed[i] == Z2[i]);
@@ -265,7 +274,8 @@ int main(int argc, const char **args)
 
     uint32_t Z1[] = { 0, 1, 0, 0, 4, 0, 2, 0, 0, 0 };
     uint32_t Z1_computed[m1];
-    compute_reverse_z_array(y, m1, Z1_computed);
+#warning change type instead of cast
+    compute_reverse_z_array((uint8_t*)y, m1, Z1_computed);
     for (uint32_t i = 0; i < m1; ++i) {
         printf("Z[%.2u] == %u vs %u\n", i, Z1[i], Z1_computed[i]);
         assert(Z1[i] == Z1_computed[i]);
@@ -282,7 +292,8 @@ int main(int argc, const char **args)
     uint32_t rZ_expected[] = {
         1, 0, 3, 0, 3, 1, 0, 0
     };
-    compute_reverse_z_array(ababaaba, strlen(ababaaba), rZ_computed);
+#warning change type instead of cast
+    compute_reverse_z_array((uint8_t*)ababaaba, strlen(ababaaba), rZ_computed);
     for (uint32_t i = 0; i < strlen(ababaaba); ++i) {
         printf("Z[%.2u] == %u vs %u\n", i, rZ_expected[i], rZ_computed[i]);
         assert(rZ_expected[i] == rZ_computed[i]);

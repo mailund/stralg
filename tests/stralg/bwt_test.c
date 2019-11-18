@@ -191,11 +191,12 @@ int main(int argc, char **argv)
     
     
     sa = qsort_sa_construction(remapped);
-    char *rev_remapped = str_copy(remapped);
-    str_inplace_rev(rev_remapped);
+#warning change type instead of cast
+    char *rev_remapped = (char *)str_copy((uint8_t*)remapped);
+    str_inplace_rev((uint8_t*)rev_remapped);
     struct suffix_array *rsa = qsort_sa_construction(rev_remapped);
-    char *rev_string = str_copy(string);
-    str_inplace_rev(rev_string);
+    char *rev_string = (char *)str_copy((uint8_t*)string);
+    str_inplace_rev((uint8_t*)rev_string);
     
     for (uint32_t i = 0; i < rsa->length; ++i) {
         printf("SA[%2u] = %2u : %s\n", i, rsa->array[i],

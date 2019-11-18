@@ -5,8 +5,11 @@
 #include <string.h>
 
 
-void compute_border_array(const char *x, uint32_t m, uint32_t *ba)
-{
+void compute_border_array(
+    const uint8_t *x,
+    uint32_t m,
+    uint32_t *ba
+) {
     ba[0] = 0;
     for (uint32_t i = 1; i < m; ++i) {
         uint32_t b = ba[i - 1];
@@ -28,8 +31,11 @@ static void intarray_rev_n(uint32_t *x, uint32_t n)
 }
 
 
-void compute_reverse_border_array(const char *x, uint32_t m,uint32_t *rba)
-{
+void compute_reverse_border_array(
+    const uint8_t *x,
+    uint32_t m,
+    uint32_t *rba
+) {
     rba[m - 1] = 0;
     for (int32_t i = m - 2; i >= 0; --i) {
         unsigned long b = rba[i+1];
@@ -41,8 +47,11 @@ void compute_reverse_border_array(const char *x, uint32_t m,uint32_t *rba)
 
 // The extended border array have borders that differ
 // on the following character.
-void compute_extended_border_array(const char *x, uint32_t m, uint32_t *ba)
-{
+void compute_extended_border_array(
+    const uint8_t *x,
+    uint32_t m,
+    uint32_t *ba
+) {
     compute_border_array(x, m, ba);
     for (uint32_t i = 0; i < m - 1; i++) {
         if (ba[i] > 0 && x[ba[i]] == x[i + 1])
@@ -51,18 +60,23 @@ void compute_extended_border_array(const char *x, uint32_t m, uint32_t *ba)
 }
 
 
-void compute_reverse_extended_border_array(const char *x, uint32_t m, uint32_t *rba)
-{
-    char x_copy[m];
-    strncpy(x_copy, x, m);
-#warning change type instead of cast
-    str_inplace_rev_n((uint8_t*)x_copy, m);
+void compute_reverse_extended_border_array(
+    const uint8_t *x,
+    uint32_t m,
+    uint32_t *rba
+) {
+    uint8_t x_copy[m];
+#warning define new function instead of casting
+    strncpy((char *)x_copy, (char *)x, m);
+    str_inplace_rev_n(x_copy, m);
     compute_extended_border_array(x_copy, m, rba);
     intarray_rev_n(rba, m);
 }
 
-static uint32_t match(const char * s1, const char * s2)
-{
+static uint32_t match(
+    const uint8_t * s1,
+    const uint8_t * s2
+) {
     uint32_t n = 0;
     while (*s1 && *s2 && (*s1 == *s2)) {
         ++s1;
@@ -72,8 +86,11 @@ static uint32_t match(const char * s1, const char * s2)
     return n;
 }
 
-void compute_z_array(const char *x, uint32_t n, uint32_t *Z)
-{
+void compute_z_array(
+    const uint8_t *x,
+    uint32_t n,
+    uint32_t *Z
+) {
     Z[0] = 0;
     Z[1] = match(x, x + 1);
     uint32_t l = 1;
@@ -104,12 +121,15 @@ void compute_z_array(const char *x, uint32_t n, uint32_t *Z)
     }
 }
 
-void compute_reverse_z_array(const char *x, uint32_t m, uint32_t *Z)
-{
-    char x_copy[m + 1];
-    strncpy(x_copy, x, m); x_copy[m] = 0;
-#warning change type instead of cast
-    str_inplace_rev_n((uint8_t *)x_copy, m);
+void compute_reverse_z_array(
+    const uint8_t *x,
+    uint32_t m,
+    uint32_t *Z
+) {
+    uint8_t x_copy[m + 1];
+#warning change function instead of cast
+    strncpy((char *)x_copy, (char *)x, m); x_copy[m] = 0;
+    str_inplace_rev_n(x_copy, m);
     compute_z_array(x_copy, m, Z);
     intarray_rev_n(Z, m);
 }
