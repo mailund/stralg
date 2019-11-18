@@ -11,14 +11,14 @@ struct match {
 };
 
 struct naive_match_iter {
-    const char *text;    uint32_t n;
-    const char *pattern; uint32_t m;
+    const uint8_t *x; uint32_t n;
+    const uint8_t *p; uint32_t m;
     uint32_t current_index;
 };
 void init_naive_match_iter(
     struct naive_match_iter *iter,
-    const char *text, uint32_t n,
-    const char *pattern, uint32_t m
+    const uint8_t *x, uint32_t n,
+    const uint8_t *p, uint32_t m
 );
 bool next_naive_match(
     struct naive_match_iter *iter,

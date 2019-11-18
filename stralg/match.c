@@ -11,11 +11,11 @@
 
 void init_naive_match_iter(
     struct naive_match_iter *iter,
-    const char *text, uint32_t n,
-    const char *pattern, uint32_t m
+    const uint8_t *x, uint32_t n,
+    const uint8_t *p, uint32_t m
 ) {
-    iter->text = text;       iter->n = n;
-    iter->pattern = pattern; iter->m = m;
+    iter->x = x; iter->n = n;
+    iter->p = p; iter->m = m;
     iter->current_index = 0;
 }
 
@@ -24,8 +24,8 @@ bool next_naive_match(
     struct match *match
 ) {
     uint32_t n = iter->n, m = iter->m;
-    const char *text = iter->text;
-    const char *pattern = iter->pattern;
+    const uint8_t *x = iter->x;
+    const uint8_t *p = iter->p;
 
     // This is necessary because n and m are unsigned so the
     // "j < n - m + 1" loop test can suffer from an overflow.
@@ -34,7 +34,7 @@ bool next_naive_match(
     
     for (uint32_t j = iter->current_index; j <= n - m; j++) {
         uint32_t i = 0;
-        while (i < m && text[j+i] == pattern[i]) {
+        while (i < m && x[j+i] == p[i]) {
             i++;
         }
         if (i == m) {

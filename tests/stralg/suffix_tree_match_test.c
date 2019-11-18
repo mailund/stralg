@@ -74,7 +74,8 @@ static void test_matching(const char *pattern, char *string) {
     uint32_t m = (uint32_t)strlen(pattern);
     struct naive_match_iter naive_iter;
     struct match match;
-    init_naive_match_iter(&naive_iter, string, n, pattern, m);
+#warning change type instead of cast
+    init_naive_match_iter(&naive_iter, (uint8_t*)string, n, (uint8_t*)pattern, m);
     while (next_naive_match(&naive_iter, &match)) {
         index_vector_append(naive_matches, match.pos);
     }

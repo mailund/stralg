@@ -74,10 +74,11 @@ static void map_naive(const char *edit_str, const char *edit_cigar,
 {
     uint32_t readlen = (uint32_t)strlen(edit_str);
     struct naive_match_iter iter;
+#warning change type instead of cast
     init_naive_match_iter(
-        &iter, fasta_record->seq,
+        &iter, (uint8_t*)fasta_record->seq,
         fasta_record->seq_len,
-        edit_str,
+        (uint8_t*)edit_str,
         readlen
     );
     
