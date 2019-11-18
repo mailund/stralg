@@ -55,7 +55,8 @@ void compute_reverse_extended_border_array(const char *x, uint32_t m, uint32_t *
 {
     char x_copy[m];
     strncpy(x_copy, x, m);
-    str_inplace_rev_n(x_copy, m);
+#warning change type instead of cast
+    str_inplace_rev_n((uint8_t*)x_copy, m);
     compute_extended_border_array(x_copy, m, rba);
     intarray_rev_n(rba, m);
 }
@@ -107,7 +108,8 @@ void compute_reverse_z_array(const char *x, uint32_t m, uint32_t *Z)
 {
     char x_copy[m + 1];
     strncpy(x_copy, x, m); x_copy[m] = 0;
-    str_inplace_rev_n(x_copy, m);
+#warning change type instead of cast
+    str_inplace_rev_n((uint8_t *)x_copy, m);
     compute_z_array(x_copy, m, Z);
     intarray_rev_n(Z, m);
 }

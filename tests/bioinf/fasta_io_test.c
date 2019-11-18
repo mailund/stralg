@@ -19,9 +19,11 @@ struct fasta_record *copy_rec(struct fasta_record *rec)
 {
     struct fasta_record *new_rec = malloc(sizeof(*rec));
     //printf("copying record %s %s %u\n", rec->name, rec->seq, rec->seq_len);
-    new_rec->name = str_copy(rec->name);
+#warning change type instead of cast
+    new_rec->name = (char *)str_copy((uint8_t*)rec->name);
     new_rec->seq_len = rec->seq_len;
-    new_rec->seq = str_copy(rec->seq);
+#warning change type instead of cast
+    new_rec->seq = (char *)str_copy((uint8_t*)rec->seq);
     //printf("copy           %s %s %u\n", new_rec->name, new_rec->seq, new_rec->seq_len);
     return new_rec;
 }

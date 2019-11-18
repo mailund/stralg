@@ -57,7 +57,8 @@ static void preprocess(const char *fasta_fname)
     while (next_fasta_record(&iter, &rec)) {
         fprintf(stderr, "Serialising record %s\n", rec.name);
         fprintf(stderr, "Length: %u\n", rec.seq_len);
-        write_string(outfile, rec.name);
+#warning change type instead of cast
+        write_string(outfile, (uint8_t*)rec.name);
         struct bwt_table *table = build_complete_table(rec.seq, false);
         write_complete_bwt_info(outfile, table);
         completely_free_bwt_table(table);
@@ -133,7 +134,8 @@ static struct string_table *read_string_tables(const char *fasta_fname)
     uint32_t no_records;
     fread(&no_records, sizeof(no_records), 1, infile);
     for (uint32_t i = 0; i < no_records; ++i) {
-        char *name = read_string(infile);
+#warning change type instead of cast
+        char *name = (char *)read_string(infile);
         fprintf(stderr, "%s\n", name);
         struct bwt_table *bwt_table = read_complete_bwt_info(infile);
         tables = new_string_table(name, bwt_table, tables);

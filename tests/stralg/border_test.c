@@ -162,7 +162,8 @@ int main(int argc, const char **args)
         3  // ababacbabaaba($)
     };
     
-    char *rev_x = str_rev(x);
+#warning change type instead of cast
+    char *rev_x = (char  *)str_rev((uint8_t *)x);
     
     compute_border_array(rev_x, m, computed_rba);
     for (int i = 0; i < m; ++i) {

@@ -121,8 +121,10 @@ struct bwt_table *build_complete_table(const char *string, bool include_reverse)
     
     struct suffix_array *rsa = 0;
     if (include_reverse) {
-        char *rev_remapped_str = str_copy_n(remapped_str, n);
-        str_inplace_rev_n(rev_remapped_str, n);
+#warning change type instead of cast
+        char *rev_remapped_str = (char *)str_copy_n((uint8_t*)remapped_str, n);
+        str_inplace_rev_n((uint8_t*)rev_remapped_str, n);
+        
         // also here use the fastest algorithm here
         rsa = qsort_sa_construction(rev_remapped_str);
     }
@@ -222,8 +224,10 @@ static void rec_approx_matching(struct bwt_approx_iter *iter,
         // is very slow.
         
         uint32_t cig_len = (uint32_t)(cigar - iter->cigar_buf);
-        char *my_cigar = str_copy_n(iter->cigar_buf, cig_len);
-        str_inplace_rev(my_cigar);
+#warning change type instead of cast
+        char *my_cigar = (char *)str_copy_n((uint8_t *)iter->cigar_buf, cig_len);
+        str_inplace_rev((uint8_t*)my_cigar);
+        
         char *real_cigar = malloc(iter->m + 4 * iter->edits + 1);
         correct_cigar(real_cigar, my_cigar);
         

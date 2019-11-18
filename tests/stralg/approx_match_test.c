@@ -94,8 +94,11 @@ static void aho_corasick_approach(const char *string,
             continue;
         }
         
-        string_vector_append(&patterns, str_copy(edit_pattern.pattern));
-        string_vector_append(&cigars, str_copy(edit_pattern.cigar));
+#warning change type instead of cast
+        string_vector_append(&patterns,
+                             (char *)str_copy((uint8_t*)edit_pattern.pattern));
+        string_vector_append(&cigars,
+                             (char *)str_copy((uint8_t*)edit_pattern.cigar));
     }
     dealloc_edit_iter(&pattern_iter);
     assert(patterns.used > 0);
@@ -410,9 +413,11 @@ static void test_approx(const char *pattern, const char *string,
         
         assert(strlen(string) == strlen(remappe_string));
         assert(strlen(pattern) == strlen(remapped_pattern));
+    
+    #warning change type instead of cast
+        char *reversed_remapped = (char *)str_copy((uint8_t *)remappe_string);
+        str_inplace_rev((uint8_t*)reversed_remapped);
         
-        char *reversed_remapped = str_copy(remappe_string);
-        str_inplace_rev(reversed_remapped);
         struct suffix_array *rsa = qsort_sa_construction(reversed_remapped);
 
         init_bwt_table(&bwt_table, sa, rsa, &remap_table);

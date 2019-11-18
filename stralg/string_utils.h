@@ -11,20 +11,20 @@
  * The caller is responsible for the memory management
  * of the string that is returned.
  **/
-char *str_copy(const char *x);
-char *str_copy_n(const char *x, uint32_t n);
+uint8_t *str_copy(const uint8_t *x);
+uint8_t *str_copy_n(const uint8_t *x, uint32_t n);
 
 /**
  * Reverses the string x inplace.
  **/
-void str_inplace_rev(char *x);
-void str_inplace_rev_n(char *x, uint32_t n);
+void str_inplace_rev(uint8_t *x);
+void str_inplace_rev_n(uint8_t *x, uint32_t n);
 
 /**
  * Return a reverse string
  **/
-char *str_rev(const char *x);
-char *str_rev_n(const char *x, uint32_t n);
+uint8_t *str_rev(const uint8_t *x);
+uint8_t *str_rev_n(const uint8_t *x, uint32_t n);
 
 /**
  * Serialisation: write a string to a file.
@@ -44,10 +44,10 @@ char *str_rev_n(const char *x, uint32_t n);
  * God help your soul if this is longer than the
  * buffer that contains the string. The code will not.
  **/
-void write_string(FILE *f, const char *str);
-void write_string_fname(const char *fname, const char *str);
-void write_string_len(FILE *f, const char *str, uint32_t len);
-void write_string_len_fname(const char *fname, const char *str, uint32_t len);
+void write_string(FILE *f, const uint8_t *str);
+void write_string_fname(const char *fname, const uint8_t *str);
+void write_string_len(FILE *f, const uint8_t *str, uint32_t len);
+void write_string_len_fname(const char *fname, const uint8_t *str, uint32_t len);
 
 /**
  * Serialisation: read a string from a file.
@@ -65,9 +65,9 @@ void write_string_len_fname(const char *fname, const char *str, uint32_t len);
  * The _len versions take an extra parameter. That
  * parameter will be set to the lenght of the string.
  **/
-char *read_string(FILE *f);
-char *read_string_fname(const char *fname);
-char *read_string_len(FILE *f, uint32_t *len);
-char *read_string_len_fname(const char *fname, uint32_t *len);
+uint8_t *read_string(FILE *f);
+uint8_t *read_string_fname(const char *fname);
+uint8_t *read_string_len(FILE *f, uint32_t *len);
+uint8_t *read_string_len_fname(const char *fname, uint32_t *len);
 
 #endif

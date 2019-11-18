@@ -86,8 +86,9 @@ static void get_performance(uint32_t size)
     
     // With D table
     
-    revrs = str_copy(rs);
-    str_inplace_rev(revrs);
+#warning change type instead of cast
+    revrs = (char *)str_copy((uint8_t*)rs);
+    str_inplace_rev((uint8_t*)revrs);
     rsa = qsort_sa_construction(revrs);
     
     bwt_begin = sa_end = clock();
