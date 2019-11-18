@@ -76,7 +76,8 @@ static void map_naive(const char *edit_str, const char *edit_cigar,
     struct naive_match_iter iter;
 #warning change type instead of cast
     init_naive_match_iter(
-        &iter, (uint8_t*)fasta_record->seq,
+        &iter,
+        (uint8_t*)fasta_record->seq,
         fasta_record->seq_len,
         (uint8_t*)edit_str,
         readlen
@@ -101,10 +102,11 @@ static void map_border(const char *edit_str, const char *edit_cigar,
 {
     uint32_t readlen = strlen(edit_str);
     struct border_match_iter iter;
+#warning change type instead of cast
     init_border_match_iter(
-                          &iter, fasta_record->seq,
+                          &iter, (uint8_t*)fasta_record->seq,
                           fasta_record->seq_len,
-                          edit_str,
+                          (uint8_t*)edit_str,
                           readlen
                           );
     

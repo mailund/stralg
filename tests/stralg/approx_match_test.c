@@ -48,7 +48,10 @@ static void exact_approach(const char *string, const char *pattern,
         // If the exact matchers work, I can pick any of them.
         // I use the border array search.
         struct border_match_iter match_iter;
-        init_border_match_iter(&match_iter, string, n, edit_pattern.pattern, m);
+    #warning change type instead of cast
+        init_border_match_iter(&match_iter,
+                               (uint8_t*)string, n,
+                               (uint8_t*)edit_pattern.pattern, m);
         while (next_border_match(&match_iter, &match)) {
             string_vector_append(results,
                                  match_string(match.pos,

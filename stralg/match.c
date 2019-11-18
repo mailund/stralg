@@ -63,18 +63,17 @@ void dealloc_naive_match_iter(
 
 void init_border_match_iter(
     struct border_match_iter *iter,
-    const char *text, uint32_t n,
-    const char *pattern, uint32_t m
+    const uint8_t *x, uint32_t n,
+    const uint8_t *p, uint32_t m
 ) {
     assert(m > 0);
     
-    iter->text = text; iter->n = n;
-    iter->pattern = pattern; iter->m = m;
+    iter->x = x; iter->n = n;
+    iter->p = p; iter->m = m;
     iter->i = iter->b = 0;
 
     uint32_t *ba = malloc(m * sizeof(uint32_t));
-#warning change type instead of cast
-    compute_border_array((uint8_t *)pattern, m, ba);
+    compute_border_array(p, m, ba);
     iter->border_array = ba;
 }
 
@@ -82,8 +81,8 @@ bool next_border_match(
     struct border_match_iter *iter,
     struct match *match
 ) {
-    const char *text = iter->text;
-    const char *pattern = iter->pattern;
+    const uint8_t *x = iter->x;
+    const uint8_t *p = iter->p;
     uint32_t *ba = iter->border_array;
     uint32_t b = iter->b;
     uint32_t m = iter->m;
@@ -99,12 +98,11 @@ bool next_border_match(
     // "j < n - m + 1" loop test can suffer from an overflow.
     if (m > n) return false;
     if (m == 0) return false;
-
     
     for (uint32_t i = iter->i; i < iter->n; ++i) {
-        while (b > 0 && text[i] != pattern[b])
+        while (b > 0 && x[i] != p[b])
             b = ba[b - 1];
-        b = (text[i] == pattern[b]) ? b + 1 : 0;
+        b = (x[i] == p[b]) ? b + 1 : 0;
         if (b == m) {
             iter->i = i + 1;
             iter->b = b;

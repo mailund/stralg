@@ -29,15 +29,15 @@ void dealloc_naive_match_iter(
 );
 
 struct border_match_iter {
-    const char *text;    uint32_t n;
-    const char *pattern; uint32_t m;
+    const uint8_t *x; uint32_t n;
+    const uint8_t *p; uint32_t m;
     uint32_t *border_array;
     uint32_t i; uint32_t b;
 };
 void init_border_match_iter(
     struct border_match_iter *iter,
-    const char *text, uint32_t n,
-    const char *pattern, uint32_t m
+    const uint8_t *x, uint32_t n,
+    const uint8_t *p, uint32_t m
 );
 bool next_border_match(
     struct border_match_iter *iter,
