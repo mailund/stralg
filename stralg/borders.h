@@ -17,12 +17,12 @@ void compute_reverse_border_array(
 
 // The extended border array have borders that differ
 // on the following character.
-void compute_extended_border_array(
+void computed_restricted_border_array(
     const uint8_t *x,
     uint32_t m,
     uint32_t *ba
 );
-void compute_reverse_extended_border_array(
+void compute_reverse_restricted_border_array(
     const uint8_t *x,
     uint32_t m,
     uint32_t *rba

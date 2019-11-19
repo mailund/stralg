@@ -69,8 +69,6 @@ void dealloc_kmp_match_iter(
 struct bmh_match_iter {
     const uint8_t *x; uint32_t n;
     const uint8_t *p; uint32_t m;
-    // Implicitly assuming that the alphabet is eight bits!
-    // Signed so we can indicate no occurrence
     int32_t rightmost[256];
     struct index_linked_list *rightmost_table[256];
     uint32_t j;
@@ -91,8 +89,6 @@ void dealloc_bmh_match_iter(
 struct bm_match_iter {
     const uint8_t *x; uint32_t n;
     const uint8_t *p; uint32_t m;
-    // Implicitly assuming that the alphabet is eight bits!
-    // Signed so we can indicate no occurrence
     int32_t rightmost[256];
     struct index_linked_list *rightmost_table[256];
     uint32_t *jump1, *jump2;

@@ -47,7 +47,7 @@ void compute_reverse_border_array(
 
 // The extended border array have borders that differ
 // on the following character.
-void compute_extended_border_array(
+void computed_restricted_border_array(
     const uint8_t *x,
     uint32_t m,
     uint32_t *ba
@@ -60,16 +60,15 @@ void compute_extended_border_array(
 }
 
 
-void compute_reverse_extended_border_array(
+void compute_reverse_restricted_border_array(
     const uint8_t *x,
     uint32_t m,
     uint32_t *rba
 ) {
     uint8_t x_copy[m];
-#warning define new function instead of casting
     strncpy((char *)x_copy, (char *)x, m);
     str_inplace_rev_n(x_copy, m);
-    compute_extended_border_array(x_copy, m, rba);
+    computed_restricted_border_array(x_copy, m, rba);
     intarray_rev_n(rba, m);
 }
 
@@ -127,7 +126,6 @@ void compute_reverse_z_array(
     uint32_t *Z
 ) {
     uint8_t x_copy[m + 1];
-#warning change function instead of cast
     strncpy((char *)x_copy, (char *)x, m); x_copy[m] = 0;
     str_inplace_rev_n(x_copy, m);
     compute_z_array(x_copy, m, Z);

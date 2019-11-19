@@ -27,8 +27,6 @@ bool next_naive_match(
     const uint8_t *x = iter->x;
     const uint8_t *p = iter->p;
 
-    // This is necessary because n and m are unsigned so the
-    // "j < n - m + 1" loop test can suffer from an overflow.
     if (m > n) return false;
     if (m == 0) return false;
     
@@ -88,17 +86,9 @@ bool next_border_match(
     uint32_t m = iter->m;
     uint32_t n = iter->n;
 
-    // This is necessary because n and m are unsigned so the
-    // "j < n - m + 1" loop test can suffer from an overflow.
     if (m > n) return false;
     if (m == 0) return false;
 
-
-    // This is necessary because n and m are unsigned so the
-    // "j < n - m + 1" loop test can suffer from an overflow.
-    if (m > n) return false;
-    if (m == 0) return false;
-    
     for (uint32_t i = iter->i; i < iter->n; ++i) {
         while (b > 0 && x[i] != p[b])
             b = ba[b - 1];
@@ -136,7 +126,7 @@ void init_kmp_match_iter(
     // garbage values after the initialisation.
     uint32_t *ba = calloc(m, sizeof(uint32_t));
     ba[0] = 0;
-    compute_extended_border_array(p, m, ba);
+    computed_restricted_border_array(p, m, ba);
 
     iter->ba = ba;
 }
@@ -153,8 +143,6 @@ bool next_kmp_match(
     const uint8_t *x = iter->x;
     const uint8_t *p = iter->p;
     
-    // This is necessary because n and m are unsigned so the
-    // "j < n - m + 1" loop test can suffer from an overflow.
     if (m > n) return false;
     if (m == 0) return false;
 
@@ -296,7 +284,6 @@ void init_bm_match_iter(
         iter->jump1[i] = 0;
     }
     uint32_t rZ[m];
-#warning change type instead of cast
     compute_reverse_z_array(iter->p, m, rZ);
     for (uint32_t i = 0; i < m; i++) {
         // we don't have to check if rZ[i] = 0.

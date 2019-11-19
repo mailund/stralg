@@ -142,7 +142,7 @@ int main(int argc, const char **args)
     uint32_t computed_xba[m];
 
 #warning change type instead of cast
-    compute_extended_border_array((uint8_t*)x, m, computed_xba);
+    computed_restricted_border_array((uint8_t*)x, m, computed_xba);
     for (int i = 0; i < m; ++i) {
         assert(computed_xba[i] == xba[i]);
     }
@@ -203,7 +203,7 @@ int main(int argc, const char **args)
     printf("\n");
 
 #warning change type instead of cast
-    compute_reverse_extended_border_array((uint8_t*)x, m,computed_xrba);
+    compute_reverse_restricted_border_array((uint8_t*)x, m,computed_xrba);
     for (uint32_t i = 0; i < m; ++i) {
         printf("computed_xrba[%u] = %u; xrba[%u] = %u\n", i, computed_xrba[i], i, xrba[m - i - 1]);
         assert(computed_xrba[i] == xrba[m - i - 1]);
@@ -251,7 +251,7 @@ int main(int argc, const char **args)
     };
     uint32_t computed_xrba1[m1];
 #warning change type instead of cast
-    compute_reverse_extended_border_array((uint8_t*)y, m1, computed_xrba1);
+    compute_reverse_restricted_border_array((uint8_t*)y, m1, computed_xrba1);
     
     for (uint32_t i = 0; i < m1; ++i) {
         printf("xrba[%.2u] == %u, xcomputed[%.2u] == %u\n",
