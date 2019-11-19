@@ -192,8 +192,10 @@ void dealloc_kmp_match_iter(
 }
 
 
-static int32_t find_rightmost(struct index_linked_list *list, int32_t i)
-{
+static int32_t find_rightmost(
+    struct index_linked_list *list,
+    int32_t i
+) {
     while (list) {
         if (list->data < i) {
             return list->data;
@@ -205,41 +207,41 @@ static int32_t find_rightmost(struct index_linked_list *list, int32_t i)
 
 void init_bmh_match_iter(
     struct bmh_match_iter *iter,
-    const char *text, uint32_t n,
-    const char *pattern, uint32_t m
+    const uint8_t *x, uint32_t n,
+    const uint8_t *p, uint32_t m
 ) {
     iter->j = 0;
-    iter->text = text; iter->n = n;
-    iter->pattern = pattern; iter->m = m;
+    iter->x = x; iter->n = n;
+    iter->p = p; iter->m = m;
     for (uint32_t k = 0; k < 256; k++) {
         iter->rightmost[k] = -1;
         iter->rightmost_table[k] = 0;
     }
     for (uint32_t k = 0; k < m - 1; k++) {
-        iter->rightmost[(unsigned char)pattern[k]] = k;
-        iter->rightmost_table[(unsigned char)pattern[k]] =
+        iter->rightmost[p[k]] = k;
+        iter->rightmost_table[p[k]] =
             new_index_link(k,
-                iter->rightmost_table[(unsigned char)pattern[k]]);
+                iter->rightmost_table[p[k]]);
     }
 }
 
 
 #define MAX(a,b) (((a) > (b)) ? (a) : (b))
 #define BMH_JUMP() \
-    MAX(i - find_rightmost(iter->rightmost_table[(unsigned char)text[j + i]], i), \
-        (int32_t)m - iter->rightmost[(unsigned char)text[j + m - 1]] - 1)
+    MAX(i - find_rightmost(iter->rightmost_table[x[j + i]], i), \
+        (int32_t)m - iter->rightmost[x[j + m - 1]] - 1)
 
 bool next_bmh_match(
     struct bmh_match_iter *iter,
     struct match *match
 ) {
     // Aliasing to make the code easier to read...
-    const char *text = iter->text;
-    const char *pattern = iter->pattern;
+    const uint8_t *x = iter->x;
+    const uint8_t *p = iter->p;
     uint32_t n = iter->n;
     uint32_t m = iter->m;
 
-    if (m > strlen(text)) return false;
+    if (m > strlen((char *)x)) return false;
     if (m == 0) return false;
 
     // We need to handle negative numbers, and we have already
@@ -249,10 +251,10 @@ bool next_bmh_match(
     for (uint32_t j = iter->j; j < n - m + 1; j += BMH_JUMP()) {
         
         i = m - 1;
-        while (i > 0 && pattern[i] == text[j + i]) {
+        while (i > 0 && p[i] == x[j + i]) {
             i--;
         }
-        if (i == 0 && pattern[0] == text[j]) {
+        if (i == 0 && p[0] == x[j]) {
             match->pos = j;
             iter->j = j + BMH_JUMP();
             return true;
@@ -272,21 +274,21 @@ void dealloc_bmh_match_iter(
 
 void init_bm_match_iter(
     struct bm_match_iter *iter,
-    const char *text, uint32_t n,
-    const char *pattern, uint32_t m
+    const uint8_t *x, uint32_t n,
+    const uint8_t *p, uint32_t m
 ) {
     iter->j = 0;
-    iter->text = text; iter->n = n;
-    iter->pattern = pattern; iter->m = m;
+    iter->x = x; iter->n = n;
+    iter->p = p; iter->m = m;
     for (uint32_t k = 0; k < 256; k++) {
         iter->rightmost[k] = -1;
         iter->rightmost_table[k] = 0;
     }
     for (uint32_t k = 0; k < m - 1; k++) {
-        iter->rightmost[(unsigned char)pattern[k]] = k;
-        iter->rightmost_table[(unsigned char)pattern[k]] =
+        iter->rightmost[p[k]] = k;
+        iter->rightmost_table[p[k]] =
             new_index_link(k,
-                iter->rightmost_table[(unsigned char)pattern[k]]);
+                iter->rightmost_table[p[k]]);
     }
     
     iter->jump1 = malloc(sizeof(uint32_t) * m);
@@ -295,7 +297,7 @@ void init_bm_match_iter(
     }
     uint32_t rZ[m];
 #warning change type instead of cast
-    compute_reverse_z_array((uint8_t*)iter->pattern, m, rZ);
+    compute_reverse_z_array(iter->p, m, rZ);
     for (uint32_t i = 0; i < m; i++) {
         // we don't have to check if rZ[i] = 0.
         // There, we will always write into n-0-1,
@@ -311,8 +313,7 @@ void init_bm_match_iter(
         iter->jump2[i] = 0;
     }
     uint32_t ba[m];
-#warning change type instead of cast
-    compute_border_array((uint8_t*)iter->pattern, m, ba);
+    compute_border_array(iter->p, m, ba);
 }
 
 
@@ -327,8 +328,8 @@ bool next_bm_match(
     struct match *match
 ) {
     // Aliasing to make the code easier to read...
-    const char *text = iter->text;
-    const char *pattern = iter->pattern;
+    const uint8_t *x = iter->x;
+    const uint8_t *p = iter->p;
     uint32_t n = iter->n;
     uint32_t m = iter->m;
 
@@ -342,10 +343,10 @@ bool next_bm_match(
     for (uint32_t j = iter->j; j < n - m + 1; j += BM_JUMP()) {
         
         i = m - 1;
-        while (i > 0 && pattern[i] == text[j + i]) {
+        while (i > 0 && p[i] == x[j + i]) {
             i--;
         }
-        if (i == 0 && pattern[0] == text[j]) {
+        if (i == 0 && p[0] == x[j]) {
             match->pos = j;
             iter->j = j + BM_JUMP();
             return true;

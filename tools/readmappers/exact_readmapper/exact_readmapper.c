@@ -126,9 +126,12 @@ static void map_border(const char *edit_str, const char *edit_cigar,
     dealloc_border_match_iter(&iter);
 }
 
-static void map_kmp(const char *edit_str, const char *edit_cigar,
-                    struct fastq_record *fastq_record, struct fasta_record *fasta_record)
-{
+static void map_kmp(
+    const char *edit_str,
+    const char *edit_cigar,
+    struct fastq_record *fastq_record,
+    struct fasta_record *fasta_record
+) {
     uint32_t readlen = strlen(edit_str);
     struct kmp_match_iter iter;
 #warning change type instead of cast
@@ -158,9 +161,11 @@ static void map_bmh(const char *edit_str, const char *edit_cigar,
 {
     uint32_t readlen = strlen(edit_str);
     struct bmh_match_iter iter;
-    init_bmh_match_iter(&iter, fasta_record->seq,
+#warning change type instead of cast
+    init_bmh_match_iter(&iter,
+                        (uint8_t*)fasta_record->seq,
                         fasta_record->seq_len,
-                        edit_str,
+                        (uint8_t*)edit_str,
                         readlen);
     
     struct match match;

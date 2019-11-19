@@ -67,8 +67,8 @@ void dealloc_kmp_match_iter(
 );
 
 struct bmh_match_iter {
-    const char *text;    uint32_t n;
-    const char *pattern; uint32_t m;
+    const uint8_t *x; uint32_t n;
+    const uint8_t *p; uint32_t m;
     // Implicitly assuming that the alphabet is eight bits!
     // Signed so we can indicate no occurrence
     int32_t rightmost[256];
@@ -77,8 +77,8 @@ struct bmh_match_iter {
 };
 void init_bmh_match_iter(
     struct bmh_match_iter *iter,
-    const char *text, uint32_t n,
-    const char *pattern, uint32_t m
+    const uint8_t *x, uint32_t n,
+    const uint8_t *p, uint32_t m
 );
 bool next_bmh_match(
     struct bmh_match_iter *iter,
@@ -89,8 +89,8 @@ void dealloc_bmh_match_iter(
 );
 
 struct bm_match_iter {
-    const char *text;    uint32_t n;
-    const char *pattern; uint32_t m;
+    const uint8_t *x; uint32_t n;
+    const uint8_t *p; uint32_t m;
     // Implicitly assuming that the alphabet is eight bits!
     // Signed so we can indicate no occurrence
     int32_t rightmost[256];
@@ -100,8 +100,8 @@ struct bm_match_iter {
 };
 void init_bm_match_iter(
     struct bm_match_iter *iter,
-    const char *text, uint32_t n,
-    const char *pattern, uint32_t m
+    const uint8_t *x, uint32_t n,
+    const uint8_t *p, uint32_t m
 );
 bool next_bm_match(
     struct bm_match_iter *iter,
