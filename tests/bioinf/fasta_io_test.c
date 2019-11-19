@@ -19,11 +19,9 @@ struct fasta_record *copy_rec(struct fasta_record *rec)
 {
     struct fasta_record *new_rec = malloc(sizeof(*rec));
     //printf("copying record %s %s %u\n", rec->name, rec->seq, rec->seq_len);
-#warning change type instead of cast
-    new_rec->name = (char *)str_copy((uint8_t*)rec->name);
+    new_rec->name = (char *)str_copy((const uint8_t *)rec->name);
     new_rec->seq_len = rec->seq_len;
-#warning change type instead of cast
-    new_rec->seq = (char *)str_copy((uint8_t*)rec->seq);
+    new_rec->seq = str_copy(rec->seq);
     //printf("copy           %s %s %u\n", new_rec->name, new_rec->seq, new_rec->seq_len);
     return new_rec;
 }
@@ -49,7 +47,7 @@ static void print_record(FILE *outfile, struct fasta_record *record, unsigned li
     //fprintf(outfile, "PRINTING RECORD %s\n", record->name);
     fprintf(outfile, ">%s\n", record->name);
     //fprintf(outfile, "PRINTING SEQUENCE\n");
-    print_lines(outfile, record->seq, line_length);
+    print_lines(outfile, (char *)record->seq, line_length);
     //fprintf(outfile, "DONE PRINTING SEQUENCE\n");
 }
 

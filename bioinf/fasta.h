@@ -21,7 +21,7 @@ void free_fasta_records(
 
 struct fasta_record {
     const char *name;
-    const char *seq;
+    const uint8_t *seq;
     uint32_t seq_len;
 };
 
