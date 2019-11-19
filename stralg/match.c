@@ -123,21 +123,20 @@ void dealloc_border_match_iter(
 
 void init_kmp_match_iter(
     struct kmp_match_iter *iter,
-    const char *text, uint32_t n,
-    const char *pattern, uint32_t m
+    const uint8_t *x, uint32_t n,
+    const uint8_t *p, uint32_t m
 ) {
 
-    iter->text = text;       iter->n = n;
-    iter->pattern = pattern; iter->m = m;
-    iter->j = 0;             iter->i = 0;
+    iter->x = x; iter->n = n;
+    iter->p = p; iter->m = m;
+    iter->j = 0; iter->i = 0;
 
     // Build prefix border array -- I allocate with calloc
     // because the static analyser otherwise think it can contain
     // garbage values after the initialisation.
     uint32_t *ba = calloc(m, sizeof(uint32_t));
     ba[0] = 0;
-#warning change type instead of cast
-    compute_extended_border_array((uint8_t*)pattern, m, ba);
+    compute_extended_border_array(p, m, ba);
 
     iter->ba = ba;
 }
@@ -151,8 +150,8 @@ bool next_kmp_match(
     uint32_t i = iter->i;
     uint32_t m = iter->m;
     uint32_t n = iter->n;
-    const char *text = iter->text;
-    const char *pattern = iter->pattern;
+    const uint8_t *x = iter->x;
+    const uint8_t *p = iter->p;
     
     // This is necessary because n and m are unsigned so the
     // "j < n - m + 1" loop test can suffer from an overflow.
@@ -163,7 +162,7 @@ bool next_kmp_match(
     // items into the string, so + i.
     while (j <= n - m + i) {
         // Match as far as we can
-        while (i < m && text[j] == pattern[i]) {
+        while (i < m && x[j] == p[i]) {
             i++; j++;
         }
         

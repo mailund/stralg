@@ -48,15 +48,15 @@ void dealloc_border_match_iter(
 );
 
 struct kmp_match_iter {
-    const char *text;    uint32_t n;
-    const char *pattern; uint32_t m;
+    const uint8_t *x; uint32_t n;
+    const uint8_t *p; uint32_t m;
     uint32_t *ba;
     uint32_t j, i;
 };
 void init_kmp_match_iter(
     struct kmp_match_iter *iter,
-    const char *text, uint32_t n,
-    const char *pattern, uint32_t m
+    const uint8_t *x, uint32_t n,
+    const uint8_t *p, uint32_t m
 );
 bool next_kmp_match(
     struct kmp_match_iter *iter,

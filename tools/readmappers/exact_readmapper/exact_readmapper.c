@@ -131,9 +131,10 @@ static void map_kmp(const char *edit_str, const char *edit_cigar,
 {
     uint32_t readlen = strlen(edit_str);
     struct kmp_match_iter iter;
-    init_kmp_match_iter(&iter, fasta_record->seq,
+#warning change type instead of cast
+    init_kmp_match_iter(&iter, (uint8_t*)fasta_record->seq,
                         fasta_record->seq_len,
-                        edit_str,
+                        (uint8_t*)edit_str,
                         readlen);
     
     struct match match;
