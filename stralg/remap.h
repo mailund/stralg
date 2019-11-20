@@ -18,10 +18,19 @@ struct remap_table {
     signed char rev_table[128];
 };
 
-struct remap_table *alloc_remap_table(const char *string);
-void init_remap_table(struct remap_table *table, const char *string);
-void dealloc_remap_table(struct remap_table *table);
-void free_remap_table(struct remap_table *table);
+struct remap_table *alloc_remap_table(
+    const uint8_t *string
+);
+void init_remap_table(
+    struct remap_table *table,
+    const uint8_t *string
+);
+void dealloc_remap_table(
+    struct remap_table *table
+);
+void free_remap_table(
+    struct remap_table *table
+);
 
 // Normally, I would put the table first, but
 // this order is the same as other str-functions.
@@ -31,35 +40,71 @@ void free_remap_table(struct remap_table *table);
 // the input string contains a letter that is not
 // found in the table, they return null. If this happens,
 // the output buffer is in an undefined state.
-char *remap    (char *output, const char *input,
-                struct remap_table *table);
-char *rev_remap(char *output, const char *input,
-                struct remap_table *table);
+uint8_t *remap(
+    uint8_t *output,
+    const uint8_t *input,
+    struct remap_table *table
+);
+uint8_t *rev_remap(
+    uint8_t *output,
+    const uint8_t *input,
+    struct remap_table *table
+);
 
-char *remap_between     (char *output,
-                         const char *from, const char *to,
-                         struct remap_table *table);
-char *rev_remap_between (char *output,
-                         const char *from, const char *to,
-                         struct remap_table *table);
-char *remap_between0    (char *output,
-                         const char *from, const char *to,
-                         struct remap_table *table);
-char *rev_remap_between0(char *output,
-                         const char *from, const char *to,
-                         struct remap_table *table);
+uint8_t *remap_between(
+    uint8_t *output,
+    const uint8_t *from,
+    const uint8_t *to,
+    struct remap_table *table
+);
+uint8_t *rev_remap_between(
+    uint8_t *output,
+    const uint8_t *from,
+    const uint8_t *to,
+    struct remap_table *table
+);
+uint8_t *remap_between0(
+    uint8_t *output,
+    const uint8_t *from,
+    const uint8_t *to,
+    struct remap_table *table
+);
+uint8_t *rev_remap_between0(
+    uint8_t *output,
+    const uint8_t *from,
+    const uint8_t *to,
+    struct remap_table *table
+);
 
 // Serialisation -- FIXME: error handling!
-void write_remap_table(FILE *f, const struct remap_table *table);
-void write_remap_table_fname(const char *fname, const struct remap_table *table);
+void write_remap_table(
+    FILE *f,
+    const struct remap_table *table
+);
+void write_remap_table_fname(
+    const char *fname,
+    const struct remap_table *table
+);
 
-struct remap_table *read_remap_table(FILE *f);
-struct remap_table *read_remap_table_fname(const char *fname);
+struct remap_table *read_remap_table(
+    FILE *f
+);
+struct remap_table *
+read_remap_table_fname(
+    const char *fname
+);
 
 // This is mostly for debugging
-char *backmapped(struct remap_table *table, const char *x);
-void print_remap_table(const struct remap_table *table);
-bool identical_remap_tables(const struct remap_table *table1,
-                            const struct remap_table *table2);
+uint8_t *backmapped(
+    struct remap_table *table,
+    const uint8_t *x
+);
+void print_remap_table(
+    const struct remap_table *table
+);
+bool identical_remap_tables(
+    const struct remap_table *table1,
+    const struct remap_table *table2
+);
 
 #endif

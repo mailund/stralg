@@ -4,13 +4,14 @@
 // this remap could be a lot easier if I didn't preserve
 // the input order, but I prefer to do so for debugging
 // purposes. It doesn't cost much anyway
-void build_remap_table(struct remap_table *table,
-                       const char *string)
-{
-    unsigned const char *x;
+void build_remap_table(
+    struct remap_table *table,
+    const uint8_t *string
+) {
+    const uint8_t *x;
     
     // collect existing characters
-    for (x = (unsigned const char *)string; *x; x++) {
+    for (x = string; *x; x++) {
         if (table->table[*x] == -1) {
             table->alphabet_size++;
             table->table[*x] = 1;
@@ -29,16 +30,19 @@ void build_remap_table(struct remap_table *table,
 }
 
 
-struct remap_table *alloc_remap_table(const char *string)
-{
+struct remap_table *
+alloc_remap_table(
+    const uint8_t *string
+) {
     struct remap_table *table = malloc(sizeof(struct remap_table));
     init_remap_table(table, string);
     return table;
 }
 
-void init_remap_table(struct remap_table *table,
-                       const char *string)
-{
+void init_remap_table(
+    struct remap_table *table,
+    const uint8_t *string
+) {
     table->alphabet_size = 1; // we always have zero
     
     // set table intries to -1. This indicates a letter
@@ -52,115 +56,139 @@ void init_remap_table(struct remap_table *table,
     build_remap_table(table, string);
 }
 
-void dealloc_remap_table(struct remap_table *table)
-{
+void dealloc_remap_table(
+    struct remap_table *table
+) {
     // we haven't allocated any resources
 }
 
-void free_remap_table(struct remap_table *table)
-{
+void free_remap_table(
+    struct remap_table *table
+) {
     free(table);
 }
 
 
-char *remap_between(char *output,
-                    const char *from,
-                    const char *to,
-                    struct remap_table *table)
-{
-    char *x = output;
-    const char *y = from;
+uint8_t *remap_between(
+    uint8_t *output,
+    const uint8_t *from,
+    const uint8_t *to,
+    struct remap_table *table
+) {
+    // must be signed to handle with negative
+    // table entires
+    signed char *x = (signed char *)output;
+    const uint8_t *y = from;
     for (; y != to; ++y, ++x) {
-        *x = table->table[(unsigned char)*y];
+        *x = table->table[*y];
         if (*x < 0) return 0;
     }
-    return x;
+    return (uint8_t *)x;
 }
 
-char *remap_between0(char *output,
-                    const char *from,
-                    const char *to,
-                    struct remap_table *table)
-{
-    char *x = remap_between(output, from, to, table);
+uint8_t *remap_between0(
+    uint8_t *output,
+    const uint8_t *from,
+    const uint8_t *to,
+    struct remap_table *table
+) {
+    uint8_t *x = remap_between(output, from, to, table);
     if (!x) return 0;
     *x = '\0';
     return x + 1;
 }
 
-char *remap(char *output, const char *input,
-           struct remap_table *table)
-{
+uint8_t *remap(
+    uint8_t *output,
+    const uint8_t *input,
+    struct remap_table *table
+) {
     // since we map up to length + 1, we automatically
     // get a zero sentinel (the last character we copy from
     // input. The 'between' versions do not add the
     // sentinels.
     return remap_between(output,
-                         input, input + strlen(input) + 1,
+                         input, input + strlen((char *)input) + 1,
                          table);
 }
 
-char *rev_remap_between(char *output,
-                        const char *from, const char *to,
-                        struct remap_table *table)
-{
-    char *x = output;
-    const char *y = from;
+uint8_t *rev_remap_between(
+    uint8_t *output,
+    const uint8_t *from,
+    const uint8_t *to,
+    struct remap_table *table
+) {
+    // Must be signed to handle negative table
+    // values
+    signed char *x = (signed char *)output;
+    const uint8_t *y = from;
     for (; y != to; ++y, ++x) {
-        *x = table->rev_table[(unsigned int)*y];
+        *x = table->rev_table[*y];
         if (*x < 0) return 0;
     }
-    return x;
+    return (uint8_t *)x;
 }
 
-char *rev_remap(char *output, const char *input,
-               struct remap_table *table)
-{
+uint8_t *rev_remap(
+    uint8_t *output,
+    const uint8_t *input,
+    struct remap_table *table
+) {
     return rev_remap_between(output,
-                             input, input + strlen(input) + 1,
+                             input, input + strlen((char *)input) + 1,
                              table);
 }
 
-char *rev_remap_between0(char *output,
-                        const char *from,
-                        const char *to,
-                        struct remap_table *table)
-{
-    char *x = rev_remap_between(output, from, to, table);
+uint8_t *rev_remap_between0(
+    uint8_t *output,
+    const uint8_t *from,
+    const uint8_t *to,
+    struct remap_table *table
+) {
+    uint8_t *x = rev_remap_between(output, from, to, table);
     if (!x) return 0;
     *x = '\0';
     return x + 1;
 }
 
-void write_remap_table(FILE *f, const struct remap_table *table)
-{
+void write_remap_table(
+    FILE *f,
+    const struct remap_table *table
+) {
     fwrite(table, sizeof(struct remap_table), 1, f);
 }
 
-void write_remap_table_fname(const char *fname, const struct remap_table *table)
-{
+void write_remap_table_fname(
+    const char *fname,
+    const struct remap_table *table
+) {
     FILE *f = fopen(fname, "wb");
     write_remap_table(f, table);
     fclose(f);
 }
 
-struct remap_table *read_remap_table(FILE *f)
-{
+struct remap_table *
+read_remap_table(
+    FILE *f
+) {
     struct remap_table *remap_table = malloc(sizeof(struct remap_table));
     fread(remap_table, sizeof(struct remap_table), 1, f);
     return remap_table;
 }
 
-struct remap_table *read_remap_table_fname(const char *fname)
-{
+struct remap_table *
+read_remap_table_fname(
+    const char *fname
+) {
     FILE *f = fopen(fname, "rb");
     struct remap_table *res = read_remap_table(f);
     fclose(f);
     return res;
 }
 
-void print_remap_table(const struct remap_table *table)
-{
+void print_remap_table(
+    const struct remap_table *table
+) {
     printf("0 -> $\n");
     for (unsigned char i = 1; i < table->alphabet_size; ++i) {
         signed char rev = table->rev_table[i];
@@ -169,17 +197,20 @@ void print_remap_table(const struct remap_table *table)
     }
 }
 
-char *backmapped(struct remap_table *table, const char *x)
-{
-    uint32_t n = (uint32_t)strlen(x);
-    char *result = malloc(n + 1);
+uint8_t *backmapped(
+    struct remap_table *table,
+    const uint8_t *x
+) {
+    uint32_t n = (uint32_t)strlen((char *)x);
+    uint8_t *result = malloc(sizeof(uint8_t) * (n + 1));
     rev_remap(result, x, table);
     return result;
 }
 
-bool identical_remap_tables(const struct remap_table *table1,
-                            const struct remap_table *table2)
-{
+bool identical_remap_tables(
+    const struct remap_table *table1,
+    const struct remap_table *table2
+) {
     if (table1->alphabet_size != table2->alphabet_size)
         return false;
     
