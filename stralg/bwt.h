@@ -170,8 +170,11 @@ void completely_free_bwt_table(struct bwt_table *bwt_table);
  
  @return A BWT table holding all the tables needed to use it.
  */
-struct bwt_table *build_complete_table(const char *string,
-                                       bool include_reverse);
+struct bwt_table *
+build_complete_table(
+    const uint8_t *string,
+    bool include_reverse
+);
 
 /**
  Iterator for exact search with BWT.

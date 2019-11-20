@@ -106,10 +106,12 @@ void completely_free_bwt_table(struct bwt_table *bwt_table)
     free(bwt_table);
 }
 
-struct bwt_table *build_complete_table(const char *string, bool include_reverse)
-{
-    uint32_t n = (uint32_t)strlen(string);
-    char *remapped_str = malloc(n + 1);
+struct bwt_table *build_complete_table(
+    const uint8_t *string,
+    bool include_reverse
+) {
+    uint32_t n = (uint32_t)strlen((char *)string);
+    uint8_t *remapped_str = malloc(sizeof(uint8_t) * (n + 1));
     struct remap_table  *remap_table = alloc_remap_table(string);
     remap(remapped_str, string, remap_table);
     

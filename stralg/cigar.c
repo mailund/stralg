@@ -23,14 +23,15 @@ void correct_cigar(char *buffer, const char *cigar)
     *buffer = '\0';
 }
 
-static char *cigar_alignment_internal(const char *cigar,
-                                      const char *pattern,
-                                      const char *matched_seq,
-                                      const signed char *tbl,
-                                      char *pattern_buffer,
-                                      char *match_buffer,
-                                      enum error_codes *err)
-{
+static uint8_t *cigar_alignment_internal(
+    const char *cigar,
+    const uint8_t *pattern,
+    const uint8_t *matched_seq,
+    const signed char *tbl,
+    char *pattern_buffer,
+    char *match_buffer,
+    enum error_codes *err
+) {
     int count;
     char op;
     while (*cigar) {
@@ -50,7 +51,7 @@ static char *cigar_alignment_internal(const char *cigar,
                 for (int i = 0; i < count; i++) {
                     unsigned char p = *(pattern++);
                     unsigned char m = *(matched_seq++);
-                    *(pattern_buffer++) = tbl? tbl[p] : p;
+                    *(pattern_buffer++) = tbl ? tbl[p] : p;
                     *(match_buffer++) = tbl ? tbl[m] : m;
                 }
                 break;
@@ -80,29 +81,33 @@ static char *cigar_alignment_internal(const char *cigar,
     }
     
     *pattern_buffer = *match_buffer = '\0';
-    return (char*)matched_seq;
+    return (uint8_t *)matched_seq;
 }
 
 
-char *cigar_alignment(const char *cigar, const char *pattern,
-                      const char *matched_seq,
-                      char *pattern_buffer, char *match_buffer,
-                      enum error_codes *err)
-{
+uint8_t *cigar_alignment(
+    const char *cigar,
+    const uint8_t *pattern,
+    const uint8_t *matched_seq,
+    char *pattern_buffer,
+    char *match_buffer,
+    enum error_codes *err
+) {
     return cigar_alignment_internal(cigar, pattern, matched_seq,
                                     0, // identity map
                                     pattern_buffer, match_buffer,
                                     err);
 }
 
-char *remapped_cigar_alignment(const char *cigar,
-                               const char *pattern,
-                               const char *matched_seq,
-                               const struct remap_table *tbl,
-                               char *pattern_buffer,
-                               char *match_buffer,
-                               enum error_codes *err)
-{
+uint8_t *remapped_cigar_alignment(
+    const char *cigar,
+    const uint8_t *pattern,
+    const uint8_t *matched_seq,
+    const struct remap_table *tbl,
+    char *pattern_buffer,
+    char *match_buffer,
+    enum error_codes *err
+) {
     return cigar_alignment_internal(cigar, pattern, matched_seq,
                                     tbl->rev_table,
                                     pattern_buffer, match_buffer,

@@ -7,13 +7,13 @@
 
 int main(int argc, char **argv)
 {
-    const char *string = "acagtgtaac";
-    uint32_t n = (uint32_t)strlen(string);
+    const uint8_t *string = (uint8_t*)"acagtgtaac";
+    uint32_t n = (uint32_t)strlen((char *)string);
     char expected[] = {
         1, 2, 1, 3, 4, 3, 4, 1, 1, 2, 0
     };
-    char mapped[n + 1];
-    char revmapped[n + 1];
+    uint8_t mapped[n + 1];
+    uint8_t revmapped[n + 1];
     
     struct remap_table table;
     
@@ -48,12 +48,12 @@ int main(int argc, char **argv)
         assert(i == back);
     }
     
-    char buf[10], buf2[10];
+    uint8_t buf[10], buf2[10];
     remap_between0(buf, string, string + 3, &table);
     rev_remap(buf2, buf, &table);
-    assert(strcmp(buf2, "aca") == 0);
-    char *buf3 = backmapped(&table, buf);
-    assert(strcmp(buf3, "aca") == 0);
+    assert(strcmp((char *)buf2, "aca") == 0);
+    uint8_t *buf3 = backmapped(&table, buf);
+    assert(strcmp((char *)buf3, "aca") == 0);
     free(buf3);
     
     remap(mapped, string, &table);
@@ -63,12 +63,12 @@ int main(int argc, char **argv)
     }
     
     rev_remap(revmapped, mapped, &table);
-    assert(strcmp(revmapped, string) == 0);
+    assert(strcmp((char *)revmapped, (char *)string) == 0);
     assert(revmapped[n] == 0);
     
     // it contains a character not in the table
-    const char *other_string = "acgtX";
-    char other_buffer[strlen(other_string) + 1];
+    const uint8_t *other_string = (uint8_t*)"acgtX";
+    uint8_t other_buffer[strlen((char *)other_string) + 1];
     assert(remap(other_buffer, other_string, &table) == 0);
 
     printf("table:\n");

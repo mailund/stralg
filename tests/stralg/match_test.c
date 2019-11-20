@@ -183,11 +183,12 @@ static void iter_test(
     iter_dealloc(iter);
 }
 
-static void test_suffix_tree_match(struct index_vector *naive_matches,
-                                   const char *pattern,
-                                   struct suffix_tree *st,
-                                   const char *string)
-{
+static void test_suffix_tree_match(
+    struct index_vector *naive_matches,
+    const uint8_t *pattern,
+    struct suffix_tree *st,
+    const uint8_t *string
+) {
     struct st_leaf_iter st_iter;
     struct st_leaf_iter_result res;
     struct index_vector *st_matches = alloc_index_vector(100);
@@ -331,8 +332,8 @@ static void simple_exact_matchers(struct index_vector *naive,
 }
 
 static void general_suffix_test(struct index_vector *naive,
-                                const char *pattern,
-                                char *string)
+                                const uint8_t *pattern,
+                                uint8_t *string)
 {
     // ------------- SUFFIX TREE ----------------
     struct suffix_tree *st = naive_suffix_tree(string);

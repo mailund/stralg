@@ -41,10 +41,14 @@ void correct_cigar(char *to, const char *from);
  @return A pointer into matched_seq where the CIGAR
  matching ends or 0 if there were errors.
  */
-char *cigar_alignment(const char *cigar, const char *pattern,
-                      const char *matched_seq,
-                      char *pattern_buffer, char *match_buffer,
-                      enum error_codes *err);
+uint8_t *cigar_alignment(
+    const char *cigar,
+    const uint8_t *pattern,
+    const uint8_t *matched_seq,
+    char *pattern_buffer,
+    char *match_buffer,
+    enum error_codes *err
+);
 
 /**
  Build an alignment from remapped strings.
@@ -69,12 +73,14 @@ char *cigar_alignment(const char *cigar, const char *pattern,
  @return A pointer into matched_seq where the CIGAR
  matching ends or 0 if there were errors.
  */
-char *remapped_cigar_alignment(const char *cigar,
-                               const char *pattern,
-                               const char *matched_seq,
-                               const struct remap_table *remap_table,
-                               char *pattern_buffer,
-                               char *match_buffer,
-                               enum error_codes *err);
+uint8_t *remapped_cigar_alignment(
+    const char *cigar,
+    const uint8_t *pattern,
+    const uint8_t *matched_seq,
+    const struct remap_table *remap_table,
+    char *pattern_buffer,
+    char *match_buffer,
+    enum error_codes *err
+);
 
 #endif

@@ -25,9 +25,13 @@ static void parse_sam_line(const char *line_buffer, char *read_name_buffer,
     }
 }
 
-static const char *cigar_alignment(const char *cigar, const char *pattern,
-                                   const char *matched_seq,
-                                   char *pattern_buffer, char *match_buffer) {
+static const uint8_t *cigar_alignment(
+    const char *cigar,
+    const uint8_t *pattern,
+    const uint8_t *matched_seq,
+    uint8_t *pattern_buffer,
+    uint8_t *match_buffer
+) {
     int count;
     char op;
     while (*cigar) {
@@ -112,8 +116,10 @@ static void print_match(const char *pattern_buffer, const char *match_buffer) {
 }
 
 static void display_match(
-    const char *pattern, const char *cigar,
-    const char *ref_seq_name, int match_index,
+    const uint8_t *pattern,
+    const uint8_t *cigar,
+    const char *ref_seq_name,
+    int match_index,
     int flanking_seq_length,
     struct fasta_records *ref_genome
 ) {
@@ -130,16 +136,18 @@ static void display_match(
         exit(EXIT_FAILURE);
     }
 
-    const char *matched_seq =
+    const uint8_t *matched_seq =
         rec.seq + (uint32_t)match_index - 1; // -1 for zero-termination
-    uint32_t pattern_length = (uint32_t)strlen(pattern);
-    char pattern_buffer[2 * pattern_length];
+    uint32_t pattern_length = (uint32_t)strlen((char *)pattern);
+    uint8_t pattern_buffer[2 * pattern_length];
     bzero(pattern_buffer, sizeof(pattern_buffer));
-    char match_buffer[2 * pattern_length];
+    uint8_t match_buffer[2 * pattern_length];
     bzero(match_buffer, sizeof(match_buffer));
-    const char *match_end =
-        cigar_alignment(cigar, pattern, matched_seq, (char *)&pattern_buffer,
-                        (char *)&match_buffer);
+    const uint8_t *match_end =
+        cigar_alignment(cigar,
+                        pattern, matched_seq,
+                        &pattern_buffer,
+                        &match_buffer);
 
     printf("...");
     print_flanking_dots(
