@@ -6,10 +6,14 @@
 #include <stdio.h>
 #include <string.h>
 
-static void print_out_edges(struct trie *trie, FILE *dot_file);
+static void print_out_edges(
+    struct trie *trie,
+    FILE *dot_file
+);
 
-void init_trie(struct trie *trie)
-{
+void init_trie(
+    struct trie *trie
+) {
     trie->in_edge_label = '\0';
     trie->string_label = -1;
     trie->parent = 0;
@@ -22,8 +26,9 @@ void init_trie(struct trie *trie)
 }
 
 
-void dealloc_trie(struct trie *trie)
-{
+void dealloc_trie(
+    struct trie *trie
+) {
     // depth first traversal freeing the trie.
     if (trie->children) free_trie(trie->children);
     if (trie->sibling) free_trie(trie->sibling);
@@ -39,26 +44,30 @@ void dealloc_trie(struct trie *trie)
     }
 }
 
-struct trie *alloc_trie()
+struct trie *alloc_trie(void)
 {
-    struct trie *trie = (struct trie*)malloc(sizeof(struct trie));
+    struct trie *trie = malloc(sizeof(struct trie));
     init_trie(trie);
     return trie;
 }
 
 
-void free_trie(struct trie *trie)
-{
+void free_trie(
+    struct trie *trie
+) {
     dealloc_trie(trie);
     free(trie);
 }
 
 
-static struct trie *string_to_trie(const char *str, long long string_label)
-{
-    assert(str && strlen(str) > 0);
+static struct trie *
+string_to_trie(
+    const uint8_t *str,
+    int string_label
+) {
+    assert(str && strlen((char *)str) > 0);
     
-    const char *s = str;
+    const uint8_t *s = str;
     while (*s) s++;
     
     struct trie *trie = 0;
@@ -79,8 +88,10 @@ static struct trie *string_to_trie(const char *str, long long string_label)
     return trie;
 }
 
-struct trie *out_link(struct trie *v, char label)
-{
+struct trie *out_link(
+    struct trie *v,
+    uint8_t label
+) {
     assert(v);
     for (struct trie *w = v->children; w; w = w->sibling) {
         if (w->in_edge_label == label)
@@ -90,11 +101,14 @@ struct trie *out_link(struct trie *v, char label)
 }
 
 
-void add_string_to_trie(struct trie *trie, const char *str, long long string_label)
-{
-    assert(str && strlen(str) > 0);
+void add_string_to_trie(
+    struct trie *trie,
+    const uint8_t *str,
+    int string_label
+) {
+    assert(str && strlen((char*)str) > 0);
     
-    if (!trie->children) { // first string is a special case (FIXME: check if I can avoid this)
+    if (!trie->children) { // first string is a special case
         trie->children = string_to_trie(str, string_label);
         trie->children->parent = trie;
         return;
@@ -125,8 +139,10 @@ void add_string_to_trie(struct trie *trie, const char *str, long long string_lab
     }
 }
 
-struct trie *get_trie_node(struct trie *trie, const char *str)
-{
+struct trie *get_trie_node(
+    struct trie *trie,
+    const uint8_t *str
+) {
     if (!trie->children) return 0;
     
     while (*str) {
@@ -141,31 +157,39 @@ struct trie *get_trie_node(struct trie *trie, const char *str)
     return trie;
 }
 
-static void enqueue_siblings(struct pointer_queue *queue, struct trie *siblings)
-{
+static void enqueue_siblings(
+    struct pointer_queue *queue,
+    struct trie *siblings
+) {
     for (struct trie *s = siblings; s; s = s->sibling)
         enqueue_pointer(queue, (void*)s);
 }
 
 
-static struct output_list *new_output_link(long long label, struct output_list *next)
-{
+static struct output_list *
+new_output_link(
+    int label,
+    struct output_list *next
+) {
     assert(label >= 0);
     
-    struct output_list *link = (struct output_list *)malloc(sizeof(struct output_list));
+    struct output_list *link =
+        malloc(sizeof(struct output_list));
     link->string_label = label;
     link->next = next;
     return link;
 }
 
-static void compute_failure_link_for_node(struct trie *v,
-                                          struct trie *root,
-                                          struct pointer_queue *queue)
-{
+static void compute_failure_link_for_node(
+    struct trie *v,
+    struct trie *root,
+    struct pointer_queue *queue
+) {
     enqueue_siblings(queue, v->children); // breadth first traversal...
     
     if (is_trie_root(v->parent)) {
-        // special case: immidiate children of the root should have the root
+        // special case: immidiate children of the
+        // root should have the root as parent
         v->failure_link = v->parent;
 
     } else {
@@ -193,8 +217,9 @@ static void compute_failure_link_for_node(struct trie *v,
     }
 }
 
-void compute_failure_links(struct trie *trie)
-{
+void compute_failure_links(
+    struct trie *trie
+) {
     if (trie->failure_link) return;
     
     trie->failure_link = trie; // make the root its own failure link.
@@ -211,11 +236,13 @@ void compute_failure_links(struct trie *trie)
     free_pointer_queue(nodes);
 }
 
-static void print_out_edges(struct trie *trie, FILE *dot_file)
-{
+static void print_out_edges(
+    struct trie *trie,
+    FILE *dot_file
+) {
     // node attributes
     if (trie->string_label >= 0) {
-        fprintf(dot_file, "\"%p\" [label=\"%lld\"];\n",
+        fprintf(dot_file, "\"%p\" [label=\"%d\"];\n",
                 trie, trie->string_label);
     } else {
         fprintf(dot_file, "\"%p\" [label=\"\"];\n", (void*)trie);
@@ -238,11 +265,11 @@ static void print_out_edges(struct trie *trie, FILE *dot_file)
     if (trie->output) {
         fprintf(dot_file, "\"%p\" [color=blue, shape=point];\n",
                 trie->output);
-        fprintf(dot_file, "\"%p\" -> \"%p\" [style=\"dashed\", color=blue, label=%lld];\n",
+        fprintf(dot_file, "\"%p\" -> \"%p\" [style=\"dashed\", color=blue, label=%d];\n",
                 trie, trie->output, trie->output->string_label);
         struct output_list *list = trie->output;
         while (list->next) {
-            fprintf(dot_file, "\"%p\" -> \"%p\" [style=\"dashed\", color=blue, label=%lld];\n",
+            fprintf(dot_file, "\"%p\" -> \"%p\" [style=\"dashed\", color=blue, label=%d];\n",
                     list, list->next, list->next->string_label);
             list = list->next;
         }

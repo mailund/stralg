@@ -4,6 +4,7 @@
 
 #include <stddef.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 
 /**
@@ -14,10 +15,10 @@
  opaque; it is public so it can be stack allocated.
  */
 struct edit_iter {
-    const char *pattern;
-    const char *alphabet;
+    const uint8_t *pattern;
+    const uint8_t *alphabet;
 
-    char *buffer;
+    uint8_t *buffer;
     char *cigar;
     char *simplify_cigar_buffer;
 
@@ -32,7 +33,7 @@ struct edit_iter {
  be updated next time you progress the iterator.
  */
 struct edit_pattern {
-    const char *pattern;
+    const uint8_t *pattern;
     const char *cigar;
 };
 
@@ -51,8 +52,8 @@ struct edit_pattern {
  */
 void init_edit_iter(
     struct edit_iter *iter,
-    const char *core,
-    const char *alphabet,
+    const uint8_t *core,
+    const uint8_t *alphabet,
     int max_edit_distance
 );
 

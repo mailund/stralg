@@ -54,17 +54,22 @@ struct search_data {
     struct string_vector *results;
 };
 
-static void search_children(struct search_data *data,
-                            struct suffix_tree_node *v,
-                            char *cigar,
-                            const char *p, int edits);
+static void search_children(
+    struct search_data *data,
+    struct suffix_tree_node *v,
+    char *cigar,
+    const uint8_t *p,
+    int edits
+);
 
-static void search_edge(struct search_data *data,
-                        struct suffix_tree_node *v,
-                        const char *x, const char *end,
-                        const char *p,
-                        char *cigar, int edits)
-{
+static void search_edge(
+    struct search_data *data,
+    struct suffix_tree_node *v,
+    const char *x, const char *end,
+    const uint8_t *p,
+    char *cigar,
+    int edits
+) {
     if (edits < 0)
         return; // we ran out of edits
     if (x == data->string_end)
@@ -80,7 +85,7 @@ static void search_edge(struct search_data *data,
         struct st_leaf_iter_result res;
         while (next_st_leaf(&leaf_iter, &res)) {
             uint32_t position = res.leaf->leaf_label;
-            char *m = match_string(position, data->cigar_buf);
+            uint8_t *m = match_string(position, (uint8_t *)data->cigar_buf);
             string_vector_append(data->results, m);
         }
         dealloc_st_leaf_iter(&leaf_iter);
@@ -104,15 +109,17 @@ static void search_edge(struct search_data *data,
     }
 }
 
-static void search_children(struct search_data *data,
-                            struct suffix_tree_node *v,
-                            char *cigar,
-                            const char *p, int edits)
-{
+static void search_children(
+    struct search_data *data,
+    struct suffix_tree_node *v,
+    char *cigar,
+    const uint8_t *p,
+    int edits
+) {
     struct suffix_tree_node *child = v->child;
     while (child) {
-        const char *x = child->range.from;
-        const char *end = child->range.to;
+        const uint8_t *x = child->range.from;
+        const uint8_t *end = child->range.to;
         search_edge(data, child, x, end, p, cigar, edits);
         child = child->sibling;
     }

@@ -32,8 +32,8 @@ struct edit_iter_frame {
         struct match_info     m;
     } op_data;
 
-    const char *pattern_front;
-    char *buffer_front;
+    const uint8_t *pattern_front;
+    uint8_t *buffer_front;
     char *cigar_front;
     int max_dist;
     struct edit_iter_frame *next;
@@ -46,8 +46,8 @@ struct edit_iter_frame {
 static struct edit_iter_frame *
 push_edit_iter_frame(
     enum edit_op op,
-    const char *pattern_front,
-    char *buffer_front,
+    const uint8_t *pattern_front,
+    uint8_t *buffer_front,
     char *cigar_front,
     int max_dist,
     struct edit_iter_frame *next
@@ -65,11 +65,11 @@ push_edit_iter_frame(
 
 void init_edit_iter(
     struct edit_iter *iter,
-    const char *pattern,
-    const char *alphabet,
+    const uint8_t *pattern,
+    const uint8_t *alphabet,
     int max_edit_distance
 ) {
-    uint32_t n = (uint32_t)strlen(pattern) + max_edit_distance + 10;
+    uint32_t n = (uint32_t)strlen((char *)pattern) + max_edit_distance + 10;
 
     iter->pattern = pattern;
     iter->alphabet = alphabet;
@@ -185,8 +185,8 @@ bool next_edit_pattern(
     struct edit_iter_frame *frame = iter->frames;
     iter->frames = frame->next;
 
-    const char *pattern = frame->pattern_front;
-    char *buffer = frame->buffer_front;
+    const uint8_t *pattern = frame->pattern_front;
+    uint8_t *buffer = frame->buffer_front;
     char *cigar = frame->cigar_front;
 
     if (*pattern == '\0') {
@@ -201,7 +201,7 @@ bool next_edit_pattern(
 
     } else if (frame->max_dist == 0) {
         // we can't edit any more, so just move pattern to buffer and call back
-        uint32_t rest = (uint32_t)strlen(pattern);
+        uint32_t rest = (uint32_t)strlen((char *)pattern);
         for (uint32_t i = 0; i < rest; ++i) {
               buffer[i] = pattern[i];
               cigar[i] = 'M';
@@ -216,7 +216,7 @@ bool next_edit_pattern(
 
     switch (frame->op) {
         case EXECUTE:
-            for (const char *a = iter->alphabet; *a; a++) {
+            for (const uint8_t *a = iter->alphabet; *a; a++) {
                 iter->frames = push_edit_iter_frame(
                     INSERTION,
                     frame->pattern_front,

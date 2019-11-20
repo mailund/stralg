@@ -8,8 +8,8 @@
 
 int main(int argc, char * argv[])
 {
-    const char *pattern = "acca";
-    const char *alphabet = "acgt";
+    const uint8_t *pattern = (uint8_t *)"acca";
+    const uint8_t *alphabet = (uint8_t *)"acgt";
 
     struct edit_iter iter;
     struct edit_pattern result;

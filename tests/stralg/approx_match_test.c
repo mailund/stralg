@@ -26,11 +26,14 @@ static void free_strings(struct string_vector *vec)
 
 #pragma mark Collecting matches functions
 
-static void exact_approach(const char *string, const char *pattern,
-                           const char *alphabet,
-                           int dist, struct string_vector *results)
-{
-    uint32_t n = (uint32_t)strlen(string);
+static void exact_approach(
+    const uint8_t *string,
+    const uint8_t *pattern,
+    const uint8_t *alphabet,
+    int dist,
+    struct string_vector *results
+) {
+    uint32_t n = (uint32_t)strlen((char *)string);
     
     struct edit_pattern edit_pattern;
     struct match match;
@@ -50,8 +53,8 @@ static void exact_approach(const char *string, const char *pattern,
         struct border_match_iter match_iter;
     #warning change type instead of cast
         init_border_match_iter(&match_iter,
-                               (uint8_t*)string, n,
-                               (uint8_t*)edit_pattern.pattern, m);
+                               string, n,
+                               edit_pattern.pattern, m);
         while (next_border_match(&match_iter, &match)) {
             string_vector_append(results,
                                  match_string(match.pos,
@@ -97,11 +100,10 @@ static void aho_corasick_approach(const char *string,
             continue;
         }
         
-#warning change type instead of cast
         string_vector_append(&patterns,
-                             (char *)str_copy((uint8_t*)edit_pattern.pattern));
+                             str_copy(edit_pattern.pattern));
         string_vector_append(&cigars,
-                             (char *)str_copy((uint8_t*)edit_pattern.cigar));
+                             str_copy((uint8_t*)edit_pattern.cigar));
     }
     dealloc_edit_iter(&pattern_iter);
     assert(patterns.used > 0);
@@ -112,13 +114,13 @@ static void aho_corasick_approach(const char *string,
     struct trie trie;
     init_trie(&trie);
     for (uint32_t i = 0; i < patterns.used; ++i) {
-        char *pattern = string_vector_get(&patterns, i);
+        uint8_t *pattern = string_vector_get(&patterns, i);
         struct trie *node = get_trie_node(&trie, pattern);
         if (node && node->string_label >= 0) {
             // we have a repeated pattern but with a new cigar
             cigar_table[node->string_label] = new_index_link(i, cigar_table[node->string_label]); //prepend_index_link(cigar_table[node->string_label], i);
         } else {
-            add_string_to_trie(&trie, pattern, (long long)i);
+            add_string_to_trie(&trie, pattern, i);
             cigar_table[i] = new_index_link(i, 0); //prepend_index_link(0, i);
         }
         
@@ -127,7 +129,7 @@ static void aho_corasick_approach(const char *string,
     
     uint32_t pattern_lengths[patterns.used];
     for (uint32_t i = 0; i < patterns.used; ++i) {
-        pattern_lengths[i] = (uint32_t)strlen(string_vector_get(&patterns, i));
+        pattern_lengths[i] = (uint32_t)strlen((char *)string_vector_get(&patterns, i));
     }
     
     struct ac_iter ac_iter;

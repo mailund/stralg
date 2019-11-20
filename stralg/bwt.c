@@ -224,7 +224,6 @@ static void rec_approx_matching(struct bwt_approx_iter *iter,
         // is very slow.
         
         uint32_t cig_len = (uint32_t)(cigar - iter->cigar_buf);
-#warning change type instead of cast
         char *my_cigar = (char *)str_copy_n((uint8_t *)iter->cigar_buf, cig_len);
         str_inplace_rev((uint8_t*)my_cigar);
         
@@ -233,7 +232,7 @@ static void rec_approx_matching(struct bwt_approx_iter *iter,
         
         free(my_cigar);
         
-        string_vector_append(&iter->cigars, real_cigar);
+        string_vector_append(&iter->cigars, (uint8_t *)real_cigar);
         
         return; // done down this path of matching...
     }
@@ -356,9 +355,10 @@ void init_bwt_approx_iter(struct bwt_approx_iter *iter,
     iter->next_interval = 0;
 }
 
-bool next_bwt_approx_match(struct bwt_approx_iter  *iter,
-                           struct bwt_approx_match *match)
-{
+bool next_bwt_approx_match(
+    struct bwt_approx_iter  *iter,
+    struct bwt_approx_match *match
+) {
     if (iter->L >= iter->R) { // done with current interval
         if (iter->next_interval >= iter->Ls.used)
             return false; // no more intervals
@@ -367,7 +367,7 @@ bool next_bwt_approx_match(struct bwt_approx_iter  *iter,
         iter->R = iter->Rs.data[iter->next_interval];
         iter->next_interval++;
     }
-    match->cigar = iter->cigars.data[iter->next_interval - 1];
+    match->cigar = (char *)iter->cigars.data[iter->next_interval - 1];
     match->match_length = iter->match_lengths.data[iter->next_interval - 1];
     match->position = iter->bwt_table->sa->array[iter->L];
     iter->L++;

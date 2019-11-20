@@ -49,29 +49,29 @@ int main(int argc, const char **argv)
     assert(svec.size == 2);
     assert(svec.used == 0);
     
-    string_vector_append(&svec, "foo");
-    string_vector_append(&svec, "bar");
-    string_vector_append(&svec, "baz");
+    string_vector_append(&svec, (uint8_t *)"foo");
+    string_vector_append(&svec, (uint8_t *)"bar");
+    string_vector_append(&svec, (uint8_t *)"baz");
     
     assert(svec.used == 3);
     assert(svec.size == 4);
     
-    assert(strcmp(string_vector_get(&svec, 0), "foo") == 0);
-    assert(strcmp(string_vector_get(&svec, 1), "bar") == 0);
-    assert(strcmp(string_vector_get(&svec, 2), "baz") == 0);
+    assert(strcmp((char *)string_vector_get(&svec, 0), "foo") == 0);
+    assert(strcmp((char *)string_vector_get(&svec, 1), "bar") == 0);
+    assert(strcmp((char *)string_vector_get(&svec, 2), "baz") == 0);
     
     sort_string_vector(&svec);
 
-    assert(strcmp(string_vector_get(&svec, 0), "bar") == 0);
-    assert(strcmp(string_vector_get(&svec, 1), "baz") == 0);
-    assert(strcmp(string_vector_get(&svec, 2), "foo") == 0);
+    assert(strcmp((char *)string_vector_get(&svec, 0), "bar") == 0);
+    assert(strcmp((char *)string_vector_get(&svec, 1), "baz") == 0);
+    assert(strcmp((char *)string_vector_get(&svec, 2), "foo") == 0);
 
     struct string_vector svec2;
     init_string_vector(&svec2, 2);
-    string_vector_append(&svec2, "foo");
-    string_vector_append(&svec2, "bar");
-    string_vector_append(&svec2, "qux");
-    string_vector_append(&svec2, "qax");
+    string_vector_append(&svec2, (uint8_t *)"foo");
+    string_vector_append(&svec2, (uint8_t *)"bar");
+    string_vector_append(&svec2, (uint8_t *)"qux");
+    string_vector_append(&svec2, (uint8_t *)"qax");
 
     struct string_vector first, second;
     init_string_vector(&first, 2);
@@ -80,18 +80,18 @@ int main(int argc, const char **argv)
     split_string_vectors(&svec, &svec2, &first, &second);
     assert(first.used == 1);
     assert(second.used = 2);
-    assert(strcmp(string_vector_get(&first, 0), "baz") == 0);
-    assert(strcmp(string_vector_get(&second, 0), "qax") == 0);
-    assert(strcmp(string_vector_get(&second, 1), "qux") == 0);
+    assert(strcmp((char *)string_vector_get(&first, 0), "baz") == 0);
+    assert(strcmp((char *)string_vector_get(&second, 0), "qax") == 0);
+    assert(strcmp((char *)string_vector_get(&second, 1), "qux") == 0);
     
     first.used = 0;
     second.used = 0;
     split_string_vectors(&svec2, &svec, &first, &second);
     assert(first.used == 2);
     assert(second.used = 1);
-    assert(strcmp(string_vector_get(&second, 0), "baz") == 0);
-    assert(strcmp(string_vector_get(&first, 0), "qax") == 0);
-    assert(strcmp(string_vector_get(&first, 1), "qux") == 0);
+    assert(strcmp((char *)string_vector_get(&second, 0), "baz") == 0);
+    assert(strcmp((char *)string_vector_get(&first, 0), "qax") == 0);
+    assert(strcmp((char *)string_vector_get(&first, 1), "qux") == 0);
 
     return EXIT_SUCCESS;
 }

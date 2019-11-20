@@ -32,86 +32,139 @@ struct index_vector {
     uint32_t used;
 };
 
-static inline void init_index_vector(struct index_vector *vec, uint32_t init_size)
-{
+static inline void init_index_vector(
+    struct index_vector *vec,
+    uint32_t init_size
+) {
     vector_init(vec, init_size);
 }
-static inline void dealloc_index_vector(struct index_vector *vec)
-{
+static inline void dealloc_index_vector(
+    struct index_vector *vec
+) {
     dealloc_vector(vec);
 }
-static inline struct index_vector *alloc_index_vector(uint32_t init_size)
-{
-    struct index_vector *vec = malloc(sizeof(struct index_vector));
+static inline struct index_vector *
+alloc_index_vector(
+    uint32_t init_size
+) {
+    struct index_vector *vec =
+        malloc(sizeof(struct index_vector));
     init_index_vector(vec, init_size);
     return vec;
 }
-static inline void free_index_vector(struct index_vector *vec)
-{
+static inline void free_index_vector(
+    struct index_vector *vec
+) {
     dealloc_index_vector(vec);
     free(vec);
 }
-static inline void index_vector_append(struct index_vector *vec, uint32_t index) {
+static inline void index_vector_append(
+    struct index_vector *vec,
+    uint32_t index
+) {
     vector_append(vec, index);
 }
 
 static inline uint32_t
-index_vector_get(struct index_vector *vec, uint32_t i)
-{
+index_vector_get(
+    struct index_vector *vec,
+    uint32_t i
+) {
     return vector_get(vec, i);
 }
 static inline void
-index_vector_set(struct index_vector *vec, uint32_t i, uint32_t val)
-{
+index_vector_set(
+    struct index_vector *vec,
+    uint32_t i,
+    uint32_t val
+) {
     vector_set(vec, i, val);
 }
 
-void sort_index_vector(struct index_vector *vec);
-bool index_vector_equal(struct index_vector *v1, struct index_vector *v2);
-void print_index_vector(struct index_vector *vec);
+void sort_index_vector(
+    struct index_vector *vec
+);
+bool index_vector_equal(
+    struct index_vector *v1,
+    struct index_vector *v2
+);
+void print_index_vector(
+    struct index_vector *vec
+);
 
 /// MARK: String vectors
 
 struct string_vector {
-    char **data;
+    uint8_t **data;
     uint32_t size;
     uint32_t used;
 };
 
-static inline void init_string_vector(struct string_vector *vec, uint32_t init_size)
-{
+static inline void init_string_vector(
+    struct string_vector *vec,
+    uint32_t init_size
+) {
     vector_init(vec, init_size);
 }
-static inline void dealloc_string_vector(struct string_vector *vec)
-{
+static inline void dealloc_string_vector(
+    struct string_vector *vec
+) {
     dealloc_vector(vec);
 }
 
-#define alloc_string_vector   alloc_vector
-#define free_string_vector    free_vector
+static inline struct string_vector *
+alloc_string_vector(
+    uint32_t init_size
+) {
+    struct string_vector *vec =
+        malloc(sizeof(struct string_vector));
+    init_string_vector(vec, init_size);
+    return vec;
+}
+static inline void free_string_vector(
+    struct string_vector *vec
+) {
+    dealloc_string_vector(vec);
+    free(vec);
+}
 
-static inline char *string_vector_get(struct string_vector *vec, uint32_t idx)
-{
+static inline uint8_t *string_vector_get(
+    struct string_vector *vec,
+    uint32_t idx
+) {
     return vector_get(vec, idx);
 }
-static inline void string_vector_set(struct string_vector *vec,
-                                     uint32_t idx, char *string)
-{
+static inline void string_vector_set(
+    struct string_vector *vec,
+    uint32_t idx,
+    uint8_t *string
+) {
     vector_set(vec, idx, string);
 }
-static inline void string_vector_append(struct string_vector *vec, char *string)
-{
+static inline void string_vector_append(
+    struct string_vector *vec,
+    uint8_t *string
+) {
     vector_append(vec, string);
 }
 
-void sort_string_vector(struct string_vector *vec);
-bool string_vector_equal(struct string_vector *v1, struct string_vector *v2);
-void print_string_vector(struct string_vector *vec);
+void sort_string_vector(
+    struct string_vector *vec
+);
+bool string_vector_equal(
+    struct string_vector *v1,
+    struct string_vector *v2
+);
+void print_string_vector(
+    struct string_vector *vec
+);
 
-void split_string_vectors(struct string_vector *first,
-                          struct string_vector *second,
-                          struct string_vector *unique_first,
-                          struct string_vector *unique_second);
+void split_string_vectors(
+    struct string_vector *first,
+    struct string_vector *second,
+    struct string_vector *unique_first,
+    struct string_vector *unique_second
+);
 
 #endif
 
