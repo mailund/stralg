@@ -85,7 +85,7 @@ static void search_edge(
         struct st_leaf_iter_result res;
         while (next_st_leaf(&leaf_iter, &res)) {
             uint32_t position = res.leaf->leaf_label;
-            uint8_t *m = match_string(position, (uint8_t *)data->cigar_buf);
+            uint8_t *m = match_string(position, data->cigar_buf);
             string_vector_append(data->results, m);
         }
         dealloc_st_leaf_iter(&leaf_iter);

@@ -4,13 +4,14 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdint.h>
 #include <assert.h>
 
 static void test_order(struct suffix_array *sa)
 {
     for (int i = 1; i < sa->length; ++i)
-        assert(strcmp(sa->string + sa->array[i-1],
-                      sa->string + sa->array[i])
+        assert(strcmp((char *)(sa->string + sa->array[i-1]),
+                      (char *)(sa->string + sa->array[i]))
                < 0);
 }
 
@@ -30,21 +31,21 @@ static void test_order(struct suffix_array *sa)
 */
 static void test_search(struct suffix_array *sa)
 {
-    long long idx = lower_bound_search(sa, "ab");
+    int idx = lower_bound_search(sa, (uint8_t *)"ab");
     assert(idx == 1);
-    idx = lower_bound_search(sa, "ac");
+    idx = lower_bound_search(sa, (uint8_t *)"ac");
     assert(idx == 4);
-    idx = lower_bound_search(sa, "aa");
+    idx = lower_bound_search(sa, (uint8_t *)"aa");
     assert(idx == 0);
-    idx = lower_bound_search(sa, "ad");
+    idx = lower_bound_search(sa, (uint8_t *)"ad");
     assert(idx == 5);
-    idx = lower_bound_search(sa, "x");
+    idx = lower_bound_search(sa, (uint8_t *)"x");
     assert(idx == 11);
-    idx = lower_bound_search(sa, "b");
+    idx = lower_bound_search(sa, (uint8_t *)"b");
     assert(idx == 6);
-    idx = lower_bound_search(sa, "c");
+    idx = lower_bound_search(sa,(uint8_t *) "c");
     assert(idx == 9);
-    idx = lower_bound_search(sa, "0");
+    idx = lower_bound_search(sa, (uint8_t *)"0");
     assert(idx == 0);
 }
 
@@ -58,7 +59,7 @@ static void test_inverse(struct suffix_array *sa)
     }
 }
 
-static int lcp(const char *a, const char *b)
+static int lcp(const uint8_t *a, const uint8_t *b)
 {
     int l = 0;
     while (*a && *b && *a == *b) {
@@ -81,7 +82,7 @@ static void test_lcp(struct suffix_array *sa)
 }
 
 
-static void test_sa(struct suffix_array *sa, char *string)
+static void test_sa(struct suffix_array *sa, uint8_t *string)
 {
     compute_lcp(sa);
     
@@ -125,7 +126,7 @@ static void test_sa(struct suffix_array *sa, char *string)
 
 int main(int argc, char *argv[])
 {
-    char *string = "ababacabac";
+    uint8_t *string = (uint8_t *)"ababacabac";
     struct suffix_array *sa = qsort_sa_construction(string);
     test_sa(sa, string);
     free_suffix_array(sa);
@@ -134,13 +135,13 @@ int main(int argc, char *argv[])
     test_sa(sa, string);
     free_suffix_array(sa);
 
-    string = "gacacacag";
+    string = (uint8_t *)"gacacacag";
     sa = qsort_sa_construction(string);
     printf("\n");
     print_suffix_array(sa);
     printf("\n");
     
-    uint32_t hit = lower_bound_search(sa, "cag");
+    uint32_t hit = lower_bound_search(sa, (uint8_t *)"cag");
     printf("hit: SA[%u]=%u\n", hit, sa->array[hit]);
     printf("does cag match '%s'?\n", sa->string + sa->array[hit]);
     
@@ -151,7 +152,7 @@ int main(int argc, char *argv[])
     print_suffix_array(sa);
     printf("\n");
     
-    hit = lower_bound_search(sa, "cag");
+    hit = lower_bound_search(sa, (uint8_t *)"cag");
     printf("hit: SA[%u]=%u\n", hit, sa->array[hit]);
     printf("does cag match '%s'?\n", sa->string + sa->array[hit]);
     

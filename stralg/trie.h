@@ -43,7 +43,9 @@ struct trie *get_trie_node(
     struct trie *trie,
     const uint8_t *str
 );
-static inline bool is_trie_root(struct trie *trie) {
+static inline bool is_trie_root(
+    struct trie *trie
+) {
     return trie->parent == 0;
 }
 struct trie *out_link(

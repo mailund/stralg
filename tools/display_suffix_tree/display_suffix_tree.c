@@ -7,6 +7,7 @@
 
 int main(int argc, const char** argv)
 {
+#if 0
     if (argc != 2)
     {
         fprintf(stderr, "Usage: %s string-file\n", argv[0]);
@@ -18,8 +19,8 @@ int main(int argc, const char** argv)
         fprintf(stderr, "Problems reading file %s\n", argv[1]);
         return EXIT_FAILURE;
     }
-    string = "mississippi"; // FIXME  id:4
-                            // - <https://github.com/mailund/stralg/issues/40>
+#endif
+    uint8_t *string = (uint8_t *)"mississippi";
     printf("Building suffix tree.\n");
     struct suffix_tree* st = naive_suffix_tree(string);
     

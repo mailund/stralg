@@ -213,9 +213,11 @@ struct bwt_exact_match {
  @param remapped_pattern The pattern to search for. It must be
  remapped with the remap table that the bwt_table holds.
  */
-void init_bwt_exact_match_iter(struct bwt_exact_match_iter *iter,
-                               struct bwt_table            *bwt_table,
-                               const char                  *remapped_pattern);
+void init_bwt_exact_match_iter(
+    struct bwt_exact_match_iter *iter,
+    struct bwt_table *bwt_table,
+    const uint8_t *remapped_pattern
+);
 /**
  Gets the next match.
  
@@ -229,8 +231,10 @@ void init_bwt_exact_match_iter(struct bwt_exact_match_iter *iter,
  @return If there is a match, it will return true. If there are no more
  matches, it will return false.
  */
-bool next_bwt_exact_match_iter(struct bwt_exact_match_iter *iter,
-                               struct bwt_exact_match      *match);
+bool next_bwt_exact_match_iter(
+    struct bwt_exact_match_iter *iter,
+    struct bwt_exact_match *match
+);
 /**
  Deallocate the resources held by an iterator.
  
@@ -242,7 +246,9 @@ bool next_bwt_exact_match_iter(struct bwt_exact_match_iter *iter,
  
  @param iter The iterator whose resources you should deallocate.
  */
-void dealloc_bwt_exact_match_iter(struct bwt_exact_match_iter *iter);
+void dealloc_bwt_exact_match_iter(
+    struct bwt_exact_match_iter *iter
+);
 
 /**
  Iterator for approximative search.
@@ -256,7 +262,7 @@ void dealloc_bwt_exact_match_iter(struct bwt_exact_match_iter *iter);
  */
 struct bwt_approx_iter {
     struct bwt_table *bwt_table;
-    const char *remapped_pattern;
+    const uint8_t *remapped_pattern;
     
     uint32_t L, R, next_interval;
     struct index_vector  Ls;
@@ -302,10 +308,12 @@ struct bwt_approx_match {
  with the remap table from the BWT table.
  @edits edits            The maximum number of edits allowed
  */
-void init_bwt_approx_iter(struct bwt_approx_iter *iter,
-                          struct bwt_table       *bwt_table,
-                          const char             *remapped_pattern,
-                          int                     edits);
+void init_bwt_approx_iter(
+    struct bwt_approx_iter *iter,
+    struct bwt_table       *bwt_table,
+    const uint8_t          *remapped_pattern,
+    int                     edits
+);
 /**
  Report an approximative match.
  
@@ -321,8 +329,10 @@ void init_bwt_approx_iter(struct bwt_approx_iter *iter,
  @return true if there is a match and false if there are
  no more matches.
  */
-bool next_bwt_approx_match(struct bwt_approx_iter  *iter,
-                           struct bwt_approx_match *match);
+bool next_bwt_approx_match(
+    struct bwt_approx_iter  *iter,
+    struct bwt_approx_match *match
+);
 /**
  Deallocate an iterator.
  
@@ -336,28 +346,48 @@ bool next_bwt_approx_match(struct bwt_approx_iter  *iter,
  
  @param iter The iterater you want to deallocate.
  */
-void dealloc_bwt_approx_iter(struct bwt_approx_iter *iter);
+void dealloc_bwt_approx_iter(
+    struct bwt_approx_iter *iter
+);
 
 
 // Serialisation
-void write_bwt_table(FILE *f, const struct bwt_table *bwt_table);
-void write_bwt_table_fname(const char *fname, const struct bwt_table *bwt_table);
+void write_bwt_table(
+    FILE *f,
+    const struct bwt_table *bwt_table
+);
+void write_bwt_table_fname(
+    const char *fname,
+    const struct bwt_table *bwt_table
+);
 
-struct bwt_table *read_bwt_table(FILE *f,
-                                 struct suffix_array *sa,
-                                 struct remap_table  *remap_table);
-struct bwt_table * read_bwt_table_fname(const char *fname,
-                                        struct suffix_array *sa,
-                                        struct remap_table  *remap_table);
+struct bwt_table *read_bwt_table(
+    FILE *f,
+    struct suffix_array *sa,
+    struct remap_table  *remap_table
+);
+struct bwt_table * read_bwt_table_fname(
+    const char *fname,
+    struct suffix_array *sa,
+    struct remap_table  *remap_table
+);
 
 
 
 // Some debug code
-void print_c_table  (const struct bwt_table *table);
-void print_o_table  (const struct bwt_table *table);
-void print_bwt_table(const struct bwt_table *table);
+void print_c_table(
+    const struct bwt_table *table
+);
+void print_o_table(
+    const struct bwt_table *table
+);
+void print_bwt_table(
+    const struct bwt_table *table
+);
 
-bool equivalent_bwt_tables(struct bwt_table *table1,
-                           struct bwt_table *table2);
+bool equivalent_bwt_tables(
+    struct bwt_table *table1,
+    struct bwt_table *table2
+);
 
 #endif

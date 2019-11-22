@@ -161,8 +161,8 @@ naive_insert(
     } else {
         
         // we have an edge to follow!
-        const char *s = w->range.from;
-        const char *t = w->range.to;
+        const uint8_t *s = w->range.from;
+        const uint8_t *t = w->range.to;
         for (; s != t; ++s, ++x) {
             if (*s != *x) {
                 struct suffix_tree_node *u = split_edge(st, w, s);
@@ -878,11 +878,12 @@ void st_compute_sa_and_lcp(struct suffix_tree *st,
 
 #pragma mark IO
 
-static void print_out_edges(FILE *f,
-                            struct suffix_tree *st,
-                            struct suffix_tree_node *from,
-                            char *label_buffer)
-{
+static void print_out_edges(
+    FILE *f,
+    struct suffix_tree *st,
+    struct suffix_tree_node *from,
+    char *label_buffer
+) {
     struct suffix_tree_node *child = from->child;
     
     if (!child) {
@@ -898,7 +899,7 @@ static void print_out_edges(FILE *f,
         fprintf(f, "\"%p\" [shape=point];\n", from);
     
     while (child) {
-        get_edge_label(st, child, label_buffer);
+        get_edge_label(st, child, (uint8_t *)label_buffer);
         uint32_t from_idx = (uint32_t)(child->range.from - st->string);
         uint32_t to_idx = (uint32_t)(child->range.to - st->string);
         fprintf(f, "\"%p\" -> \"%p\" [label=\"%s (%u,%u)\"];\n",
@@ -919,7 +920,8 @@ void st_print_dot(struct suffix_tree *st,
                   FILE *file)
 {
     struct suffix_tree_node *root = n ? n : st->root;
-    char buffer[strlen(st->string) + 2]; // + 1 for the sentinel and +1 for '\0' I think
+    // + 1 for the sentinel
+    char buffer[strlen((char *)st->string) + 1];
 
     fprintf(file, "digraph {\n");
     fprintf(file, "node[shape=circle];\n");

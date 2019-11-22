@@ -508,19 +508,21 @@ uint32_t lower_bound_search(
     return (cmp == 0) ? mid + 1: mid;
 }
 
-void init_sa_match_iter(struct sa_match_iter *iter,
-                        const char *key,
-                        struct suffix_array *sa)
-{
+void init_sa_match_iter(
+    struct sa_match_iter *iter,
+    const uint8_t *key,
+    struct suffix_array *sa
+) {
     iter->sa = sa;
     
-    uint32_t key_len = (uint32_t)strlen(key);
+    uint32_t key_len = (uint32_t)strlen((char *)key);
     assert(key_len > 0); // I cannot handle empty strings!
     uint32_t mid = binary_search(key, key_len, sa);
     
-    int cmp;
     if (mid == sa->length ||
-        (cmp = strncmp(sa->string + sa->array[mid], key, key_len)) != 0) {
+        strncmp((char *)(sa->string + sa->array[mid]),
+                (char *)key, key_len)
+               != 0) {
         // this is a special case where the lower bound is
         // the end of the array. Here we cannot check
         // the strcmp to figure out the interval
@@ -532,16 +534,18 @@ void init_sa_match_iter(struct sa_match_iter *iter,
         return;
     }
     
-    assert(cmp == 0);
     // find lower and upper bound
     uint32_t lower = mid;
-    while (lower > 0 && strncmp(sa->string + sa->array[lower], key, key_len) >= 0) {
+    while (lower > 0 &&
+           strncmp((char *)(sa->string + sa->array[lower]),
+                   (char *)key, key_len) >= 0) {
         lower--;
     }
     iter->i = iter->L = lower + 1;
     uint32_t upper = mid;
     while (upper < sa->length &&
-           strncmp(sa->string + sa->array[upper], key, key_len) == 0) {
+           strncmp((char *)(sa->string + sa->array[upper]),
+                   (char *)key, key_len) == 0) {
         upper++;
     }
     iter->R = upper - 1;
@@ -619,7 +623,7 @@ bool identical_suffix_arrays(const struct suffix_array *sa1,
     if (sa1->length != sa2->length)
         return false;
     
-    if (strcmp(sa1->string, sa2->string) != 0)
+    if (strcmp((char *)sa1->string, (char *)sa2->string) != 0)
         return false;
     
     for (uint32_t i = 0; i < sa1->length; ++i) {
@@ -627,8 +631,8 @@ bool identical_suffix_arrays(const struct suffix_array *sa1,
             return false;
     }
     
-    assert(strlen(sa1->string) + 1 == sa1->length);
-    if (strlen(sa1->string) + 1 != sa1->length)
+    assert(strlen((char *)sa1->string) + 1 == sa1->length);
+    if (strlen((char *)sa1->string) + 1 != sa1->length)
         return false;
     
     

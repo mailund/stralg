@@ -24,8 +24,8 @@
  */
 struct ac_iter {
     // The string we search in.
-    const char *text;
-    // The length of `text`
+    const uint8_t *x;
+    // The length of `x`
     uint32_t n;
 
     // The length of each individual pattern
@@ -53,7 +53,7 @@ struct ac_iter {
  */
 struct ac_match {
     /// The number of the pattern matched.
-    long long string_label;
+    int string_label;
     /// The position in the text where we have a match.
     uint32_t index;
 };
@@ -73,7 +73,7 @@ struct ac_match {
  */
 void init_ac_iter(
     struct ac_iter *iter,
-    const char *text,
+    const uint8_t *x,
     uint32_t n,
     const uint32_t *pattern_lengths,
     struct trie *patterns_trie

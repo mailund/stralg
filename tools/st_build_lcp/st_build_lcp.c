@@ -21,7 +21,7 @@ int main(int argc, const char** argv)
     }
     
     printf("Building suffix tree.\n");
-    struct suffix_tree* st = naive_suffix_tree(string);
+    struct suffix_tree* st = naive_suffix_tree((uint8_t *)string);
 
     printf("Traversing tree.\n");
     uint32_t sa[st->length];

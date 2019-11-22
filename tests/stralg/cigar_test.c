@@ -21,11 +21,12 @@ int main(int argc, char **argv)
     printf("%s\n", cigar_buf);
     assert(strcmp(cigar_buf, "1I2M1D2M") == 0);
 
-    const char *string = "acacacg";
+    const uint8_t *string = (uint8_t *)"acacacg";
     char pattern_buf[1000];
     char matched_buf[1000];
     
-    char *end_match = cigar_alignment("3M", "aca", string, pattern_buf, matched_buf, 0);
+    uint8_t *end_match = cigar_alignment("3M", (uint8_t *)"aca", string,
+                                      pattern_buf, matched_buf, 0);
     printf("%s\n%s\n", pattern_buf, matched_buf);
     assert(strcmp(pattern_buf, "aca") == 0);
     assert(strcmp(matched_buf, "aca") == 0);

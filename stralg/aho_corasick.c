@@ -7,15 +7,15 @@
 
 
 
-void init_ac_iter(struct ac_iter *iter,
-                  const char *text,
-                  uint32_t n,
-                  const uint32_t *pattern_lengths,
-                  struct trie *patterns_trie
-                  )
-{
+void init_ac_iter(
+    struct ac_iter *iter,
+    const uint8_t *x,
+    uint32_t n,
+    const uint32_t *pattern_lengths,
+    struct trie *patterns_trie
+) {
     assert(iter);
-    iter->text = text; iter->n = n;
+    iter->x = x; iter->n = n;
 
     iter->pattern_lengths = pattern_lengths;
     iter->patterns_trie = patterns_trie;
@@ -32,15 +32,22 @@ void init_ac_iter(struct ac_iter *iter,
 
 
 #if 0
-void aho_corasick_match(const char *text, uint32_t n, struct trie *patterns,
-                        ac_callback_func callback, void *callback_data) {
+void aho_corasick_match(
+    const char *text,
+    uint32_t n,
+    struct trie *patterns,
+    ac_callback_func callback,
+    void *callback_data
+) {
     uint32_t j = 0;
     struct trie *v = patterns;
     
     while (j < n) {
         struct trie *w = out_link(v, text[j]);
         while (w) {
-            for (struct output_list *hits = w->output; hits != 0; hits = hits->next) {
+            for (struct output_list *hits = w->output;
+                 hits != 0;
+                 hits = hits->next) {
                 callback(hits->string_label, j, callback_data);
             }
             
@@ -58,9 +65,10 @@ void aho_corasick_match(const char *text, uint32_t n, struct trie *patterns,
 }
 #endif
 
-bool next_ac_match(struct ac_iter *iter,
-                   struct ac_match *match)
-{
+bool next_ac_match(
+    struct ac_iter *iter,
+    struct ac_match *match
+) {
     assert(iter);
     assert(match);
     
@@ -74,12 +82,12 @@ bool next_ac_match(struct ac_iter *iter,
     }
     
     if (iter->nested) {
-        iter->w = out_link(iter->v, iter->text[iter->j]);
+        iter->w = out_link(iter->v, iter->x[iter->j]);
         if (iter->w) {
             iter->hits = iter->w->output;
             iter->v = iter->w;
             iter->j++;
-            iter->w = out_link(iter->v, iter->text[iter->j]);
+            iter->w = out_link(iter->v, iter->x[iter->j]);
             return next_ac_match(iter, match);
         } else {
             iter->nested = false;

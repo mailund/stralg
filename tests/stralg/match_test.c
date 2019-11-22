@@ -14,11 +14,11 @@
 // them so I can use them to explain the
 // algorithms without introducing iterators
 
-static void naive_search(const char *x, const char *p,
+static void naive_search(const uint8_t *x, const uint8_t *p,
                          struct index_vector *res)
 {
-    uint32_t n = (uint32_t)strlen(x);
-    uint32_t m = (uint32_t)strlen(p);
+    uint32_t n = (uint32_t)strlen((char *)x);
+    uint32_t m = (uint32_t)strlen((char *)p);
     
     // otherwise the loop test can go horribly wrong
     if ((long long)n < (long long)m) {
@@ -35,11 +35,11 @@ static void naive_search(const char *x, const char *p,
     }
 }
 
-static void border_search(const char *x, const char *p,
+static void border_search(const uint8_t *x, const uint8_t *p,
                           struct index_vector *res)
 {
-    uint32_t n = (uint32_t)strlen(x);
-    uint32_t m = (uint32_t)strlen(p);
+    uint32_t n = (uint32_t)strlen((char *)x);
+    uint32_t m = (uint32_t)strlen((char *)p);
     int b = 0;
     
     if ((long long)n < (long long)m) {
@@ -68,11 +68,11 @@ static void border_search(const char *x, const char *p,
     free(ba);
 }
 
-static void kmp_search(const char *x, const char *p,
+static void kmp_search(const uint8_t *x, const uint8_t *p,
                        struct index_vector *res)
 {
-    uint32_t n = (uint32_t)strlen(x);
-    uint32_t m = (uint32_t)strlen(p);
+    uint32_t n = (uint32_t)strlen((char *)x);
+    uint32_t m = (uint32_t)strlen((char *)p);
     
     if ((long long)n < (long long)m) {
         return;
@@ -116,11 +116,11 @@ static void kmp_search(const char *x, const char *p,
     free(prefixtab);
 }
 
-static void bmh_search(const char *x, const char *p,
+static void bmh_search(const uint8_t *x, const uint8_t *p,
                        struct index_vector *res)
 {
-    uint32_t n = (uint32_t)strlen(x);
-    uint32_t m = (uint32_t)strlen(p);
+    uint32_t n = (uint32_t)strlen((char *)x);
+    uint32_t m = (uint32_t)strlen((char *)p);
     
     if ((long long)n < (long long)m) {
         return;
@@ -157,26 +157,27 @@ typedef bool (*iteration_func)(
 );
 typedef void (*iter_init_func)(
     void *iter,
-    const char *text, uint32_t n,
-    const char *pattern, uint32_t m
+    const uint8_t *x, uint32_t n,
+    const uint8_t *p, uint32_t m
 );
 typedef void (*iter_dealloc_func)(
     void *iter
 );
 
 static void iter_test(
-    const char *text, const char *pattern,
+    const uint8_t *x,
+    const uint8_t *p,
     void *iter,
     iter_init_func    iter_init,
     iteration_func    iter_func,
     iter_dealloc_func iter_dealloc,
     struct index_vector *res
 ) {
-    uint32_t n = (uint32_t)strlen(text);
-    uint32_t m = (uint32_t)strlen(pattern);
+    uint32_t n = (uint32_t)strlen((char *)x);
+    uint32_t m = (uint32_t)strlen((char *)p);
 
     struct match match;
-    iter_init(iter, text, n, pattern, m);
+    iter_init(iter, x, n, p, m);
     while (iter_func(iter, &match)) {
         index_vector_append(res, match.pos);
     }
@@ -210,8 +211,8 @@ static void test_suffix_tree_match(
 }
 
 static void simple_exact_matchers(struct index_vector *naive,
-                                  const char *pattern,
-                                  const char *string)
+                                  const uint8_t *pattern,
+                                  const uint8_t *string)
 {
     struct index_vector border; init_index_vector(&border, 10);
     struct index_vector kmp;    init_index_vector(&kmp, 10);
@@ -406,8 +407,8 @@ static void general_suffix_test(struct index_vector *naive,
     free_suffix_array(sa);
 }
 
-static void general_match_test(const char *pattern,
-                               char *string)
+static void general_match_test(const uint8_t *pattern,
+                               uint8_t *string)
 {
     struct index_vector naive;  init_index_vector(&naive, 10);
     printf("naive algorithm.\n");
@@ -427,7 +428,8 @@ static void general_match_test(const char *pattern,
 
 static void bwt_match(struct index_vector *naive,
                       struct remap_table *remap_table,
-                      char *remapped_pattern, char *remapped_string)
+                      uint8_t *remapped_pattern,
+                      uint8_t *remapped_string)
 {
     struct suffix_array *sa = qsort_sa_construction(remapped_string);
     
@@ -460,22 +462,23 @@ static void bwt_match(struct index_vector *naive,
     free_suffix_array(sa);
 }
 
-static void remap_match_test(const char *pattern,
-                             const char *string)
-{
-    uint32_t n = (uint32_t)strlen(string);
-    char remapped_string[n + 1];
-    uint32_t m = (uint32_t)strlen(pattern);
-    char remapped_pattern[m + 1];
+static void remap_match_test(
+    const uint8_t *p,
+    const uint8_t *x
+) {
+    uint32_t n = (uint32_t)strlen((char *)x);
+    uint8_t remapped_string[n + 1];
+    uint32_t m = (uint32_t)strlen((char *)p);
+    uint8_t remapped_pattern[m + 1];
     
     struct remap_table remap_table;
-    init_remap_table(&remap_table, string);
+    init_remap_table(&remap_table, x);
     
-    remap(remapped_string, string, &remap_table);
+    remap(remapped_string, x, &remap_table);
     // I check the result of remap here so I do not search
     // for patterns that contain letters not found in
     // the text.
-    if (!remap(remapped_pattern, pattern, &remap_table)) return;
+    if (!remap(remapped_pattern, p, &remap_table)) return;
     
     struct index_vector naive;  init_index_vector(&naive, 10);
     printf("naive algorithm.\n");
@@ -498,7 +501,7 @@ static void remap_match_test(const char *pattern,
     dealloc_index_vector(&naive);
 }
 
-static void match_test(const char *pattern, char *string)
+static void match_test(const uint8_t *pattern, uint8_t *string)
 {
     general_match_test(pattern, string);
     remap_match_test(pattern, string);
@@ -518,7 +521,7 @@ int main(int argc, char * argv[])
             return EXIT_FAILURE;
         }
         // LCOV_EXCL_STOP
-        match_test(pattern, string);
+        match_test((uint8_t *)pattern, (uint8_t *)string);
         free(string);
         
     } else {
@@ -542,7 +545,7 @@ int main(int argc, char * argv[])
         for (uint32_t i = 0; i < no_patterns; ++i) {
             for (uint32_t j = 0; j < no_strings; ++j) {
                 printf("%s in %s\n", patterns[i], strings[j]);
-                match_test(patterns[i], strings[j]);
+                match_test((uint8_t *)patterns[i], (uint8_t *)strings[j]);
             }
         }
 

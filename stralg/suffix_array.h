@@ -52,7 +52,7 @@ struct sa_match_iter {
 struct sa_match {
     uint32_t position;
 };
-void init_sa_match_ite(
+void init_sa_match_iter(
     struct sa_match_iter *iter,
     const uint8_t *pattern,
     struct suffix_array *sa
