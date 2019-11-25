@@ -25,7 +25,10 @@ static void print_leaves(struct suffix_tree_node *from)
     }
 }
 
-static void test_suffix_tree_match(struct index_vector *naive_matches, const char *pattern, struct suffix_tree *st, char *string) {
+static void test_suffix_tree_match(struct index_vector *naive_matches,
+                                   const uint8_t *pattern,
+                                   struct suffix_tree *st,
+                                   uint8_t *string) {
     struct st_leaf_iter st_iter;
     struct st_leaf_iter_result res;
     
@@ -34,7 +37,7 @@ static void test_suffix_tree_match(struct index_vector *naive_matches, const cha
     
     // just check that we do not find a node with a string that is not in the tree
     printf("search that should miss!\n");
-    assert(!st_search(st, "blahblahblahdeblablabla"));
+    assert(!st_search(st, (uint8_t *)"blahblahblahdeblablabla"));
     
     struct suffix_tree_node *match_root = st_search(st, pattern);
     
@@ -68,14 +71,13 @@ static void test_suffix_tree_match(struct index_vector *naive_matches, const cha
     free_index_vector(st_matches);
 }
 
-static void test_matching(const char *pattern, char *string) {
+static void test_matching(const uint8_t *pattern, uint8_t *string) {
     struct index_vector *naive_matches  = alloc_index_vector(10);
-    uint32_t n = (uint32_t)strlen(string);
-    uint32_t m = (uint32_t)strlen(pattern);
+    uint32_t n = (uint32_t)strlen((char *)string);
+    uint32_t m = (uint32_t)strlen((char *)pattern);
     struct naive_match_iter naive_iter;
     struct match match;
-#warning change type instead of cast
-    init_naive_match_iter(&naive_iter, (uint8_t*)string, n, (uint8_t*)pattern, m);
+    init_naive_match_iter(&naive_iter, string, n, pattern, m);
     while (next_naive_match(&naive_iter, &match)) {
         index_vector_append(naive_matches, match.pos);
     }
@@ -109,10 +111,10 @@ static void test_matching(const char *pattern, char *string) {
 int main(int argc, const char **argv)
 {
     if (argc == 3) {
-        const char *pattern = argv[1];
+        const uint8_t *pattern = (uint8_t *)argv[1];
         const char *fname = argv[2];
     
-        char *string = load_file(fname);
+        uint8_t *string = load_file(fname);
         printf("did I get this far?\n");
         if (!string) {
             // LCOV_EXCL_START
@@ -140,7 +142,7 @@ int main(int argc, const char **argv)
         for (uint32_t i = 0; i < no_patterns; ++i) {
             for (uint32_t j = 0; j < no_strings; ++j) {
                 printf("%s in %s\n", patterns[i], strings[j]);
-                test_matching(patterns[i], strings[j]);
+                test_matching((uint8_t *)patterns[i], (uint8_t *)strings[j]);
             }
         }
 

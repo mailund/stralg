@@ -9,11 +9,11 @@
 #define BUFFER_SIZE 1024
 #define PRINT_RESULTS
 
-static char *match_string(uint32_t idx, const char *string, const char *cigar)
+static uint8_t *match_string(uint32_t idx, const uint8_t *string, const char *cigar)
 {
     char *new_string = malloc(BUFFER_SIZE);
     sprintf(new_string, "%lu %s %s", (unsigned long)idx, string, cigar);
-    return new_string;
+    return (uint8_t *)new_string;
 }
 
 static void free_strings(struct string_vector *vec)
@@ -29,7 +29,7 @@ static void free_strings(struct string_vector *vec)
 static void exact_approach(
     const uint8_t *string,
     const uint8_t *pattern,
-    const uint8_t *alphabet,
+    const char *alphabet,
     int dist,
     struct string_vector *results
 ) {
@@ -47,11 +47,10 @@ static void exact_approach(
             continue;
         }
         
-        uint32_t m = (uint32_t)strlen(edit_pattern.pattern);
+        uint32_t m = (uint32_t)strlen((char *)edit_pattern.pattern);
         // If the exact matchers work, I can pick any of them.
         // I use the border array search.
         struct border_match_iter match_iter;
-    #warning change type instead of cast
         init_border_match_iter(&match_iter,
                                string, n,
                                edit_pattern.pattern, m);
@@ -78,11 +77,13 @@ static void print_cigar_list(index_list *list, string_vector *patterns)
 }
 #endif
 
-static void aho_corasick_approach(const char *string,
-                                  const char *pattern,
-                                  const char *alphabet,
-                                  int dist, struct string_vector *results)
-{
+static void aho_corasick_approach(
+    const uint8_t *string,
+    const uint8_t *pattern,
+    const char *alphabet,
+    int dist,
+    struct string_vector *results
+) {
     
     struct string_vector patterns; init_string_vector(&patterns, 10);
     struct string_vector cigars;   init_string_vector(&cigars, 10);
@@ -135,16 +136,16 @@ static void aho_corasick_approach(const char *string,
     struct ac_iter ac_iter;
     struct ac_match ac_match;
     
-    init_ac_iter(&ac_iter, string, (uint32_t)strlen(string), pattern_lengths, &trie);
+    init_ac_iter(&ac_iter, string, (uint32_t)strlen((char *)string), pattern_lengths, &trie);
     while (next_ac_match(&ac_iter, &ac_match)) {
         uint32_t pattern_idx = ac_match.string_label;
-        const char *pattern = string_vector_get(&patterns, pattern_idx);
+        const uint8_t *pattern = string_vector_get(&patterns, pattern_idx);
         // there might be more than one cigar per pattern
         struct index_linked_list *pattern_cigars = cigar_table[pattern_idx];
         while (pattern_cigars) {
             uint32_t cigar_index = pattern_cigars->data;
-            const char *cigar = string_vector_get(&cigars, cigar_index);
-            char *hit = match_string(ac_match.index, pattern, cigar);
+            const char *cigar = (char *)string_vector_get(&cigars, cigar_index);
+            uint8_t *hit = match_string(ac_match.index, pattern, cigar);
             string_vector_append(results, hit);
             pattern_cigars = pattern_cigars->next;
         }
@@ -159,12 +160,14 @@ static void aho_corasick_approach(const char *string,
     dealloc_trie(&trie);
 }
 
-static void st_match(struct suffix_tree *st,
-                     const char *pattern, const char *string,
-                     int edits,
-                     struct string_vector *st_results)
-{
-    char path_buffer[st->length + 1];
+static void st_match(
+    struct suffix_tree *st,
+    const uint8_t *pattern,
+    const uint8_t *string,
+    int edits,
+    struct string_vector *st_results
+) {
+    uint8_t path_buffer[st->length + 1];
     
     struct st_approx_match_iter iter;
     struct st_approx_match match;
@@ -172,27 +175,29 @@ static void st_match(struct suffix_tree *st,
     while (next_st_approx_match(&iter, &match)) {
         get_path_string(st, match.root, path_buffer);
         path_buffer[match.match_depth] = '\0';
-        char *m = match_string(match.match_label, path_buffer, match.cigar);
+        uint8_t *m = match_string(match.match_label, path_buffer, match.cigar);
         string_vector_append(st_results, m);
     }
     
     dealloc_st_approx_iter(&iter);
 }
 
-static void bwt_match(struct suffix_array *sa,
-                      // the pattern and string are remapped
-                      const char *pattern, const char *string,
-                      struct remap_table *remap_table,
-                      struct bwt_table *bwt_table,
-                      int edits,
-                      struct string_vector *bwt_results)
-{
+static void bwt_match(
+    struct suffix_array *sa,
+    // the pattern and string are remapped
+    const uint8_t *pattern,
+    const uint8_t *string,
+    struct remap_table *remap_table,
+    struct bwt_table *bwt_table,
+    int edits,
+    struct string_vector *bwt_results
+) {
     
     // We need this to get the string we actually matched
     // from the remapped stuff.
     // FIXME: check if this is the correct length needed.
-    uint32_t n = (uint32_t) (3 * strlen(pattern) + 1);
-    char rev_mapped_match[n];
+    uint32_t n = (uint32_t) (3 * strlen((char *)pattern) + 1);
+    uint8_t rev_mapped_match[n];
     
     struct bwt_approx_iter iter;
     struct bwt_approx_match match;
@@ -202,7 +207,7 @@ static void bwt_match(struct suffix_array *sa,
                            string + match.position,
                            string + match.position + match.match_length,
                            remap_table);
-        char *m = match_string(match.position, rev_mapped_match, match.cigar);
+        uint8_t *m = match_string(match.position, rev_mapped_match, match.cigar);
         string_vector_append(bwt_results, m);
     }
     dealloc_bwt_approx_iter(&iter);
@@ -211,10 +216,12 @@ static void bwt_match(struct suffix_array *sa,
 
 #pragma mark The testing functions
 
-static void exact_bwt_test(struct string_vector *exact_results,
-                           struct remap_table *remap_table,
-                           char *remapped_pattern, char *remapped_string)
-{
+static void exact_bwt_test(
+    struct string_vector *exact_results,
+    struct remap_table *remap_table,
+    uint8_t *remapped_pattern,
+    uint8_t *remapped_string
+) {
     struct suffix_array *sa = qsort_sa_construction(remapped_string);
     
     printf("BWT\t");
@@ -242,9 +249,11 @@ static void exact_bwt_test(struct string_vector *exact_results,
     free_suffix_array(sa);
 }
 
-static void test_exact(const char *pattern, const char *string,
-                       const char *alphabet)
-{
+static void test_exact(
+    const uint8_t *pattern,
+    const uint8_t *string,
+    const char *alphabet
+) {
     printf("\n\nTesting exact matching (with approximative matchers)\n");
     printf("Searching for %s in %s\n", pattern, string);
     printf("====================================================\n");
@@ -297,10 +306,10 @@ static void test_exact(const char *pattern, const char *string,
     printf("----------------------------------------------------\n");
     printf("---------------- REMAPPING MAPPERS -----------------\n");
     printf("----------------------------------------------------\n");
-    uint32_t n = (uint32_t)strlen(string);
-    char remapped_string[n + 1];
-    uint32_t m = (uint32_t)strlen(pattern);
-    char remapped_pattern[m + 1];
+    uint32_t n = (uint32_t)strlen((char *)string);
+    uint8_t remapped_string[n + 1];
+    uint32_t m = (uint32_t)strlen((char *)pattern);
+    uint8_t remapped_pattern[m + 1];
     
     struct remap_table remap_table;
     init_remap_table(&remap_table, string);
@@ -321,9 +330,12 @@ static void test_exact(const char *pattern, const char *string,
 
 
 
-static void test_approx(const char *pattern, const char *string,
-                        int edits, const char *alphabet)
-{
+static void test_approx(
+    const uint8_t *pattern,
+    const uint8_t *string,
+    int edits,
+    const char *alphabet
+) {
     printf("\n\nTesting approximative matching with %d %s\n",
            edits, (edits == 1) ? "edit" : "edits");
     printf("Searching for %s in %s\n", pattern, string);
@@ -363,10 +375,10 @@ static void test_approx(const char *pattern, const char *string,
     printf("OK\n");
     printf("----------------------------------------------------\n");
     
-    uint32_t n = (uint32_t)strlen(string);
-    char remappe_string[n + 1];
-    uint32_t m = (uint32_t)strlen(pattern);
-    char remapped_pattern[m + 1];
+    uint32_t n = (uint32_t)strlen((char *)string);
+    uint8_t remappe_string[n + 1];
+    uint32_t m = (uint32_t)strlen((char *)pattern);
+    uint8_t remapped_pattern[m + 1];
     
     struct remap_table remap_table;
     init_remap_table(&remap_table, string);
@@ -380,8 +392,8 @@ static void test_approx(const char *pattern, const char *string,
         printf("Aho-Corasic vs BWT.\t");
         
         
-        assert(strlen(string) == strlen(remappe_string));
-        assert(strlen(pattern) == strlen(remapped_pattern));
+        assert(strlen((char *)string) == strlen((char *)remappe_string));
+        assert(strlen((char *)pattern) == strlen((char *)remapped_pattern));
         
         struct suffix_array *sa = qsort_sa_construction(remappe_string);
         
@@ -416,11 +428,10 @@ static void test_approx(const char *pattern, const char *string,
         printf("Aho-Corasic vs BWT-D.\t");
         
         
-        assert(strlen(string) == strlen(remappe_string));
-        assert(strlen(pattern) == strlen(remapped_pattern));
+        assert(strlen((char *)string) == strlen((char *)remappe_string));
+        assert(strlen((char *)pattern) == strlen((char *)remapped_pattern));
     
-    #warning change type instead of cast
-        char *reversed_remapped = (char *)str_copy((uint8_t *)remappe_string);
+        uint8_t *reversed_remapped = str_copy(remappe_string);
         str_inplace_rev((uint8_t*)reversed_remapped);
         
         struct suffix_array *rsa = qsort_sa_construction(reversed_remapped);
@@ -450,7 +461,7 @@ static void test_approx(const char *pattern, const char *string,
 
 int main(int argc, char **argv)
 {
-    char *alphabet = "acgt";
+    const char *alphabet = "acgt";
     
     bool exact = true; // run exact tests by default
     if (argc == 2 && strcmp(argv[1], "approx") == 0)
@@ -481,7 +492,7 @@ int main(int argc, char **argv)
         for (uint32_t i = 0; i < no_patterns; ++i) {
             for (uint32_t j = 0; j < no_strings; ++j) {
                 printf("%s in %s\n", patterns[i], strings[j]);
-                test_exact(patterns[i], strings[j], alphabet);
+                test_exact((uint8_t *)patterns[i], (uint8_t *)strings[j], alphabet);
             }
         }
         printf("DONE\n");
@@ -502,7 +513,7 @@ int main(int argc, char **argv)
                     
                     printf("%s in %s with %d edits\n",
                            patterns[i], strings[j], edits[k]);
-                    test_approx(patterns[i], strings[j], edits[k], alphabet);
+                    test_approx((uint8_t *)patterns[i], (uint8_t *)strings[j], edits[k], alphabet);
                 }
             }
         }

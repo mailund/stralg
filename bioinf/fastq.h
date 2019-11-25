@@ -4,6 +4,7 @@
 
 #include <stdio.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 #define MAX_STRING_LEN 2048
 
@@ -13,7 +14,7 @@ struct fastq_iter {
 };
 struct fastq_record {
     char name[MAX_STRING_LEN];
-    char sequence[MAX_STRING_LEN];
+    uint8_t sequence[MAX_STRING_LEN];
     char quality[MAX_STRING_LEN];
 };
 

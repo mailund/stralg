@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-char *load_file(const char *fname)
+uint8_t *load_file(const char *fname)
 {
     FILE *f = fopen(fname, "rb");
     if (!f) return 0;
@@ -12,7 +12,7 @@ char *load_file(const char *fname)
     long fsize = ftell(f);
     fseek(f, 0, SEEK_SET); // rewinding
 
-    char *string = malloc(fsize + 1);
+    uint8_t *string = malloc(fsize + 1);
     fread(string, fsize, 1, f);
     
     string[fsize] = 0;

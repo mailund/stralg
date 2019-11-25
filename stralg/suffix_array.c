@@ -46,7 +46,7 @@ struct suffix_array *qsort_sa_construction(uint8_t *string)
 {
     struct suffix_array *sa = allocate_sa(string);
     
-    uint8_t **suffixes = malloc(sa->length * sizeof(char *));
+    uint8_t **suffixes = malloc(sa->length * sizeof(uint8_t *));
     for (int i = 0; i < sa->length; ++i)
         suffixes[i] = string + i;
     

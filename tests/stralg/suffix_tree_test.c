@@ -55,12 +55,12 @@ static bool has_leaf(struct suffix_tree *st, struct suffix_tree_node *v, uint32_
 
 static void check_leaf_search(struct suffix_tree *st)
 {
-    char buffer[st->length + 1];
+    uint8_t buffer[st->length + 1];
     for (uint32_t i = 0; i < st->length; ++i) {
         struct suffix_tree_node *v = st_search(st, st->string + i);
         assert(has_leaf(st, v, i));
         get_path_string(st, v, buffer);
-        assert(strcmp(st->string + i, buffer) == 0);
+        assert(strcmp((char *)st->string + i, (char *)buffer) == 0);
         assert(!has_leaf(st, v, st->length + i));
     }
 }
@@ -94,7 +94,7 @@ static void check_suffix_tree(struct suffix_tree *st)
     }
     
     int xx = 0;
-    char buffer[st->length + 1];
+    uint8_t buffer[st->length + 1];
     init_st_leaf_iter(&iter, st, st->root);
     while (next_st_leaf(&iter, &res)) {
         
@@ -108,7 +108,7 @@ static void check_suffix_tree(struct suffix_tree *st)
         printf("suffix path string: %2u: \"%s\"\n",
                res.leaf->leaf_label,
                buffer);
-        assert(strcmp(buffer, st->string + res.leaf->leaf_label) == 0);
+        assert(strcmp((char *)buffer, (char *)st->string + res.leaf->leaf_label) == 0);
     }
     dealloc_st_leaf_iter(&iter);
     free_index_vector(indices);
@@ -122,7 +122,7 @@ static void check_suffix_tree(struct suffix_tree *st)
 
 int main(int argc, const char **argv)
 {
-    const char *string = "mississippi";
+    const uint8_t *string = (uint8_t *)"mississippi";
     //const char *string = "aaaa";
     struct suffix_tree *st = naive_suffix_tree(string);
     check_nodes(st, st->root);

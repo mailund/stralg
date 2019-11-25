@@ -7,7 +7,7 @@
 static void print_out_edges(struct trie *trie, FILE *dot_file) {
     // node attributes
     if (trie->string_label >= 0) {
-        fprintf(dot_file, "\"%p\" [label=\"%lld\"];\n", (void *)trie,
+        fprintf(dot_file, "\"%p\" [label=\"%d\"];\n", (void *)trie,
                 trie->string_label);
     } else {
         fprintf(dot_file, "\"%p\" [label=\"\"];\n", (void *)trie);
@@ -29,13 +29,13 @@ static void print_out_edges(struct trie *trie, FILE *dot_file) {
         fprintf(dot_file, "\"%p\" [color=blue, shape=point];\n",
                 (void *)trie->output);
         fprintf(dot_file,
-                "\"%p\" -> \"%p\" [style=\"dashed\", color=blue, label=%lld];\n",
+                "\"%p\" -> \"%p\" [style=\"dashed\", color=blue, label=%d];\n",
                 (void *)trie, (void *)trie->output, trie->output->string_label);
         struct output_list *list = trie->output;
         while (list->next) {
             fprintf(
                 dot_file,
-                    "\"%p\" -> \"%p\" [style=\"dashed\", color=blue, label=%lld];\n",
+                    "\"%p\" -> \"%p\" [style=\"dashed\", color=blue, label=%d];\n",
                 (void *)list, (void *)list->next, list->next->string_label);
             list = list->next;
         }
@@ -89,7 +89,8 @@ int main(int argc, const char** argv)
     char buffer[MAX_LINE_SIZE];
     while (fgets(buffer, MAX_LINE_SIZE, infile) != 0)
     {
-        char pattern[MAX_LINE_SIZE], cigar[MAX_LINE_SIZE];
+        uint8_t pattern[MAX_LINE_SIZE];
+        char cigar[MAX_LINE_SIZE];
         sscanf(buffer, "%s %s", (char*)&pattern, (char*)&cigar);
 
         if (string_in_trie(trie, pattern)) {

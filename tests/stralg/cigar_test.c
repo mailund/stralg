@@ -11,7 +11,7 @@ int main(int argc, char **argv)
     char cigar_buf[1000];
     
     enum error_codes err;
-    char *null;
+    uint8_t *null;
 
     correct_cigar(cigar_buf, "IIMDDMM");
     printf("%s\n", cigar_buf);
@@ -28,50 +28,56 @@ int main(int argc, char **argv)
     uint8_t *end_match = cigar_alignment("3M", (uint8_t *)"aca", string,
                                       pattern_buf, matched_buf, 0);
     printf("%s\n%s\n", pattern_buf, matched_buf);
-    assert(strcmp(pattern_buf, "aca") == 0);
-    assert(strcmp(matched_buf, "aca") == 0);
+    assert(strcmp((char *)pattern_buf, "aca") == 0);
+    assert(strcmp((char *)matched_buf, "aca") == 0);
     assert(end_match == string + 3);
 
     
-    end_match = cigar_alignment("2M1I", "aca", string, pattern_buf, matched_buf, 0);
+    end_match = cigar_alignment("2M1I", (uint8_t *)"aca",
+                                string, pattern_buf, matched_buf, 0);
     printf("%s\n%s\n", pattern_buf, matched_buf);
     assert(strcmp(pattern_buf, "aca") == 0);
     assert(strcmp(matched_buf, "ac-") == 0);
     assert(end_match == string + 2);
 
-    end_match = cigar_alignment("1I2M", "aca", string + 1, pattern_buf, matched_buf, 0);
+    end_match = cigar_alignment("1I2M", (uint8_t *)"aca",
+                                string + 1, pattern_buf, matched_buf, 0);
     printf("%s\n%s\n", pattern_buf, matched_buf);
     assert(strcmp(pattern_buf, "aca") == 0);
     assert(strcmp(matched_buf, "-ca") == 0);
     assert(end_match == (string + 1) + 2);
 
-    end_match = cigar_alignment("1D3M", "aca", string + 1, pattern_buf, matched_buf, 0);
+    end_match = cigar_alignment("1D3M", (uint8_t *)"aca",
+                                string + 1, pattern_buf, matched_buf, 0);
     printf("%s\n%s\n", pattern_buf, matched_buf);
     assert(strcmp(pattern_buf, "-aca") == 0);
     assert(strcmp(matched_buf, "caca") == 0);
     assert(end_match == (string + 1) + 4);
 
-    end_match = cigar_alignment("2M1I", "aca", string + 2, pattern_buf, matched_buf, 0);
+    end_match = cigar_alignment("2M1I", (uint8_t *)"aca",
+                                string + 2, pattern_buf, matched_buf, 0);
     printf("%s\n%s\n", pattern_buf, matched_buf);
     assert(strcmp(pattern_buf, "aca") == 0);
     assert(strcmp(matched_buf, "ac-") == 0);
     assert(end_match == (string + 2) + 2);
 
-    end_match = cigar_alignment("3M", "aca", string + 2, pattern_buf, matched_buf, 0);
+    end_match = cigar_alignment("3M", (uint8_t *)"aca",
+                                string + 2, pattern_buf, matched_buf, 0);
     printf("%s\n%s\n", pattern_buf, matched_buf);
     assert(strcmp(pattern_buf, "aca") == 0);
     assert(strcmp(matched_buf, "aca") == 0);
     assert(end_match == (string + 2) + 3);
     
     
-    null = cigar_alignment("1DM", "aca", string,
+    null = cigar_alignment("1DM", (uint8_t *)"aca",
+                           string,
                            pattern_buf,
                            matched_buf,
                            &err);
     assert(!null);
     assert(err = MALFORMED_CIGAR);
 
-    null = cigar_alignment("1D2Q", "aca", string,
+    null = cigar_alignment("1D2Q", (uint8_t *)"aca", string,
                            pattern_buf,
                            matched_buf,
                            &err);
@@ -82,21 +88,21 @@ int main(int argc, char **argv)
     struct remap_table remap_tbl;
     init_remap_table(&remap_tbl, string);
     
-    char remapped_string[1000];
-    char remapped_pattern[1000];
-    char rev_remapped_string[1000];
-    char rev_remapped_pattern[1000];
+    uint8_t remapped_string[1000];
+    uint8_t remapped_pattern[1000];
+    uint8_t rev_remapped_string[1000];
+    uint8_t rev_remapped_pattern[1000];
     
-    char *pattern = "aca";
+    uint8_t *pattern = (uint8_t *)"aca";
     
     
     remap(remapped_string, string, &remap_tbl);
     rev_remap(rev_remapped_string, remapped_string, &remap_tbl);
-    assert(strcmp(string, rev_remapped_string) == 0);
+    assert(strcmp((char *)string, (char *)rev_remapped_string) == 0);
     
     remap(remapped_pattern, pattern, &remap_tbl);
     rev_remap(rev_remapped_pattern, remapped_pattern, &remap_tbl);
-    assert(strcmp(pattern, rev_remapped_pattern) == 0);
+    assert(strcmp((char *)pattern, (char *)rev_remapped_pattern) == 0);
 
     char rev_mapped_match[1000];
     
@@ -105,8 +111,9 @@ int main(int argc, char **argv)
                                          &remap_tbl,
                                          pattern_buf, matched_buf, 0);
 
-    rev_remap_between0(rev_mapped_match,
-                       remapped_string, remapped_string + 3,
+    rev_remap_between0((uint8_t *)rev_mapped_match,
+                       remapped_string,
+                       remapped_string + 3,
                        &remap_tbl);
     printf("matched: %s\n", rev_mapped_match);
     printf("%s\n%s\n", pattern_buf, matched_buf);
@@ -119,7 +126,7 @@ int main(int argc, char **argv)
                                          remapped_string,
                                          &remap_tbl,
                                          pattern_buf, matched_buf, 0);
-    rev_remap_between0(rev_mapped_match,
+    rev_remap_between0((uint8_t *)rev_mapped_match,
                       remapped_string, remapped_string + 2,
                       &remap_tbl);
     printf("matched: %s\n", rev_mapped_match);
@@ -133,7 +140,7 @@ int main(int argc, char **argv)
                                          remapped_string + 1,
                                          &remap_tbl,
                                          pattern_buf, matched_buf, 0);
-    rev_remap_between0(rev_mapped_match,
+    rev_remap_between0((uint8_t *)rev_mapped_match,
                       remapped_string + 1, (remapped_string + 1) + 2,
                       &remap_tbl);
     printf("matched: %s\n", rev_mapped_match);
@@ -148,7 +155,7 @@ int main(int argc, char **argv)
                                          &remap_tbl,
                                          pattern_buf, matched_buf, 0);
     assert(end_match == (remapped_string + 1) + 4);
-    rev_remap_between0(rev_mapped_match,
+    rev_remap_between0((uint8_t *)rev_mapped_match,
                       remapped_string + 1, end_match,
                       &remap_tbl);
     printf("matched: %s\n", rev_mapped_match);

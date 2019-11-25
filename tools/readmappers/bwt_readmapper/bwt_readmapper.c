@@ -57,7 +57,6 @@ static void preprocess(const char *fasta_fname)
     while (next_fasta_record(&iter, &rec)) {
         fprintf(stderr, "Serialising record %s\n", rec.name);
         fprintf(stderr, "Length: %u\n", rec.seq_len);
-#warning change type instead of cast
         write_string(outfile, (uint8_t*)rec.name);
         struct bwt_table *table = build_complete_table(rec.seq, false);
         write_complete_bwt_info(outfile, table);
@@ -134,7 +133,6 @@ static struct string_table *read_string_tables(const char *fasta_fname)
     uint32_t no_records;
     fread(&no_records, sizeof(no_records), 1, infile);
     for (uint32_t i = 0; i < no_records; ++i) {
-#warning change type instead of cast
         char *name = (char *)read_string(infile);
         fprintf(stderr, "%s\n", name);
         struct bwt_table *bwt_table = read_complete_bwt_info(infile);
@@ -161,10 +159,12 @@ void map_read(struct fastq_record *fastq_rec,
               int d,
               FILE *samfile)
 {
-    char remap_buf[1000];
+    uint8_t remap_buf[1000];
     
     while (records) {
-        const char *remapped = remap(remap_buf, fastq_rec->sequence, records->bwt_table->remap_table);
+        const uint8_t *remapped = remap(remap_buf,
+                                        (uint8_t *)fastq_rec->sequence,
+                                        records->bwt_table->remap_table);
         if (!remapped) {
             records = records->next;
             continue;

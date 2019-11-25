@@ -29,8 +29,8 @@ static const uint8_t *cigar_alignment(
     const char *cigar,
     const uint8_t *pattern,
     const uint8_t *matched_seq,
-    uint8_t *pattern_buffer,
-    uint8_t *match_buffer
+    char *pattern_buffer,
+    char *match_buffer
 ) {
     int count;
     char op;
@@ -117,7 +117,7 @@ static void print_match(const char *pattern_buffer, const char *match_buffer) {
 
 static void display_match(
     const uint8_t *pattern,
-    const uint8_t *cigar,
+    const char *cigar,
     const char *ref_seq_name,
     int match_index,
     int flanking_seq_length,
@@ -139,32 +139,32 @@ static void display_match(
     const uint8_t *matched_seq =
         rec.seq + (uint32_t)match_index - 1; // -1 for zero-termination
     uint32_t pattern_length = (uint32_t)strlen((char *)pattern);
-    uint8_t pattern_buffer[2 * pattern_length];
+    char pattern_buffer[2 * pattern_length];
     bzero(pattern_buffer, sizeof(pattern_buffer));
-    uint8_t match_buffer[2 * pattern_length];
+    char match_buffer[2 * pattern_length];
     bzero(match_buffer, sizeof(match_buffer));
     const uint8_t *match_end =
         cigar_alignment(cigar,
                         pattern, matched_seq,
-                        &pattern_buffer,
-                        &match_buffer);
+                        (char *)&pattern_buffer,
+                        (char *)&match_buffer);
 
     printf("...");
     print_flanking_dots(
-        rec.seq + MIN(match_index - 1, match_index - 1 - flanking_seq_length),
-        matched_seq);
+        (char *)rec.seq + MIN(match_index - 1, match_index - 1 - flanking_seq_length),
+        (char *)matched_seq);
     print_pattern(pattern_buffer, match_buffer);
-    print_flanking_dots(match_end, MIN(rec.seq + rec.seq_len,
-                                       match_end + flanking_seq_length));
+    print_flanking_dots((char *)match_end, (char *)MIN(rec.seq + rec.seq_len,
+                                           match_end + flanking_seq_length));
     printf("...");
     putchar('\n');
 
     printf("...");
     print_flanking(
-        rec.seq + MIN(match_index - 1, match_index - 1 - flanking_seq_length),
-        matched_seq);
+        (char *)rec.seq + MIN(match_index - 1, match_index - 1 - flanking_seq_length),
+        (char *)matched_seq);
     print_match(pattern_buffer, match_buffer);
-    print_flanking(match_end, MIN(rec.seq + rec.seq_len,
+    print_flanking((char *)match_end, (char *)MIN(rec.seq + rec.seq_len,
                                   match_end + flanking_seq_length));
     printf("...");
     putchar('\n');
@@ -205,7 +205,7 @@ int main(int argc, const char *argv[]) {
 
         printf("Match: %s [at %d] %s %s\n", ref_name_buffer, match_index,
                pattern_buffer, cigar_buffer);
-        display_match(pattern_buffer, cigar_buffer, ref_name_buffer,
+        display_match((uint8_t *)pattern_buffer, cigar_buffer, ref_name_buffer,
                       match_index, flanking_seq_length, fasta_file);
         putchar('\n');
     }

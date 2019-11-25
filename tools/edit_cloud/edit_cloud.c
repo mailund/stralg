@@ -62,7 +62,7 @@ int main(int argc, char *argv[]) {
     }
 
     const char *alphabet = argv[0];
-    const char *core_string = argv[1];
+    const uint8_t *core_string = (uint8_t *)argv[1];
 
     struct edit_iter iter;
     struct edit_pattern result;

@@ -152,7 +152,7 @@ int main(int argc, char *argv[])
     print_suffix_array(sa);
     printf("\n");
     
-    hit = lower_bound_search(sa, (uint8_t *)"cag");
+    hit = lower_bound_search(sa, (uint8_t *)(uint8_t *)"cag");
     printf("hit: SA[%u]=%u\n", hit, sa->array[hit]);
     printf("does cag match '%s'?\n", sa->string + sa->array[hit]);
     

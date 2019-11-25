@@ -48,7 +48,7 @@ static void print_difference(string_vector *first,
 
 struct search_data {
     struct suffix_tree *st;
-    const char *string_end;
+    const uint8_t *string_end;
     char *full_cigar_buf;
     char *cigar_buf;
     struct string_vector *results;
@@ -65,7 +65,7 @@ static void search_children(
 static void search_edge(
     struct search_data *data,
     struct suffix_tree_node *v,
-    const char *x, const char *end,
+    const uint8_t *x, const uint8_t *end,
     const uint8_t *p,
     char *cigar,
     int edits
@@ -85,8 +85,8 @@ static void search_edge(
         struct st_leaf_iter_result res;
         while (next_st_leaf(&leaf_iter, &res)) {
             uint32_t position = res.leaf->leaf_label;
-            uint8_t *m = match_string(position, data->cigar_buf);
-            string_vector_append(data->results, m);
+            char *m = match_string(position, data->cigar_buf);
+            string_vector_append(data->results, (uint8_t *)m);
         }
         dealloc_st_leaf_iter(&leaf_iter);
 
@@ -127,12 +127,12 @@ static void search_children(
 }
 
 static void simple_match(struct suffix_tree *st,
-                         const char *p,
-                         const char *string,
+                         const uint8_t *p,
+                         const uint8_t *string,
                          int edits,
                          struct string_vector *results)
 {
-    uint32_t m = (uint32_t)(strlen(p) + 4*edits + 1); // one edit can max cost four characters
+    uint32_t m = (uint32_t)(strlen((char *)p) + 4*edits + 1); // one edit can max cost four characters
 
     struct search_data data;
     data.st = st;
@@ -155,13 +155,13 @@ static void ld_search_children(struct search_data *data,
                                struct suffix_tree_node *v,
                                bool leading,
                                char *cigar,
-                               const char *p, int edits);
+                               const uint8_t *p, int edits);
 
 static void ld_search_edge(struct search_data *data,
                            struct suffix_tree_node *v,
                            bool leading,
-                           const char *x, const char *end,
-                           const char *p,
+                           const uint8_t *x, const uint8_t *end,
+                           const uint8_t *p,
                            char *cigar, int edits)
 {
     if (edits < 0)
@@ -180,7 +180,7 @@ static void ld_search_edge(struct search_data *data,
         while (next_st_leaf(&leaf_iter, &res)) {
             uint32_t position = res.leaf->leaf_label;
             char *m = match_string(position, data->cigar_buf);
-            string_vector_append(data->results, m);
+            string_vector_append(data->results, (uint8_t *)m);
         }
         dealloc_st_leaf_iter(&leaf_iter);
         
@@ -209,12 +209,12 @@ static void ld_search_children(struct search_data *data,
                                struct suffix_tree_node *v,
                                bool leading,
                                char *cigar,
-                               const char *p, int edits)
+                               const uint8_t *p, int edits)
 {
     struct suffix_tree_node *child = v->child;
     while (child) {
-        const char *x = child->range.from;
-        const char *end = child->range.to;
+        const uint8_t *x = child->range.from;
+        const uint8_t *end = child->range.to;
         ld_search_edge(data, child, leading, x, end, p, cigar, edits);
         child = child->sibling;
     }
@@ -222,12 +222,12 @@ static void ld_search_children(struct search_data *data,
 }
 
 static void ld_match(struct suffix_tree *st,
-                             const char *p,
-                             const char *string,
+                             const uint8_t *p,
+                             const uint8_t *string,
                              int edits,
                              struct string_vector *results)
 {
-    uint32_t m = (uint32_t)(strlen(p) + 4*edits + 1); // one edit can max cost four characters
+    uint32_t m = (uint32_t)(strlen((char *)p) + 4*edits + 1); // one edit can max cost four characters
     
     struct search_data data;
     data.st = st;
@@ -247,7 +247,7 @@ static void ld_match(struct suffix_tree *st,
 
 // MARK: Iterator version
 static void iter_match(struct suffix_tree *st,
-                       const char *pattern, const char *string,
+                       const uint8_t *pattern, const uint8_t *string,
                        int edits,
                        struct string_vector *results)
 {
@@ -257,7 +257,7 @@ static void iter_match(struct suffix_tree *st,
     init_st_approx_iter(&iter, st, pattern, edits);
     while (next_st_approx_match(&iter, &match)) {
         char *m = match_string(match.match_label, match.cigar);
-        string_vector_append(results, m);
+        string_vector_append(results, (uint8_t *)m);
     }
     
     dealloc_st_approx_iter(&iter);
@@ -269,9 +269,9 @@ static bool equal_vectors(struct string_vector *first, struct string_vector *sec
     if (first->used != second->used) return false;
     
     for (int i = 0; i < first->used; ++i) {
-        const char *s1 = string_vector_get(first, i);
-        const char *s2 = string_vector_get(second, i);
-        if (strcmp(s1, s2) != 0) return false;
+        const uint8_t *s1 = string_vector_get(first, i);
+        const uint8_t *s2 = string_vector_get(second, i);
+        if (strcmp((char *)s1, (char *)s2) != 0) return false;
     }
     
     return true;
@@ -291,7 +291,9 @@ static bool first_unique(struct string_vector *first, struct string_vector *seco
     return res;
 }
 
-static void test_matching(struct suffix_tree *st, const char *string, const char *pattern, int edits)
+static void test_matching(struct suffix_tree *st,
+                          const uint8_t *string,
+                          const uint8_t *pattern, int edits)
 {
     struct string_vector simple_results;
     init_string_vector(&simple_results, 100);
@@ -347,10 +349,10 @@ int main(int argc, char **argv)
 
     if (argc == 3) {
         // LCOV_EXCL_START
-        const char *pattern = argv[1];
+        const uint8_t *pattern = (uint8_t *)argv[1];
         const char *fname = argv[2];
         
-        char *string = load_file(fname);
+        uint8_t *string = load_file(fname);
         printf("did I get this far?\n");
         if (!string) {
             printf("Couldn't read file %s\n", fname);
@@ -383,8 +385,11 @@ int main(int argc, char **argv)
         for (uint32_t i = 0; i < no_patterns; ++i) {
             for (uint32_t j = 0; j < no_strings; ++j) {
                 for (uint32_t k = 0; k < no_edits; ++k) {
-                    struct suffix_tree *st = naive_suffix_tree(strings[j]);
-                    test_matching(st, strings[j], patterns[i], edits[k]);
+                    struct suffix_tree *st = naive_suffix_tree((uint8_t *)strings[j]);
+                    test_matching(st,
+                                  (uint8_t *)strings[j],
+                                  (uint8_t *)patterns[i],
+                                  edits[k]);
 
                 }
             }

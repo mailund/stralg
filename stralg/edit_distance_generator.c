@@ -66,7 +66,7 @@ push_edit_iter_frame(
 void init_edit_iter(
     struct edit_iter *iter,
     const uint8_t *pattern,
-    const uint8_t *alphabet,
+    const char *alphabet,
     int max_edit_distance
 ) {
     uint32_t n = (uint32_t)strlen((char *)pattern) + max_edit_distance + 10;
@@ -216,7 +216,7 @@ bool next_edit_pattern(
 
     switch (frame->op) {
         case EXECUTE:
-            for (const uint8_t *a = iter->alphabet; *a; a++) {
+            for (const char *a = iter->alphabet; *a; a++) {
                 iter->frames = push_edit_iter_frame(
                     INSERTION,
                     frame->pattern_front,

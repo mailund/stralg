@@ -19,7 +19,7 @@ static char *build_equal(uint32_t size)
     return s;
 }
 */
-static char *build_random(uint32_t size)
+static uint8_t *build_random(uint32_t size)
 {
     const char *alphabet = "ACGT";
     int n = strlen(alphabet);
@@ -30,7 +30,7 @@ static char *build_random(uint32_t size)
     }
     s[size] = '\0';
     
-    return s;
+    return (uint8_t *)s;
 }
 /*
 static char *build_random_large(uint32_t size)
@@ -51,7 +51,7 @@ static char *build_random_large(uint32_t size)
 
 static void get_performance(uint32_t size)
 {
-    char *s, *rs, *revrs;
+    uint8_t *s, *rs, *revrs;
     
     struct suffix_array *sa;
     struct suffix_array *rsa;
@@ -86,9 +86,8 @@ static void get_performance(uint32_t size)
     
     // With D table
     
-#warning change type instead of cast
-    revrs = (char *)str_copy((uint8_t*)rs);
-    str_inplace_rev((uint8_t*)revrs);
+    revrs = str_copy(rs);
+    str_inplace_rev(revrs);
     rsa = qsort_sa_construction(revrs);
     
     bwt_begin = sa_end = clock();

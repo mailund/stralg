@@ -30,7 +30,7 @@ int main(int argc, char * argv[])
     int N = sizeof(patterns)/sizeof(uint8_t*);
     uint32_t pattern_lengths[N];
     for (int i = 0; i < N; ++i) {
-        pattern_lengths[i] = (uint32_t)strlen(patterns[i]);
+        pattern_lengths[i] = (uint32_t)strlen((char *)patterns[i]);
     }
     struct trie *patterns_trie = build_my_trie(patterns, N);
 

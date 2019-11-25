@@ -63,14 +63,15 @@ static void test_reverse_expected(struct bwt_table *bwt_table)
 
 }
 
-static void forward_search(struct bwt_table *bwt_table,
-                           struct suffix_array *rsa,
-                           const char *string,
-                           const char *rev_string,
-                           const char *pattern)
-{
+static void forward_search(
+    struct bwt_table *bwt_table,
+    struct suffix_array *rsa,
+    const uint8_t *string,
+    const uint8_t *rev_string,
+    const uint8_t *pattern
+) {
     uint32_t n = bwt_table->sa->length;
-    uint32_t m = strlen(pattern);
+    uint32_t m = strlen((char *)pattern);
     uint32_t L = 0, R = n, i = 0;
     
     while (i < m && L < R) {
@@ -108,13 +109,13 @@ static void error_test(void)
 
 int main(int argc, char **argv)
 {
-    const char *string = "mississippi";
+    const uint8_t *string = (uint8_t *)"mississippi";
     struct remap_table remap_table;
     struct suffix_array *sa;
     struct bwt_table bwt_table;
     
-    uint32_t n = (uint32_t)strlen(string);
-    char remapped[n + 1];
+    uint32_t n = (uint32_t)strlen((char *)string);
+    uint8_t remapped[n + 1];
     
     // to shut up static analysis
     for (uint32_t i = 0; i < n + 1; ++i) {
@@ -129,7 +130,7 @@ int main(int argc, char **argv)
         printf("%d", (int)remapped[i]);
     }
     printf("\n");
-    printf("remapped length == %lu\n", strlen(remapped) + 1);
+    printf("remapped length == %lu\n", strlen((char *)remapped) + 1);
     
     sa = qsort_sa_construction(remapped);
     printf("n == %u\n", n);
@@ -191,11 +192,10 @@ int main(int argc, char **argv)
     
     
     sa = qsort_sa_construction(remapped);
-#warning change type instead of cast
-    char *rev_remapped = (char *)str_copy((uint8_t*)remapped);
+    uint8_t *rev_remapped = str_copy(remapped);
     str_inplace_rev((uint8_t*)rev_remapped);
     struct suffix_array *rsa = qsort_sa_construction(rev_remapped);
-    char *rev_string = (char *)str_copy((uint8_t*)string);
+    uint8_t *rev_string = str_copy(string);
     str_inplace_rev((uint8_t*)rev_string);
     
     for (uint32_t i = 0; i < rsa->length; ++i) {
@@ -205,13 +205,13 @@ int main(int argc, char **argv)
     
     init_bwt_table(&bwt_table, sa, rsa, &remap_table);
     
-    const char *iss = "iss";
-    char rm_iss[strlen(iss) + 1];
+    const uint8_t *iss = (uint8_t *)"iss";
+    uint8_t rm_iss[strlen((char *)iss) + 1];
     remap(rm_iss, iss, &remap_table);
     forward_search(&bwt_table, rsa, string, rev_string, rm_iss);
 
-    const char *pi = "pi";
-    char rm_pi[strlen(pi) + 1];
+    const uint8_t *pi = (uint8_t *)"pi";
+    uint8_t rm_pi[strlen((char *)pi) + 1];
     remap(rm_pi, pi, &remap_table);
     forward_search(&bwt_table, rsa, string, rev_string, rm_pi);
 

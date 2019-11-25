@@ -125,10 +125,7 @@ struct bwt_table *build_complete_table(
     struct remap_table  *remap_table = alloc_remap_table(string);
     remap(remapped_str, string, remap_table);
 
-#warning use skew algorithm here
-    // FIXME: use the fastest algorithm I have here...
-    // qsort is for random strings, so that is the choice for now
-    struct suffix_array *sa = qsort_sa_construction(remapped_str);
+    struct suffix_array *sa = skew_sa_construction(remapped_str);
 
     struct suffix_array *rsa = 0;
     if (include_reverse) {

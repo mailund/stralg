@@ -28,7 +28,7 @@ static void print_help(const char *progname)
     printf("\n\n");
 }
 
-typedef void (*map_func_type)(const char *edit_str, const char *edit_cigar,
+typedef void (*map_func_type)(const uint8_t *edit_str, const char *edit_cigar,
                               struct fastq_record *fastq_record,
                               struct fasta_record *fasta_record);
 
@@ -43,7 +43,8 @@ static void map(struct fasta_records *records,
     
     struct edit_iter iter; struct edit_pattern edit_pattern;
     while (next_fastq_record(fastq_iter, &fastq_record)) {
-        init_edit_iter(&iter, fastq_record.sequence, alphabet, edits);
+        init_edit_iter(&iter, fastq_record.sequence,
+                       alphabet, edits);
         while (next_edit_pattern(&iter, &edit_pattern)) {
             // Skip matches with flanking deletions.
             int dummy; char dummy_str[1000];
@@ -58,7 +59,8 @@ static void map(struct fasta_records *records,
             
             init_fasta_iter(&fasta_iter, records);
             while (next_fasta_record(&fasta_iter, &fasta_record)) {
-                map_func(edit_pattern.pattern, edit_pattern.cigar,
+                map_func(edit_pattern.pattern,
+                         edit_pattern.cigar,
                          &fastq_record, &fasta_record);
             }
             dealloc_fasta_iter(&fasta_iter);
@@ -69,17 +71,18 @@ static void map(struct fasta_records *records,
 }
 
 
-static void map_naive(const char *edit_str, const char *edit_cigar,
-                      struct fastq_record *fastq_record, struct fasta_record *fasta_record)
+static void map_naive(const uint8_t *edit_str,
+                      const char *edit_cigar,
+                      struct fastq_record *fastq_record,
+                      struct fasta_record *fasta_record)
 {
-    uint32_t readlen = (uint32_t)strlen(edit_str);
+    uint32_t readlen = (uint32_t)strlen((char *)edit_str);
     struct naive_match_iter iter;
-#warning change type instead of cast
     init_naive_match_iter(
         &iter,
-        (uint8_t*)fasta_record->seq,
+        fasta_record->seq,
         fasta_record->seq_len,
-        (uint8_t*)edit_str,
+        edit_str,
         readlen
     );
     
@@ -97,16 +100,17 @@ static void map_naive(const char *edit_str, const char *edit_cigar,
     dealloc_naive_match_iter(&iter);
 }
 
-static void map_border(const char *edit_str, const char *edit_cigar,
-                       struct fastq_record *fastq_record, struct fasta_record *fasta_record)
+static void map_border(const uint8_t *edit_str, const char *edit_cigar,
+                       struct fastq_record *fastq_record,
+                       struct fasta_record *fasta_record)
 {
-    uint32_t readlen = strlen(edit_str);
+    uint32_t readlen = strlen((char *)edit_str);
     struct border_match_iter iter;
-#warning change type instead of cast
     init_border_match_iter(
-                          &iter, (uint8_t*)fasta_record->seq,
+                          &iter,
+                           fasta_record->seq,
                           fasta_record->seq_len,
-                          (uint8_t*)edit_str,
+                          edit_str,
                           readlen
                           );
     
@@ -127,17 +131,16 @@ static void map_border(const char *edit_str, const char *edit_cigar,
 }
 
 static void map_kmp(
-    const char *edit_str,
+    const uint8_t *edit_str,
     const char *edit_cigar,
     struct fastq_record *fastq_record,
     struct fasta_record *fasta_record
 ) {
-    uint32_t readlen = strlen(edit_str);
+    uint32_t readlen = strlen((char *)edit_str);
     struct kmp_match_iter iter;
-#warning change type instead of cast
-    init_kmp_match_iter(&iter, (uint8_t*)fasta_record->seq,
+    init_kmp_match_iter(&iter, fasta_record->seq,
                         fasta_record->seq_len,
-                        (uint8_t*)edit_str,
+                        edit_str,
                         readlen);
     
     struct match match;
@@ -156,16 +159,15 @@ static void map_kmp(
     dealloc_kmp_match_iter(&iter);
 }
 
-static void map_bmh(const char *edit_str, const char *edit_cigar,
+static void map_bmh(const uint8_t *edit_str, const char *edit_cigar,
                     struct fastq_record *fastq_record, struct fasta_record *fasta_record)
 {
-    uint32_t readlen = strlen(edit_str);
+    uint32_t readlen = strlen((char *)edit_str);
     struct bmh_match_iter iter;
-#warning change type instead of cast
     init_bmh_match_iter(&iter,
-                        (uint8_t*)fasta_record->seq,
+                        fasta_record->seq,
                         fasta_record->seq_len,
-                        (uint8_t*)edit_str,
+                        edit_str,
                         readlen);
     
     struct match match;

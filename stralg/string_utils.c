@@ -9,14 +9,12 @@ uint8_t *str_copy(const uint8_t *x)
 
 void str_inplace_rev(uint8_t *x)
 {
-#warning replace strlen
     str_inplace_rev_n(x, (uint32_t)strlen((char *)x));
 }
 
 uint8_t *str_copy_n(const uint8_t *x, uint32_t n)
 {
     uint8_t *copy = malloc(sizeof(uint8_t) * n + 1);
-#warning replace strncpy
     strncpy((char *)copy, (char *)x, n);
     copy[n] = 0;
     return copy;

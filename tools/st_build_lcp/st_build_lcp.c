@@ -14,7 +14,7 @@ int main(int argc, const char** argv)
         return EXIT_FAILURE;
     }
 
-    char *string = load_file(argv[1]);
+    uint8_t *string = load_file(argv[1]);
     if (!string) {
         fprintf(stderr, "Problems reading file %s\n", argv[1]);
         return EXIT_FAILURE;

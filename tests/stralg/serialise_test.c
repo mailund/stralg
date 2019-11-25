@@ -12,12 +12,12 @@
 
 static void test_complete_bwt(void)
 {
-    char *str = "acgtadtadadfasdfing";
+    uint8_t *str = (uint8_t *)"acgtadtadadfasdfing";
     
     // Build all the data structures...
     struct remap_table remap_table;
     init_remap_table(&remap_table, str);
-    char remapped_str[strnlen(str, MAX_STRLEN) + 1];
+    uint8_t remapped_str[strnlen((char *)str, MAX_STRLEN) + 1];
     remap(remapped_str, str, &remap_table);
     struct suffix_array *sa = qsort_sa_construction(remapped_str);
     struct bwt_table bwt_table;
@@ -31,8 +31,8 @@ static void test_complete_bwt(void)
     write_complete_bwt_info_fname(fname, &bwt_table);
     struct bwt_table *other_table = read_complete_bwt_info_fname(fname);
     
-    assert(strnlen(bwt_table.sa->string, MAX_STRLEN) + 1 == bwt_table.sa->length);
-    assert(strnlen(other_table->sa->string, MAX_STRLEN) + 1 == other_table->sa->length);
+    assert(strnlen((char *)bwt_table.sa->string, MAX_STRLEN) + 1 == bwt_table.sa->length);
+    assert(strnlen((char *)other_table->sa->string, MAX_STRLEN) + 1 == other_table->sa->length);
     // Now check equality
     assert(equivalent_bwt_tables(&bwt_table, other_table));
     

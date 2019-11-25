@@ -8,9 +8,9 @@
 #include <string.h>
 #include <assert.h>
 
-static char *build_equal(uint32_t size)
+static uint8_t *build_equal(uint32_t size)
 {
-    char *s = malloc(size + 1);
+    uint8_t *s = malloc(size + 1);
     for (uint32_t i = 0; i < size; ++i) {
         s[i] = 'A';
     }
@@ -19,11 +19,11 @@ static char *build_equal(uint32_t size)
     return s;
 }
 
-static char *build_random(uint32_t size)
+static uint8_t *build_random(uint32_t size)
 {
     const char *alphabet = "ACGT";
     int n = strlen(alphabet);
-    char *s = malloc(size + 1);
+    uint8_t *s = malloc(size + 1);
     
     for (uint32_t i = 0; i < size; ++i) {
         s[i] = alphabet[rand() % n];
@@ -37,7 +37,7 @@ static char *build_random(uint32_t size)
 
 static void get_performance(uint32_t size)
 {
-    char *s;
+    uint8_t *s;
     struct suffix_array *sa;
     clock_t begin, end;
     

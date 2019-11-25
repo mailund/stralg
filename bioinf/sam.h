@@ -18,7 +18,7 @@ void print_sam_line(
     const char *rname,
     uint32_t pos,
     const char *cigar,
-    const char *seq,
+    const uint8_t *seq,
     const char *qual
 );
 
@@ -29,7 +29,7 @@ void parse_sam_line(
     char *ref_name_buffer,
     int *match_index,
     char *cigar_buffer,
-    char *pattern_buffer,
+    uint8_t *pattern_buffer,
     enum error_codes *error
 );
 

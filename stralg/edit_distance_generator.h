@@ -16,7 +16,7 @@
  */
 struct edit_iter {
     const uint8_t *pattern;
-    const uint8_t *alphabet;
+    const char *alphabet;
 
     uint8_t *buffer;
     char *cigar;
@@ -53,7 +53,7 @@ struct edit_pattern {
 void init_edit_iter(
     struct edit_iter *iter,
     const uint8_t *core,
-    const uint8_t *alphabet,
+    const char *alphabet,
     int max_edit_distance
 );
 
@@ -85,5 +85,4 @@ void dealloc_edit_iter(
 );
 
 #endif
-
 

@@ -8,11 +8,11 @@
 #include <string.h>
 #include <assert.h>
 
-static char *build_random(uint32_t size)
+static uint8_t *build_random(uint32_t size)
 {
-    const char *alphabet = "ACGT";
-    int n = strlen(alphabet);
-    char *s = malloc(size + 1);
+    const uint8_t *alphabet = (uint8_t *)"ACGT";
+    int n = strlen((char *)alphabet);
+    uint8_t *s = malloc(sizeof(uint8_t)*(size + 1));
     
     for (uint32_t i = 0; i < size; ++i) {
         s[i] = alphabet[rand() % n];
@@ -22,15 +22,14 @@ static char *build_random(uint32_t size)
     return s;
 }
 
-static char *sample_string(const char *string, uint32_t n, uint32_t m)
+static uint8_t *sample_string(const uint8_t *string, uint32_t n, uint32_t m)
 {
     uint32_t offset = rand() % (n - m);
-#warning change type instead of cast
-    char *p = (char *)str_copy_n((uint8_t*)string + offset, m);
+    uint8_t *p = str_copy_n(string + offset, m);
     return p;
 }
 
-static void edit_string(char *string, struct bwt_table *bwt_table, uint32_t m, float err)
+static void edit_string(uint8_t *string, struct bwt_table *bwt_table, uint32_t m, float err)
 {
     // I don't know if I need to test indels as well but it is
     // easier to simply sample substitutions so that is what I do.
@@ -46,7 +45,7 @@ static void edit_string(char *string, struct bwt_table *bwt_table, uint32_t m, f
     }
 }
 
-static void search(struct bwt_table *bwt_table, const char *p, int edits)
+static void search(struct bwt_table *bwt_table, const uint8_t *p, int edits)
 {
     struct bwt_approx_iter iter;
     struct bwt_approx_match match;
@@ -110,7 +109,8 @@ static const char *cigar_alignment(const char *cigar, const char *pattern,
 }
  */
 
-static unsigned long get_performance(struct bwt_table *bwt_table, uint32_t m, float err, int edits)
+static unsigned long get_performance(struct bwt_table *bwt_table,
+                                     uint32_t m, float err, int edits)
 {
     assert(m > 0);
     
@@ -118,9 +118,9 @@ static unsigned long get_performance(struct bwt_table *bwt_table, uint32_t m, fl
 
     search_begin = clock();
     for (uint32_t j = 0; j < 10; ++j) {
-        char *p = sample_string(bwt_table->sa->string,
-                                bwt_table->sa->length,
-                                m);
+        uint8_t *p = sample_string(bwt_table->sa->string,
+                                   bwt_table->sa->length,
+                                   m);
         edit_string(p, bwt_table, m, err);
         search(bwt_table, p, edits);
         free(p);
@@ -135,7 +135,7 @@ int main(int argc, const char **argv)
 {
     srand(time(NULL));
     
-    char *s, *rs, *revrs;
+    uint8_t *s, *rs, *revrs;
     
     struct suffix_array *sa;
     struct suffix_array *rsa;
@@ -154,8 +154,7 @@ int main(int argc, const char **argv)
     sa = qsort_sa_construction(rs);
     init_bwt_table(&bwt_table, sa, 0, &remap_table);
     
-#warning change type instead of cast
-    revrs = (char *)str_copy((uint8_t*)rs);
+    revrs = str_copy(rs);
     str_inplace_rev((uint8_t*)revrs);
     rsa = qsort_sa_construction(revrs);
     init_bwt_table(&bwt_table_D, sa, rsa, &remap_table);

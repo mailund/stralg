@@ -514,7 +514,7 @@ int main(int argc, char * argv[])
     if (argc == 3) {
         const char *pattern = argv[1];
         const char *fname = argv[2];
-        char *string = load_file(fname);
+        uint8_t *string = load_file(fname);
         // LCOV_EXCL_START
         if (!string) {
             printf("Couldn't read file %s\n", fname);

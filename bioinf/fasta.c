@@ -15,13 +15,13 @@ struct fasta_record_impl {
     struct fasta_record_impl *next;
 };
 struct fasta_records {
-    char *buffer;
+    uint8_t *buffer;
     struct fasta_record_impl *recs;
 };
 
 struct packing {
-    char *front;
-    char *pack;
+    uint8_t *front;
+    uint8_t *pack;
 };
 
 static void pack_name(struct packing *pack)
@@ -97,7 +97,7 @@ struct fasta_records *load_fasta_records(
     // stuff to deallocated in case of errors
     struct fasta_records *rec = 0;
     
-    char *string = load_file(fname);
+    uint8_t *string = load_file(fname);
     if (!string) {
         // This is the first place we allocate a resource
         // and it wasn't allocated, so we just return rather
@@ -110,13 +110,14 @@ struct fasta_records *load_fasta_records(
     rec->buffer = string;
     rec->recs = 0;
     
-    char *name, *seq;
+    char *name;
+    uint8_t *seq;
     struct packing pack = {
         rec->buffer,
         rec->buffer
     };
     while (pack.front) {
-        name = pack.pack;
+        name = (char *)pack.pack;
         pack_name(&pack);
         
         if (pack.front == 0) {
