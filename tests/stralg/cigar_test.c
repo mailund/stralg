@@ -82,7 +82,7 @@ int main(int argc, char **argv)
                            matched_buf,
                            &err);
     assert(!null);
-    assert(err = MALFORMED_CIGAR);
+    assert(err == MALFORMED_CIGAR);
     
 
     struct remap_table remap_tbl;

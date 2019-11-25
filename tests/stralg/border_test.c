@@ -190,9 +190,9 @@ int main(int argc, const char **args)
     };
 
     compute_reverse_border_array((uint8_t*)x, m, computed_rba);
-    for (int i = 0; i < m; ++i) {
-        printf("computed_rba[%u] = %u; rba[%u] = %u\n", i,
-               computed_rba[i], i, rba[m - i - 1]);
+    for (unsigned int i = 0; i < m; ++i) {
+        printf("computed_rba[%u] = %u; rba[%u] = %u\n",
+               i, computed_rba[i], i, rba[m - i - 1]);
         assert(computed_rba[i] == rba[m - i - 1]);
     }
     printf("\n");

@@ -77,14 +77,14 @@ header "Preprocessing reference genomes"
 for i in ${!names[@]}; do
 	cmd=${preprocess_cmds[$i]}
 	name=${names[$i]}
-	log_file="logs/$name.preprocess.log"
+	logfile="logs/$name.preprocess.log"
 
 	printf "   • Preprocessing: $(tput setaf 4)$(tput bold)${name}$(tput sgr0) "
-	"$cmd" &> "$log_file"
+	"$cmd" &> "$logfile"
 	if [ $? -eq 0 ]; then
 		success
 	else
-		failure_tick "Preprocessing failed. Check $(tput setaf 4)$(tput bold)${log_file}$(tput sgr0) for further information."
+		failure_tick "Preprocessing failed. Check $(tput setaf 4)$(tput bold)${logfile}$(tput sgr0) for further information."
 		exit
 	fi
 done
@@ -95,11 +95,11 @@ refsam=logs/reference.sam
 logfile=logs/reference.log
 header "Building reference SAM file"
 printf "   • Writing reference to $(tput setaf 4)$(tput bold)${refsam}$(tput sgr0) "
-"$refcmd" 2> "$log_file" | sort > "$refsam"
+"$refcmd" 2> "$logfile" | sort > "$refsam"
 if [ $? -eq 0 ]; then
 	success
 else
-	failure_tick " Check $(tput setaf 4)$(tput bold)${log_file}$(tput sgr0) for further information."
+	failure_tick " Check $(tput setaf 4)$(tput bold)${logfile}$(tput sgr0) for further information."
 	exit 1
 fi
 echo
@@ -109,15 +109,15 @@ header "Running mappers"
 for i in ${!names[@]}; do
 	cmd=${map_cmds[$i]}
 	name=${names[$i]}
-	log_file=logs/$name.map.log
+	logfile=logs/$name.map.log
 	samfile=logs/$name.sam
 
 	printf "   • Mapping: $(tput setaf 4)$(tput bold)${name}$(tput sgr0) "
-	"$cmd"  2> "$log_file" | sort > "$samfile"
+	"$cmd"  2> "$logfile" | sort > "$samfile"
 	if [ $? -eq 0 ]; then
 		success
 	else
-		failure_tick "Mapping failed. Check $(tput setaf 4)$(tput bold)${log_file}$(tput sgr0) for further information."
+		failure_tick "Mapping failed. Check $(tput setaf 4)$(tput bold)${logfile}$(tput sgr0) for further information."
 	fi
 done
 echo

@@ -130,7 +130,7 @@ int main(int argc, char **argv)
         printf("%d", (int)remapped[i]);
     }
     printf("\n");
-    printf("remapped length == %lu\n", strlen((char *)remapped) + 1);
+    printf("remapped length == %lu\n", (unsigned long)strlen((char *)remapped) + 1);
     
     sa = qsort_sa_construction(remapped);
     printf("n == %u\n", n);
