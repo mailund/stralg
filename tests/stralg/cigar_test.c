@@ -75,7 +75,7 @@ int main(int argc, char **argv)
                            matched_buf,
                            &err);
     assert(!null);
-    assert(err = MALFORMED_CIGAR);
+    assert(err == MALFORMED_CIGAR);
 
     null = cigar_alignment("1D2Q", (uint8_t *)"aca", string,
                            pattern_buf,
