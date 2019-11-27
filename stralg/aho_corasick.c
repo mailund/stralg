@@ -35,9 +35,7 @@ void init_ac_iter(
 void aho_corasick_match(
     const char *text,
     uint32_t n,
-    struct trie *patterns,
-    ac_callback_func callback,
-    void *callback_data
+    struct trie *patterns
 ) {
     uint32_t j = 0;
     struct trie *v = patterns;
@@ -48,7 +46,8 @@ void aho_corasick_match(
             for (struct output_list *hits = w->output;
                  hits != 0;
                  hits = hits->next) {
-                callback(hits->string_label, j, callback_data);
+                // hits->string_label ends in j
+                REPORT(hits->string_label, j);
             }
             
             v = w;
@@ -56,6 +55,37 @@ void aho_corasick_match(
             w = out_link(v, text[j]);
         }
         
+        if (is_trie_root(v)) {
+            j++;
+        } else {
+            v = v->failure_link;
+        }
+    }
+}
+
+void aho_corasick_match(
+    const char *x,
+    uint32_t n,
+    struct trie *patterns
+) {
+    uint32_t j = 0;
+    struct trie *v = patterns;
+    
+    while (j < n) {
+        struct trie *w = out_link(v, x[j]);
+        while (w) {
+            // The matching part
+            if (w->string_label >= 0) {
+                REPORT(w->string_label, j);
+            }
+            
+            v = w;
+            j++;
+            w = out_link(v, x[j]);
+        }
+        
+        // When we get here we do not match
+        // any longer
         if (is_trie_root(v)) {
             j++;
         } else {

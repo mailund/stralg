@@ -220,9 +220,12 @@ static void compute_failure_link_for_node(
 void compute_failure_links(
     struct trie *trie
 ) {
+    // we don't want to recompute them if we
+    // already have set up the failure links
     if (trie->failure_link) return;
     
-    trie->failure_link = trie; // make the root its own failure link.
+    // make the root its own failure link.
+    trie->failure_link = trie;
     
     struct pointer_queue *nodes = alloc_pointer_queue();
     enqueue_siblings(nodes, trie->children);
