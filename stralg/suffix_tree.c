@@ -251,7 +251,9 @@ lcp_insert(
     struct suffix_tree_node *v
 ) {
     struct suffix_tree_node *new_leaf =
-        new_node(st, st->string + sa[i] + lcp[i], st->string + st->length);
+        new_node(st,
+                 st->string + sa[i] + lcp[i],
+                 st->string + st->length);
     
     new_leaf->leaf_label = sa[i];
     uint32_t length_up = st->length - sa[i-1] - lcp[i];
