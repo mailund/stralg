@@ -63,6 +63,7 @@ void aho_corasick_match(
     }
 }
 
+// without the outlist -- do not use
 void aho_corasick_match(
     const char *x,
     uint32_t n,

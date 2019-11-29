@@ -119,16 +119,16 @@ static void remove_child(
 static struct suffix_tree_node *split_edge(
     struct suffix_tree *st,
     struct suffix_tree_node *w,
-    const uint8_t *split
+    const uint8_t *s
 ) {
-    assert(split < w->range.to);
-    assert(w->range.from < split);
+    assert(s < w->range.to);
+    assert(w->range.from < s);
 
     struct suffix_tree_node *v = w->parent;
-    struct suffix_tree_node *u = new_node(st, w->range.from, split);
+    struct suffix_tree_node *u = new_node(st, w->range.from, s);
     u->parent = v;
     u->child = w;
-    w->range.from = split;
+    w->range.from = s;
     w->parent = u;
     
     remove_child(v, w);
@@ -229,8 +229,10 @@ struct suffix_tree *naive_suffix_tree(
     return st;
 }
 
-static void append_child(struct suffix_tree_node *v, struct suffix_tree_node *w)
-{
+static void append_child(
+    struct suffix_tree_node *v,
+    struct suffix_tree_node *w
+) {
     struct suffix_tree_node *child = v->child;
     assert(child != 0); // all inner nodes should have at least one child
     while (child->sibling) {
@@ -241,10 +243,13 @@ static void append_child(struct suffix_tree_node *v, struct suffix_tree_node *w)
 }
 
 static struct suffix_tree_node *
-lcp_insert(struct suffix_tree *st,
-           uint32_t i, uint32_t *sa, uint32_t *lcp,
-           struct suffix_tree_node *v)
-{
+lcp_insert(
+    struct suffix_tree *st,
+    uint32_t i,
+    uint32_t *sa,
+    uint32_t *lcp,
+    struct suffix_tree_node *v
+) {
     struct suffix_tree_node *new_leaf = new_node(st, st->string + sa[i] + lcp[i], st->string + st->length);
     new_leaf->leaf_label = sa[i];
     uint32_t length_up = st->length - sa[i-1] - lcp[i];
@@ -276,7 +281,9 @@ lcp_suffix_tree(
     struct suffix_tree *st = alloc_suffix_tree(string);
     
     uint32_t first_label = sa[0];
-    struct suffix_tree_node *v = new_node(st, st->string + sa[0], st->string + st->length);
+    struct suffix_tree_node *v =
+        new_node(st, st->string + sa[0],
+                 st->string + st->length);
     v->leaf_label = first_label;
     st->root->child = v;
     v->parent = st->root;
@@ -329,9 +336,11 @@ fast_scan(
     }
 }
 
-static struct suffix_tree_node *suffix_link(struct suffix_tree *st,
-                                            struct suffix_tree_node *v)
-{
+static struct suffix_tree_node *
+suffix_link(
+    struct suffix_tree *st,
+    struct suffix_tree_node *v
+) {
     // mostly to silence static analyser
     assert(v);
     assert(v->parent);
@@ -374,8 +383,9 @@ static void set_suffix_links(
     }
 }
 
-void annotate_suffix_links(struct suffix_tree *st)
-{
+void annotate_suffix_links(
+    struct suffix_tree *st
+) {
     set_suffix_links(st, st->root);
 }
 
@@ -400,9 +410,11 @@ mccreight_suffix_tree(
         assert(p->suffix_link->child); // please be an inner node
         
         if (leaf->parent == st->root) {
-            leaf = naive_insert(st, p->suffix_link, string + i, st->string + st->length);
+            leaf = naive_insert(st, p->suffix_link,
+                                string + i, st->string + st->length);
         } else {
-            leaf = naive_insert(st, p->suffix_link, leaf->range.from, leaf->range.to);
+            leaf = naive_insert(st, p->suffix_link,
+                                leaf->range.from, leaf->range.to);
         }
         
         leaf->leaf_label = i;
@@ -415,8 +427,9 @@ mccreight_suffix_tree(
 
 #pragma mark free
 
-void free_suffix_tree(struct suffix_tree *st)
-{
+void free_suffix_tree(
+    struct suffix_tree *st
+) {
     // Do not free string; we are not managing it
     free(st->pool.nodes);
     free(st);
@@ -492,28 +505,31 @@ static struct st_leaf_iter_frame *new_frame(struct suffix_tree_node *node)
     return frame;
 }
 
-void init_st_leaf_iter(struct st_leaf_iter *iter,
-                       struct suffix_tree *st,
-                       struct suffix_tree_node *node)
-{
+void init_st_leaf_iter(
+    struct st_leaf_iter *iter,
+    struct suffix_tree *st,
+    struct suffix_tree_node *node
+) {
     if (node == 0) iter->empty_tree = true;
     else           iter->empty_tree = false;
     
     iter->stack = new_frame(node);
 }
 
-static void reverse_push(struct st_leaf_iter *iter,
-                         struct suffix_tree_node *child)
-{
+static void reverse_push(
+    struct st_leaf_iter *iter,
+    struct suffix_tree_node *child
+) {
     if (child->sibling) reverse_push(iter, child->sibling);
     struct st_leaf_iter_frame *child_frame = new_frame(child);
     child_frame->next = iter->stack;
     iter->stack = child_frame;
 }
 
-bool next_st_leaf(struct st_leaf_iter *iter,
-                  struct st_leaf_iter_result *res)
-{
+bool next_st_leaf(
+    struct st_leaf_iter *iter,
+    struct st_leaf_iter_result *res
+) {
     if (iter->empty_tree) return false;
     
     struct st_leaf_iter_frame *frame = iter->stack;
@@ -542,8 +558,9 @@ bool next_st_leaf(struct st_leaf_iter *iter,
     return false;
 }
 
-void dealloc_st_leaf_iter(struct st_leaf_iter *iter)
-{
+void dealloc_st_leaf_iter(
+    struct st_leaf_iter *iter
+) {
     struct st_leaf_iter_frame *frame = iter->stack;
     while (frame) {
         struct st_leaf_iter_frame *next = frame->next;
@@ -679,8 +696,10 @@ void init_internal_st_approx_iter(
     uint32_t m = (uint32_t)(strlen((char *)p) + 4*edits + 1);
     iter->st = st;
     iter->sentinel.next = 0;
-    iter->full_cigar_buf = malloc(m + 1); iter->full_cigar_buf[0] = '\0';
-    iter->cigar_buf = malloc(m + 1);      iter->cigar_buf[0] = '\0';
+    iter->full_cigar_buf = malloc(m + 1);
+    iter->full_cigar_buf[0] = '\0';
+    iter->cigar_buf = malloc(m + 1);
+    iter->cigar_buf[0] = '\0';
     
     // push the root's children
     push_children(iter, st, st->root, true,
@@ -803,7 +822,8 @@ bool next_st_approx_match(struct st_approx_match_iter *iter,
             match->match_depth = outer_match.match_depth;
             match->root = outer_match.match_root;
             
-            init_st_leaf_iter(iter->leaf_iter, iter->st, outer_match.match_root);
+            init_st_leaf_iter(iter->leaf_iter, iter->st,
+                              outer_match.match_root);
             iter->has_inner = true;
             
             iter->outer = false;
@@ -823,8 +843,9 @@ bool next_st_approx_match(struct st_approx_match_iter *iter,
     return false;
 }
 
-void dealloc_st_approx_iter(struct st_approx_match_iter *iter)
-{
+void dealloc_st_approx_iter(
+    struct st_approx_match_iter *iter
+) {
     dealloc_internal_st_approx_iter(iter->approx_iter);
     free(iter->approx_iter);
     if (iter->has_inner) {
@@ -840,23 +861,26 @@ struct sa_lcp_data {
     uint32_t *lcp;
     uint32_t idx;
 };
-static void lcp_traverse(struct suffix_tree *st,
-                         struct suffix_tree_node *n,
-                         struct sa_lcp_data *data,
-                         uint32_t node_depth,
-                         uint32_t branch_depth)
-{
-    if (!n->child) {
+static void lcp_traverse(
+    struct suffix_tree *st,
+    struct suffix_tree_node *v,
+    struct sa_lcp_data *data,
+    uint32_t node_depth,
+    uint32_t branch_depth
+) {
+    if (!v->child) {
         // Leaf
-        data->sa[data->idx] = n->leaf_label;
+        data->sa[data->idx] = v->leaf_label;
         data->lcp[data->idx] = branch_depth;
         data->idx++;
     } else {
         // Inner node
         // The first child should be treated differently than
-        // the rest; it has a different branch depth
-        struct suffix_tree_node *child = n->child;
-        uint32_t this_depth = node_depth + edge_length(n);
+        // the rest; it has a different branch depth because
+        // the LCP is relative to the last node in the previous
+        // leaf in v's previous sibling.
+        struct suffix_tree_node *child = v->child;
+        uint32_t this_depth = node_depth + edge_length(v);
         lcp_traverse(st, child, data, this_depth, branch_depth);
         for (child = child->sibling; child; child = child->sibling) {
             // handle the remaining children
@@ -867,9 +891,11 @@ static void lcp_traverse(struct suffix_tree *st,
     }
 }
 
-void st_compute_sa_and_lcp(struct suffix_tree *st,
-                           uint32_t *sa, uint32_t *lcp)
-{
+void st_compute_sa_and_lcp(
+    struct suffix_tree *st,
+    uint32_t *sa,
+    uint32_t *lcp
+) {
     struct sa_lcp_data data;
     data.sa = sa; data.lcp = lcp; data.idx = 0;
     lcp_traverse(st, st->root, &data, 0, 0);
@@ -915,10 +941,11 @@ static void print_out_edges(
     }
 }
 
-void st_print_dot(struct suffix_tree *st,
-                  struct suffix_tree_node *n,
-                  FILE *file)
-{
+void st_print_dot(
+    struct suffix_tree *st,
+    struct suffix_tree_node *n,
+    FILE *file
+) {
     struct suffix_tree_node *root = n ? n : st->root;
     // + 1 for the sentinel
     char buffer[strlen((char *)st->string) + 1];
@@ -933,10 +960,11 @@ void st_print_dot(struct suffix_tree *st,
     fprintf(file, "}\n");
 }
 
-void st_print_dot_name(struct suffix_tree *st,
-                       struct suffix_tree_node *n,
-                       const char *fname)
-{
+void st_print_dot_name(
+    struct suffix_tree *st,
+    struct suffix_tree_node *n,
+    const char *fname
+) {
     FILE *file = fopen(fname, "w");
     st_print_dot(st, n, file);
     fclose(file);
