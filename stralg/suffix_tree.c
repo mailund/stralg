@@ -250,21 +250,25 @@ lcp_insert(
     uint32_t *lcp,
     struct suffix_tree_node *v
 ) {
-    struct suffix_tree_node *new_leaf = new_node(st, st->string + sa[i] + lcp[i], st->string + st->length);
+    struct suffix_tree_node *new_leaf =
+        new_node(st, st->string + sa[i] + lcp[i], st->string + st->length);
+    
     new_leaf->leaf_label = sa[i];
     uint32_t length_up = st->length - sa[i-1] - lcp[i];
-    uint32_t v_edge_len = range_length(v->range);
+    uint32_t v_edge_len = edge_length(v);
     
     while ((length_up >= v_edge_len) && (v_edge_len != 0)) {
         v = v->parent;
         length_up -= v_edge_len;
-        v_edge_len = range_length(v->range);
+        v_edge_len = edge_length(v);
     }
     if (length_up == 0) {
         append_child(v, new_leaf);
     } else {
-        struct suffix_tree_node *u = split_edge(st, v, v->range.to - length_up);
-        // append leaf to the new node (it has exactly one other child)
+        struct suffix_tree_node *u =
+            split_edge(st, v, v->range.to - length_up);
+        // Append leaf to the new node
+        // (it has exactly one other child)
         u->child->sibling = new_leaf;
         new_leaf->parent = u;
     }
@@ -862,16 +866,15 @@ struct sa_lcp_data {
     uint32_t idx;
 };
 static void lcp_traverse(
-    struct suffix_tree *st,
     struct suffix_tree_node *v,
     struct sa_lcp_data *data,
-    uint32_t node_depth,
-    uint32_t branch_depth
+    uint32_t left_depth,
+    uint32_t node_depth
 ) {
     if (!v->child) {
         // Leaf
         data->sa[data->idx] = v->leaf_label;
-        data->lcp[data->idx] = branch_depth;
+        data->lcp[data->idx] = left_depth;
         data->idx++;
     } else {
         // Inner node
@@ -881,13 +884,11 @@ static void lcp_traverse(
         // leaf in v's previous sibling.
         struct suffix_tree_node *child = v->child;
         uint32_t this_depth = node_depth + edge_length(v);
-        lcp_traverse(st, child, data, this_depth, branch_depth);
+        lcp_traverse(child, data, left_depth, this_depth);
         for (child = child->sibling; child; child = child->sibling) {
             // handle the remaining children
-            lcp_traverse(st, child, data, this_depth, this_depth);
+            lcp_traverse(child, data, this_depth, this_depth);
         }
-
-
     }
 }
 
@@ -898,7 +899,7 @@ void st_compute_sa_and_lcp(
 ) {
     struct sa_lcp_data data;
     data.sa = sa; data.lcp = lcp; data.idx = 0;
-    lcp_traverse(st, st->root, &data, 0, 0);
+    lcp_traverse(st->root, &data, 0, 0);
 }
 
 
