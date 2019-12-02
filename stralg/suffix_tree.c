@@ -260,8 +260,8 @@ lcp_insert(
     uint32_t v_edge_len = edge_length(v);
     
     while ((length_up >= v_edge_len) && (v_edge_len != 0)) {
-        v = v->parent;
         length_up -= v_edge_len;
+        v = v->parent;
         v_edge_len = edge_length(v);
     }
     if (length_up == 0) {
