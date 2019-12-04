@@ -516,9 +516,11 @@ struct st_leaf_iter_frame {
     struct st_leaf_iter_frame *next;
     struct suffix_tree_node *node;
 };
-static struct st_leaf_iter_frame *new_frame(struct suffix_tree_node *node)
+static struct st_leaf_iter_frame *
+new_frame(struct suffix_tree_node *node)
 {
-    struct st_leaf_iter_frame *frame = malloc(sizeof(struct st_leaf_iter_frame));
+    struct st_leaf_iter_frame *frame =
+        malloc(sizeof(struct st_leaf_iter_frame));
     frame->node = node;
     frame->next = 0;
     return frame;
@@ -593,9 +595,9 @@ static struct suffix_tree_node *
 st_search_internal(
     struct suffix_tree *st,
     struct suffix_tree_node *v,
-    const uint8_t *x
+    const uint8_t *p
 ) {
-    if (*x == '\0')
+    if (*p == '\0')
         // we are searching from an empty string, so we must
         // already be at the right node.
         return v;
@@ -606,7 +608,7 @@ st_search_internal(
         // We might be able to exploit that the lists are sorted
         // but it requires lookups in the string, so it might not be
         // worthwhile.
-        if (*(w->range.from) == *x) break;
+        if (*(w->range.from) == *p) break;
         w = w->sibling;
     }
     if (!w) return 0; // the pattern is not here.
@@ -614,21 +616,21 @@ st_search_internal(
     // we have an edge to follow!
     const uint8_t *s = w->range.from;
     const uint8_t *t = w->range.to;
-    for (; s != t; ++s, ++x) {
-        if (*x == '\0') return w; // end of the pattern
-        if (*s != *x)   return 0; // mismatch
+    for (; s != t; ++s, ++p) {
+        if (*p == '\0') return w; // end of the pattern
+        if (*s != *p)   return 0; // mismatch
     }
 
     // we made it through the edge, so continue from the next node
-    return st_search_internal(st, w, x);
+    return st_search_internal(st, w, p);
 }
 
 struct suffix_tree_node *
 st_search(
     struct suffix_tree *st,
-    const uint8_t *pattern
+    const uint8_t *p
 ) {
-    return st_search_internal(st, st->root, pattern);
+    return st_search_internal(st, st->root, p);
 }
 
 static void push_frame(
