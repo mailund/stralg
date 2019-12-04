@@ -308,44 +308,49 @@ fast_scan(
     struct suffix_tree *st,
     struct suffix_tree_node *v,
     const uint8_t *x,
-    const uint8_t *xend
+    const uint8_t *y
 ){
-    // find child that matches *x
+    // Find child that matches *x
     struct suffix_tree_node * w = find_outgoing_edge(v, x);
     assert(w); // must be here when we search for a suffix
     
-    // jump down the edge
+    // Jump down the edge
     uint32_t n = edge_length(w);
-    const uint8_t *new_x = x + n;
-    if (new_x == xend) {
+    const uint8_t *z = x + n;
+    
+    if (z == y) {
         // Found the node we should end in
         return w; // we are done now
         
-    } else if (new_x > xend) {
+    } else if (z > y) {
         // We stop before we reach the end node, so we
         // need to split the edge.
         
-        // We need to split at this distance above w:
+        // We need to split at distance k from
+        // s on the edge from v to w (with label [s,t])
         //
-        //          n
-        //    v |--------| w (s,t)
-        //     x|---|xend
-        //        k
-        uint32_t k = (uint32_t)(xend - x);
+        //       |---n----|
+        //     v o--------o w (s,t)
+        //     x *---*----* z
+        //           y
+        //       |-k-|
+        //
+        uint32_t k = (uint32_t)(y - x);
         assert(k > 0);
-        const uint8_t *split_point = w->range.from + k;
+        const uint8_t *s = w->range.from;
+        const uint8_t *split_point = s + k;
         return split_edge(st, w, split_point);
         
     } else {
         // We made it through the edge, so continue from the next node.
         // The call is tail-recursive, so the compiler will optimise
         // it to a loop, at least gcc and LLVM based, so clang as well.
-        return fast_scan(st, w, new_x, xend);
+        return fast_scan(st, w, z, y);
     }
 }
 
 static struct suffix_tree_node *
-head_search(
+suffix_search(
     struct suffix_tree *st,
     struct suffix_tree_node *v
 ) {
@@ -353,7 +358,7 @@ head_search(
     assert(v);
     assert(v->parent);
     
-    // two special cases to deal with empty strings (either in
+    // Two special cases to deal with empty strings (either in
     // v or its parent's suffix).
     if (v == st->root) {
         return v;
@@ -362,16 +367,17 @@ head_search(
         return st->root;
         
     } else if (v->parent == st->root) {
-        // the edge is longer than one and the parent is the root
+        // The edge is longer than one and the parent is the root
         const uint8_t *x = v->range.from + 1;
-        const uint8_t *xend = v->range.to;
-        return fast_scan(st, st->root, x, xend);
+        const uint8_t *y = v->range.to;
+        return fast_scan(st, st->root, x, y);
         
     } else {
-        // the general case
+        // The general case
         const uint8_t *x = v->range.from;
-        const uint8_t *xend = v->range.to;
-        return fast_scan(st, v->parent->suffix_link, x, xend);
+        const uint8_t *y = v->range.to;
+        struct suffix_tree_node *w = v->parent->suffix_link;
+        return fast_scan(st, w, x, y);
     }
 }
 
@@ -379,7 +385,7 @@ static void set_suffix_links(
     struct suffix_tree *st,
     struct suffix_tree_node *v
 ) {
-    v->suffix_link = head_search(st, v);
+    v->suffix_link = suffix_search(st, v);
     
     // recursion
     struct suffix_tree_node *child = v->child;
@@ -401,6 +407,7 @@ mccreight_suffix_tree(
     const uint8_t *x
 ) {
     struct suffix_tree *st = alloc_suffix_tree(x);
+    uint32_t n = st->length;
     
     struct suffix_tree_node *leaf = new_node(st, x, x + st->length);
     leaf->parent = st->root; st->root->child = leaf;
@@ -408,24 +415,24 @@ mccreight_suffix_tree(
     
     for (uint32_t i = 1; i < st->length; ++i) {
         
-        // Shortcut to leaf's parent's suffix
+        // Get the suffix of v
         struct suffix_tree_node *v = leaf->parent;
-        struct suffix_tree_node *w = head_search(st, v);
+        struct suffix_tree_node *w = suffix_search(st, v);
         v->suffix_link = w;
 
         assert(v->suffix_link); // please don't be null
         assert(v->suffix_link->child); // please be an inner node
         
         // Find head for the remaining suffix
-        // using naive search
-        if (leaf->parent == st->root) {
-            // search from the top for
-            // the entire suffix
-            leaf = naive_insert(st, v->suffix_link,
-                                x + i, st->string + st->length);
+        // using the naive search
+        if (leaf->parent != st->root) {
+            const uint8_t *y = leaf->range.from;
+            const uint8_t *z = leaf->range.to;
+            leaf = naive_insert(st, w, y, z);
         } else {
-            leaf = naive_insert(st, v->suffix_link,
-                                leaf->range.from, leaf->range.to);
+            // Search from the top for
+            // the entire suffix
+            leaf = naive_insert(st, w, x + i, x + n);
         }
         
         // Move on to the next suffix
