@@ -37,11 +37,18 @@ static void test_suffix_tree_match(struct index_vector *naive_matches,
     
     // just check that we do not find a node with a string that is not in the tree
     printf("search that should miss!\n");
-    assert(!st_search(st, (uint8_t *)"blahblahblahdeblablabla"));
+    uint8_t *not_here = (uint8_t *)"blahblahblahdeblablabla";
+    assert(!st_search(st, not_here));
     
-    init_st_leaf_iter(&st_iter, st, st_search(st, (uint8_t *)"blahblahblahdeblablabla"));
+    init_st_leaf_iter(&st_iter, st, st_search(st, not_here));
     assert( false == next_st_leaf(&st_iter, &res));
     dealloc_st_leaf_iter(&st_iter);
+    
+    struct st_search_iter search_iter;
+    struct st_search_match search_match;
+    init_st_search_iter(&search_iter, st, not_here);
+    assert(!next_st_match(&search_iter, &search_match));
+    dealloc_st_search_iter(&search_iter);
     
     
     struct suffix_tree_node *match_root = st_search(st, pattern);
@@ -74,6 +81,30 @@ static void test_suffix_tree_match(struct index_vector *naive_matches,
     assert(index_vector_equal(naive_matches, st_matches));
     
     free_index_vector(st_matches);
+    
+    st_matches = alloc_index_vector(100);
+    init_st_search_iter(&search_iter, st, pattern);
+    while (next_st_match(&search_iter, &search_match)) {
+        index_vector_append(st_matches, search_match.pos);
+    }
+    dealloc_st_search_iter(&search_iter);
+    
+    printf("suffix tree matches:\n");
+    for (uint32_t i = 0; i < st_matches->used; ++i)
+        printf("%u ", index_vector_get(st_matches, i));
+    printf("\n");
+    
+    sort_index_vector(st_matches); // st is not in same order as naive
+    printf("sorted suffix tree matches:\n");
+    for (uint32_t i = 0; i < st_matches->used; ++i)
+        printf("%u ", index_vector_get(st_matches, i));
+    printf("\n");
+    
+    // Compare the two
+    assert(index_vector_equal(naive_matches, st_matches));
+    
+    free_index_vector(st_matches);
+    
 }
 
 static void test_matching(const uint8_t *pattern, uint8_t *string) {

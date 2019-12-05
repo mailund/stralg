@@ -208,6 +208,25 @@ static void test_suffix_tree_match(
     assert(index_vector_equal(naive_matches, st_matches));
     
     free_index_vector(st_matches);
+    
+    st_matches = alloc_index_vector(100);
+    
+    struct st_search_iter search_iter;
+    struct st_search_match search_match;
+    
+    init_st_search_iter(&search_iter, st, pattern);
+    while (next_st_match(&search_iter, &search_match)) {
+        index_vector_append(st_matches, search_match.pos);
+    }
+    dealloc_st_search_iter(&search_iter);
+
+    sort_index_vector(st_matches);
+    print_index_vector(naive_matches);
+    print_index_vector(st_matches);
+    
+    assert(index_vector_equal(naive_matches, st_matches));
+    
+    free_index_vector(st_matches);
 }
 
 static void simple_exact_matchers(struct index_vector *naive,

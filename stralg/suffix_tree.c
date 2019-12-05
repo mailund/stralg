@@ -632,17 +632,21 @@ st_search(
 void init_st_search_iter(
     struct st_search_iter *iter,
     struct suffix_tree *st,
-    uint8_t *p
+    const uint8_t *p
 ) {
     struct suffix_tree_node *match = st_search(st, p);
     init_st_leaf_iter(&iter->leaf_iter, st, match);
 }
 
 bool next_st_match(
-    struct st_search_iter *iter
+    struct st_search_iter *iter,
+    struct st_search_match *match
 ) {
-   // FIXME
-    return false;
+    struct st_leaf_iter_result res;
+    if (!next_st_leaf(&iter->leaf_iter, &res))
+        return false;
+    match->pos = res.leaf->leaf_label;
+    return true;
 }
 
 void dealloc_st_search_iter(

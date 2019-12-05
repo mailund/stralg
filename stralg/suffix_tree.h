@@ -110,18 +110,15 @@ struct st_search_match {
 void init_st_search_iter(
     struct st_search_iter *iter,
     struct suffix_tree *st,
-    uint8_t *p
+    const uint8_t *p
 );
 bool next_st_match(
-    struct st_search_iter *iter
+    struct st_search_iter *iter,
+    struct st_search_match *match
 );
 void dealloc_st_search_iter(
     struct st_search_iter *iter
 );
-
-// FIXME: make an iterator for a search; or rather
-// make a function that initialises a leaf iterator
-// from a search.
 
 
 
