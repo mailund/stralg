@@ -74,10 +74,6 @@ void st_compute_sa_and_lcp(
 
 // Iteration
 struct st_leaf_iter {
-    // This is only used if iterator called with null.
-    // It makes it easier to combine the search
-    // with the leaf iterator.
-    bool empty_tree;
     struct st_leaf_iter_frame *stack;
 };
 struct st_leaf_iter_result {

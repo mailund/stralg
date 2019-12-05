@@ -39,6 +39,11 @@ static void test_suffix_tree_match(struct index_vector *naive_matches,
     printf("search that should miss!\n");
     assert(!st_search(st, (uint8_t *)"blahblahblahdeblablabla"));
     
+    init_st_leaf_iter(&st_iter, st, st_search(st, (uint8_t *)"blahblahblahdeblablabla"));
+    assert( false == next_st_leaf(&st_iter, &res));
+    dealloc_st_leaf_iter(&st_iter);
+    
+    
     struct suffix_tree_node *match_root = st_search(st, pattern);
     
     if (!match_root) return; // we only do the rest when there are matches
