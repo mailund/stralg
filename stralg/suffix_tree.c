@@ -629,6 +629,32 @@ st_search(
     return st_search_internal(st, st->root, p);
 }
 
+void init_st_search_iter(
+    struct st_search_iter *iter,
+    struct suffix_tree *st,
+    uint8_t *p
+) {
+    struct suffix_tree_node *match = st_search(st, p);
+    init_st_leaf_iter(&iter->leaf_iter, st, match);
+}
+
+bool next_st_match(
+    struct st_search_iter *iter
+) {
+   // FIXME
+    return false;
+}
+
+void dealloc_st_search_iter(
+    struct st_search_iter *iter
+) {
+    dealloc_st_leaf_iter(&iter->leaf_iter);
+}
+
+
+
+#pragma mark Approximative
+/// ----------------------Aproximative matching ---------------------------------------------------------
 static void push_frame(
     struct st_approx_frame *sentinel,
     struct suffix_tree_node *v,
