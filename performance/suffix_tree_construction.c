@@ -6,6 +6,9 @@
 #include <time.h>
 #include <string.h>
 
+#define PERFORMANCE 1
+#define PROFILING !PERFORMANCE
+
 static uint8_t *build_equal(uint32_t size)
 {
     uint8_t *s = malloc(size + 1);
@@ -52,7 +55,7 @@ static uint8_t *build_random_large(uint32_t size)
 
 static void get_performance(uint32_t size)
 {
-#if 1 // for comparison
+#if PERFORMANCE
     uint8_t *s;
     struct suffix_tree *st;
     clock_t begin, end;
@@ -62,7 +65,18 @@ static void get_performance(uint32_t size)
     begin = clock();
     st = naive_suffix_tree(s);
     end = clock();
-    printf("naive equal %u %f\n", size, (double)(end - begin) / CLOCKS_PER_SEC);
+    printf("Naive equal %u %f\n", size, (double)(end - begin) / CLOCKS_PER_SEC);
+    
+    uint32_t sa[st->length];
+    uint32_t lcp[st->length];
+    st_compute_sa_and_lcp(st, sa, lcp);
+    
+    free_suffix_tree(st);
+    
+    begin = clock();
+    st = lcp_suffix_tree(s, sa, lcp);
+    end = clock();
+    printf("LCP equal %u %f\n", size, (double)(end - begin) / CLOCKS_PER_SEC);
     free_suffix_tree(st);
     
     
@@ -79,9 +93,15 @@ static void get_performance(uint32_t size)
     begin = clock();
     st = naive_suffix_tree(s);
     end = clock();
-    printf("naive random %u %f\n", size, (double)(end - begin) / CLOCKS_PER_SEC);
+    printf("Naive random %u %f\n", size, (double)(end - begin) / CLOCKS_PER_SEC);
     free_suffix_tree(st);
     
+    begin = clock();
+    st = lcp_suffix_tree(s, sa, lcp);
+    end = clock();
+    printf("LCP random %u %f\n", size, (double)(end - begin) / CLOCKS_PER_SEC);
+    free_suffix_tree(st);
+
     
     begin = clock();
     st = mccreight_suffix_tree(s);
@@ -96,9 +116,15 @@ static void get_performance(uint32_t size)
     begin = clock();
     st = naive_suffix_tree(s);
     end = clock();
-    printf("naive random_large %u %f\n", size, (double)(end - begin) / CLOCKS_PER_SEC);
+    printf("Naive random_large %u %f\n", size, (double)(end - begin) / CLOCKS_PER_SEC);
     free_suffix_tree(st);
     
+    begin = clock();
+    st = lcp_suffix_tree(s, sa, lcp);
+    end = clock();
+    printf("LCP random_large %u %f\n", size, (double)(end - begin) / CLOCKS_PER_SEC);
+    free_suffix_tree(st);
+
     
     begin = clock();
     st = mccreight_suffix_tree(s);
@@ -113,7 +139,7 @@ static void get_performance(uint32_t size)
     struct suffix_tree *st;
     clock_t begin, end;
     
-#if 0
+/*
     s = build_equal(size);
     
     begin = clock();
@@ -134,9 +160,20 @@ static void get_performance(uint32_t size)
     
     free(s);
 
-#endif
+
 
     
+    s = build_random(size);
+    
+    begin = clock();
+    st = mccreight_suffix_tree(s);
+    end = clock();
+    //printf("McCreight random %lu %f\n", size, (double)(end - begin) / CLOCKS_PER_SEC);
+    free_suffix_tree(st);
+    
+    free(s);
+*/
+
     s = build_random(size);
     
     begin = clock();
@@ -156,7 +193,7 @@ int main(int argc, const char **argv)
 {
     srand(time(NULL));
     
-#if 1 // for comparison
+#if PERFORMANCE
     for (uint32_t n = 0; n < 10000; n += 500) {
         for (int rep = 0; rep < 5; ++rep) {
             get_performance(n);

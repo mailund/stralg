@@ -108,7 +108,7 @@ static void radix_sort(
     uint32_t offset, uint32_t alph_size,
     struct skew_buffers *shared_buffers)
 {
-    int32_t mask = (1 << 8) - 1;
+    const int32_t mask = (1 << 8) - 1;
     bool radix_index = 0;
     
     uint32_t *input, *output;
@@ -122,7 +122,8 @@ static void radix_sort(
          byte < sizeof(*s) && alph_size > 0;
          byte++, shift += 8, alph_size >>= 8) {
         
-        memset(shared_buffers->radix_buckets, 0, 256 * sizeof(uint32_t));
+        memset(shared_buffers->radix_buckets, 0,
+               256 * sizeof(uint32_t));
         
         input = shared_buffers->helper_buffers[radix_index];
         output = shared_buffers->helper_buffers[!radix_index];
@@ -210,13 +211,13 @@ static void construct_u(
     uint32_t *u
 ) {
     uint32_t j = 0;
-    // I first put those mod 3 == 2 so the first "half"
+    // First put those mod 3 == 2 so the first "half"
     // is always (m12 + 1) / 2 (the expression rounds down).
     for (uint32_t i = 1; i < m12; i += 2) {
         u[j++] = lex_nos[i];
     }
     assert(j == m12 / 2);
-    u[j++] = 0; // add centre sentinel
+    u[j++] = 0; // Add centre sentinel
     for (uint32_t i = 0; i < m12; i += 2) {
         u[j++] = lex_nos[i];
     }
@@ -328,14 +329,18 @@ static void skew_rec(
 ) {
     assert(n > 1); // should be guaranteed by skew().
     
-    // n - 1 to adjust for 0 indexing and + 1 to pick zero
+    // When we index from zero, these are the number of
+    // indices modulo 3. We have n - 1 to adjust for
+    // the zero index and +1 because the zero index is
+    // included in the array for m3.
     uint32_t m3 = (n - 1) / 3 + 1;
     uint32_t m12 = n - m3;
     
     assert(m3 > 0); // by + 1 it isn't possible.
     assert(m12 > 0); // size n >= 2 it should never by zero.
     
-    uint32_t mapped_alphabet_size = lex3sort(s, n, m12, alph_size, shared_buffers);
+    uint32_t mapped_alphabet_size =
+        lex3sort(s, n, m12, alph_size, shared_buffers);
     
     // the +1 here is because we leave space for the sentinel
     if (mapped_alphabet_size != m12 + 1) {
@@ -345,6 +350,8 @@ static void skew_rec(
         uint32_t *sau = malloc((m12 + 1) * sizeof(*sau));
         assert(sau);
         
+        // Construct the u string and solve the suffix array
+        // recursively.
         construct_u(shared_buffers->helper_buffer0, m12, u);
         skew_rec(u, m12 + 1, mapped_alphabet_size, sau, shared_buffers);
         
