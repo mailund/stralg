@@ -40,7 +40,7 @@ new_node(
 ) {
     struct ea_suffix_tree_node *v = st->pool.next_node++;
     
-    v->leaf_label = (uint32_t)-1; // mark for inner nodes
+    v->leaf_label = 0; // FIXME: (uint32_t)-1; // mark for inner nodes
     v->range.from = from;
     v->range.to = to;
     v->parent = 0;
@@ -569,6 +569,7 @@ bool next_ea_st_leaf(
         } else {
             // leaf
             // clean up and return result
+            //FIXME: assert(is_leaf(node));
             free(frame);
             res->leaf = node;
             return true;
