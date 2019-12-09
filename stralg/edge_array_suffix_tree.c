@@ -96,6 +96,7 @@ static void insert_child(
     
     //Special case when inserting the first edge
     // we need this when we split edges
+    assert(parent);
     if (!parent->child) {
         parent->child = child;
         return;
@@ -203,6 +204,10 @@ split_edge(
     struct ea_suffix_tree_node *u = new_node(st, w->range.from, s);
     u->parent = v;
         
+    // always remove before inserting or
+    // you might remove an edge that you don't
+    // want to remove (if two nodes share
+    // the first symbol).
     remove_child(v, w);
     w->range.from = s;
     w->parent = u;
@@ -228,15 +233,15 @@ split_edge(
         assert(*x->range.from == i);
     }
 
-    assert(is_inner_node(v) ? v->child : is_leaf(v));
+    assert(is_inner_node(v) ? (bool)v->child : is_leaf(v));
     assert(v->child);
     assert(is_inner_node(v));
 
-    assert(is_inner_node(u) ? u->child : is_leaf(u));
+    assert(is_inner_node(u) ? (bool)u->child : is_leaf(u));
     assert(u->child);
     assert(is_inner_node(u));
 
-    assert(is_inner_node(w) ? v->child : is_leaf(w));
+    assert(is_inner_node(w) ? (bool)v->child : is_leaf(w));
 
     return u;
 }
@@ -391,8 +396,9 @@ lcp_insert(
             split_edge(st, v, v->range.to - length_up);
         // Append leaf to the new node
         // (it has exactly one other child)
-        u->child->sibling = new_leaf;
-        new_leaf->parent = u;
+        //u->child->sibling = new_leaf;
+        //new_leaf->parent = u;
+        insert_child(u, new_leaf);
     }
     
     return new_leaf;
@@ -413,7 +419,7 @@ lcp_ea_suffix_tree(
     v->leaf_label = first_label;
     //FIXMEst->root->child = v;
     insert_child(st->root, v);
-    v->parent = st->root;
+    //FIXME v->parent = st->root;
     
     for (uint32_t i = 1; i < st->length; ++i) {
         v = lcp_insert(st, i, sa, lcp, v);
@@ -685,7 +691,8 @@ bool next_ea_st_leaf(
         iter->stack = frame->next;
         struct ea_suffix_tree_node *node = frame->node;
         
-        if (node->child) {
+        //FIXME if (node->child) {
+        if (is_inner_node(node)) {
             // we have to push in reverse order to get
             // an in-order depth-first traversal
             reverse_push(iter, node->child);
@@ -693,7 +700,7 @@ bool next_ea_st_leaf(
         } else {
             // leaf
             // clean up and return result
-            //FIXME: assert(is_leaf(node));
+            assert(is_leaf(node));
             free(frame);
             res->leaf = node;
             return true;
