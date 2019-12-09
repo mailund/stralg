@@ -57,13 +57,6 @@ new_node(
     return v;
 }
 
-static inline char out_letter(struct ea_suffix_tree_node *v)
-{
-    assert(v != 0);
-    return *(v->range.from);
-}
-
-
 #pragma mark naive suffix tree construction
 
 static inline struct ea_suffix_tree_node *
@@ -94,7 +87,7 @@ static void insert_child(
         assert(*w->range.from == i);
     }
 
-    
+#if 0
     //Special case when inserting the first edge
     // we need this when we split edges
     assert(parent);
@@ -119,6 +112,7 @@ static void insert_child(
         w->sibling = child;
     }
     child->parent = parent;
+#endif
     
     //FIXME: test code
     for (uint32_t i = 0; i < 256; ++i) {
@@ -126,6 +120,7 @@ static void insert_child(
         if (!w) continue;
         assert(*w->range.from == i);
     }
+
 }
 
 static void remove_child(
@@ -151,6 +146,7 @@ static void remove_child(
         //assert(*w->range.from == i);
     }
     
+#if 0
     if (is_leaf(v)) return;
     if (v->child == w) {
         v->child = w->sibling;
@@ -175,13 +171,14 @@ static void remove_child(
             u = u->sibling;
         }
     }
+#endif
+    
     //FIXME: test code
     for (uint32_t i = 0; i < 256; ++i) {
         struct ea_suffix_tree_node *u = v->children[i];
         if (!u) continue;
         //assert(*u->range.from == i);
     }
-    assert(v->child);
     assert(is_inner_node(v));
 }
 
@@ -234,15 +231,8 @@ split_edge(
         assert(*x->range.from == i);
     }
 
-    assert(is_inner_node(v) ? (bool)v->child : is_leaf(v));
-    assert(v->child);
     assert(is_inner_node(v));
-
-    assert(is_inner_node(u) ? (bool)u->child : is_leaf(u));
-    assert(u->child);
     assert(is_inner_node(u));
-
-    assert(is_inner_node(w) ? (bool)v->child : is_leaf(w));
 
     return u;
 }
@@ -557,7 +547,7 @@ mccreight_ea_suffix_tree(
         v->suffix_link = w;
 
         assert(v->suffix_link); // please don't be null
-        assert(v->suffix_link->child); // please be an inner node
+        assert(is_inner_node(v->suffix_link));
         
         // Find head for the remaining suffix
         // using the naive search
