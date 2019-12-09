@@ -57,7 +57,7 @@ new_node(
     return v;
 }
 
-inline static char out_letter(struct ea_suffix_tree_node *v)
+static inline char out_letter(struct ea_suffix_tree_node *v)
 {
     assert(v != 0);
     return *(v->range.from);
@@ -66,12 +66,12 @@ inline static char out_letter(struct ea_suffix_tree_node *v)
 
 #pragma mark naive suffix tree construction
 
-static struct ea_suffix_tree_node *
+static inline struct ea_suffix_tree_node *
 find_outgoing_edge(
     struct ea_suffix_tree_node *v,
     const uint8_t *x
 ) {
-    //return v->children[*x];
+    //FIXME: array version return v->children[*x];
     
     
     // FIXME: remove
@@ -105,6 +105,7 @@ static void insert_child(
     if (x < out_letter(w)) { // special case for the first child
         child->sibling = parent->child;
         parent->child = child;
+
     } else {
         // find p such that it is the last chain with an outgoing
         // edge that is larger than the new
@@ -114,16 +115,35 @@ static void insert_child(
         w->sibling = child;
     }
     child->parent = parent;
+    
+    //FIXME: test code
+    for (uint32_t i = 0; i < 256; ++i) {
+        struct ea_suffix_tree_node *w = parent->children[i];
+        if (!w) continue;
+        assert(*w->range.from == i);
+    }
 }
 
 static void remove_child(
     struct ea_suffix_tree_node *v,
     struct ea_suffix_tree_node *w
 ) {
+    //FIXME: test code
+    for (uint32_t i = 0; i < 256; ++i) {
+        struct ea_suffix_tree_node *u = v->children[i];
+        if (!u) continue;
+        assert(*u->range.from == i);
+    }
     // edge array code
     uint8_t out = *w->range.from;
     v->children[out] = 0;
     // Done
+    //FIXME: test code
+    for (uint32_t i = 0; i < 256; ++i) {
+        struct ea_suffix_tree_node *w = v->children[i];
+        if (!w) continue;
+        //assert(*w->range.from == i);
+    }
     
     if (!v->child) return;
     if (v->child == w) {
@@ -140,6 +160,12 @@ static void remove_child(
             u = u->sibling;
         }
     }
+    //FIXME: test code
+    for (uint32_t i = 0; i < 256; ++i) {
+        struct ea_suffix_tree_node *u = v->children[i];
+        if (!u) continue;
+        //assert(*u->range.from == i);
+    }
 }
 
 static struct ea_suffix_tree_node *
@@ -151,22 +177,42 @@ split_edge(
     assert(s < w->range.to);
     assert(w->range.from < s);
 
+    // FIXME: testing w
+    for (uint32_t i = 0; i < 256; ++i) {
+        struct ea_suffix_tree_node *x = w->children[i];
+        if (!x) continue;
+        assert(*x->range.from == i);
+    }
+    
     struct ea_suffix_tree_node *v = w->parent;
     struct ea_suffix_tree_node *u = new_node(st, w->range.from, s);
     u->parent = v;
-    
+        
+    remove_child(v, w);
     w->range.from = s;
     w->parent = u;
-    
-    remove_child(v, w);
     insert_child(v, u);
-
-    //FIXME: if we insert like this it also works for
-    // arrays
-    //u->child = w;
     insert_child(u, w);
     
-    
+    // testing v
+    for (uint32_t i = 0; i < 256; ++i) {
+        struct ea_suffix_tree_node *x = v->children[i];
+        if (!x) continue;
+        assert(*x->range.from == i);
+    }
+    // testing w
+    for (uint32_t i = 0; i < 256; ++i) {
+        struct ea_suffix_tree_node *x = w->children[i];
+        if (!x) continue;
+        assert(*x->range.from == i);
+    }
+    // testing u
+    for (uint32_t i = 0; i < 256; ++i) {
+        struct ea_suffix_tree_node *x = u->children[i];
+        if (!x) continue;
+        assert(*x->range.from == i);
+    }
+
     return u;
 }
 
@@ -252,7 +298,9 @@ struct ea_suffix_tree *naive_ea_suffix_tree(
     // in the rest of the code.
     struct ea_suffix_tree_node *first =
         new_node(st, st->string, st->string + st->length);
-    st->root->child = first;
+    
+    // FIXME st->root->child = first;
+    insert_child(st->root, first);
     first->parent = st->root;
     first->leaf_label = 0;
     const uint8_t *xend = st->string + st->length;
@@ -335,7 +383,8 @@ lcp_ea_suffix_tree(
         new_node(st, st->string + sa[0],
                  st->string + st->length);
     v->leaf_label = first_label;
-    st->root->child = v;
+    //FIXMEst->root->child = v;
+    insert_child(st->root, v);
     v->parent = st->root;
     
     for (uint32_t i = 1; i < st->length; ++i) {
@@ -460,7 +509,9 @@ mccreight_ea_suffix_tree(
     uint32_t n = st->length;
     
     struct ea_suffix_tree_node *leaf = new_node(st, x, x + st->length);
-    leaf->parent = st->root; st->root->child = leaf;
+    leaf->parent = st->root;
+    //FIXMEst->root->child = leaf;
+    insert_child(st->root, leaf);
     leaf->leaf_label = 0;
     
     for (uint32_t i = 1; i < st->length; ++i) {
