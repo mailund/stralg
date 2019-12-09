@@ -8,20 +8,31 @@
 #include <stdio.h>
 #include <string.h>
 
+static bool inline
+is_inner_node(struct ea_suffix_tree_node *n) {
+    return n->leaf_label == ~0;
+}
+static bool inline
+is_leaf(struct ea_suffix_tree_node *n) {
+    return !is_inner_node(n);
+}
+
+
 static void print_leaves(struct ea_suffix_tree_node *from)
 {
-    struct ea_suffix_tree_node *child = from->child;
     
-    if (!child) {
-        // this is a leaf
+    
+    if (is_leaf(from)) {
         printf("%u\n", from->leaf_label);
         return;
     }
-    
+
     // inner node
-    while (child) {
+    for (uint32_t i = 0; i < 256; ++i) {   //FIXME alph size
+     
+        struct ea_suffix_tree_node *child = from->children[i];
+        if (!child) continue;
         print_leaves(child);
-        child = child->sibling;
     }
 }
 
