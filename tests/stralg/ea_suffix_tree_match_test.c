@@ -1,6 +1,6 @@
 #include <match.h>
 #include <vectors.h>
-#include <suffix_tree.h>
+#include <edge_array_suffix_tree.h>
 #include <io.h>
 
 #include <stdint.h>
@@ -8,9 +8,9 @@
 #include <stdio.h>
 #include <string.h>
 
-static void print_leaves(struct suffix_tree_node *from)
+static void print_leaves(struct ea_suffix_tree_node *from)
 {
-    struct suffix_tree_node *child = from->child;
+    struct ea_suffix_tree_node *child = from->child;
     
     if (!child) {
         // this is a leaf
@@ -27,10 +27,10 @@ static void print_leaves(struct suffix_tree_node *from)
 
 static void test_suffix_tree_match(struct index_vector *naive_matches,
                                    const uint8_t *pattern,
-                                   struct suffix_tree *st,
+                                   struct ea_suffix_tree *st,
                                    uint8_t *string) {
-    struct st_leaf_iter st_iter;
-    struct st_leaf_iter_result res;
+    struct ea_st_leaf_iter st_iter;
+    struct ea_st_leaf_iter_result res;
     
     printf("I managed to build the suffix tree!\n");
     printf("the root is %p\n", st->root);
@@ -38,20 +38,20 @@ static void test_suffix_tree_match(struct index_vector *naive_matches,
     // just check that we do not find a node with a string that is not in the tree
     printf("search that should miss!\n");
     uint8_t *not_here = (uint8_t *)"blahblahblahdeblablabla";
-    assert(!st_search(st, not_here));
+    assert(!ea_st_search(st, not_here));
     
-    init_st_leaf_iter(&st_iter, st, st_search(st, not_here));
-    assert( false == next_st_leaf(&st_iter, &res));
-    dealloc_st_leaf_iter(&st_iter);
+    init_ea_st_leaf_iter(&st_iter, st, ea_st_search(st, not_here));
+    assert( false == next_ea_st_leaf(&st_iter, &res));
+    dealloc_ea_st_leaf_iter(&st_iter);
     
-    struct st_search_iter search_iter;
-    struct st_search_match search_match;
-    init_st_search_iter(&search_iter, st, not_here);
-    assert(!next_st_match(&search_iter, &search_match));
-    dealloc_st_search_iter(&search_iter);
+    struct ea_st_search_iter search_iter;
+    struct ea_st_search_match search_match;
+    init_ea_st_search_iter(&search_iter, st, not_here);
+    assert(!next_ea_st_match(&search_iter, &search_match));
+    dealloc_ea_st_search_iter(&search_iter);
     
     
-    struct suffix_tree_node *match_root = st_search(st, pattern);
+    struct ea_suffix_tree_node *match_root = ea_st_search(st, pattern);
     
     if (!match_root) return; // we only do the rest when there are matches
     
@@ -60,11 +60,11 @@ static void test_suffix_tree_match(struct index_vector *naive_matches,
     print_leaves(match_root);
     
     struct index_vector *st_matches = alloc_index_vector(100);
-    init_st_leaf_iter(&st_iter, st, match_root);
-    while (next_st_leaf(&st_iter, &res)) {
+    init_ea_st_leaf_iter(&st_iter, st, match_root);
+    while (next_ea_st_leaf(&st_iter, &res)) {
         index_vector_append(st_matches, res.leaf->leaf_label);
     }
-    dealloc_st_leaf_iter(&st_iter);
+    dealloc_ea_st_leaf_iter(&st_iter);
     
     printf("suffix tree matches:\n");
     for (uint32_t i = 0; i < st_matches->used; ++i)
@@ -83,11 +83,11 @@ static void test_suffix_tree_match(struct index_vector *naive_matches,
     free_index_vector(st_matches);
     
     st_matches = alloc_index_vector(100);
-    init_st_search_iter(&search_iter, st, pattern);
-    while (next_st_match(&search_iter, &search_match)) {
+    init_ea_st_search_iter(&search_iter, st, pattern);
+    while (next_ea_st_match(&search_iter, &search_match)) {
         index_vector_append(st_matches, search_match.pos);
     }
-    dealloc_st_search_iter(&search_iter);
+    dealloc_ea_st_search_iter(&search_iter);
     
     printf("suffix tree matches:\n");
     for (uint32_t i = 0; i < st_matches->used; ++i)
@@ -126,19 +126,19 @@ static void test_matching(const uint8_t *pattern, uint8_t *string) {
     
     
     // Get the matches using the suffix tree
-    struct suffix_tree *st = naive_suffix_tree(string);
+    struct ea_suffix_tree *st = naive_ea_suffix_tree(string);
     test_suffix_tree_match(naive_matches, pattern, st, string);
     
     uint32_t sa[st->length];
     uint32_t lcp[st->length];
-    st_compute_sa_and_lcp(st, sa, lcp);
+    ea_st_compute_sa_and_lcp(st, sa, lcp);
     
-    free_suffix_tree(st);
+    free_ea_suffix_tree(st);
     
     
-    st = lcp_suffix_tree(string, sa, lcp);
+    st = lcp_ea_suffix_tree(string, sa, lcp);
     test_suffix_tree_match(naive_matches, pattern, st, string);
-    free_suffix_tree(st);
+    free_ea_suffix_tree(st);
     
     free_index_vector(naive_matches);
 }
