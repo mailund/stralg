@@ -681,6 +681,23 @@ static void reverse_push(
     iter->stack = child_frame;
 }
 
+static void reverse_push_children(
+    struct ea_st_leaf_iter *iter,
+    struct ea_suffix_tree_node *v
+) {
+#if 0
+    reverse_push(iter, v->child);
+#endif
+    // FIXME: alphabet size
+    for (uint32_t i = 256; i > 0; --i) {
+        struct ea_suffix_tree_node *w = v->children[i - 1];
+        if (!w) continue;
+        struct ea_st_leaf_iter_frame *child_frame = new_frame(w);
+        child_frame->next = iter->stack;
+        iter->stack = child_frame;
+    }
+}
+
 bool next_ea_st_leaf(
     struct ea_st_leaf_iter *iter,
     struct ea_st_leaf_iter_result *res
@@ -695,7 +712,7 @@ bool next_ea_st_leaf(
         if (is_inner_node(node)) {
             // we have to push in reverse order to get
             // an in-order depth-first traversal
-            reverse_push(iter, node->child);
+            reverse_push_children(iter, node);
             
         } else {
             // leaf
