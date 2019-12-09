@@ -51,7 +51,6 @@ new_node(
     v->sibling = 0;
     // FIXME: allocate children vector based on size (use pool)
     memset(v->children, 0, 256 * sizeof(struct ea_suffix_tree *));
-    v->child = 0;
     v->suffix_link = 0;
     
     return v;

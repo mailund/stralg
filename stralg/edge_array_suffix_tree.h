@@ -22,7 +22,6 @@ struct ea_suffix_tree_node {
     struct ea_suffix_tree_node *parent;
     struct ea_suffix_tree_node *sibling;
     struct ea_suffix_tree_node *children[256]; // FIXME alph size
-    struct ea_suffix_tree_node *child;
     struct ea_suffix_tree_node *suffix_link;
 };
 static inline uint32_t ea_edge_length(
