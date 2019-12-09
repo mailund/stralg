@@ -1060,11 +1060,20 @@ static void lcp_traverse(
         // the rest; it has a different branch depth because
         // the LCP is relative to the last node in the previous
         // leaf in v's previous sibling.
-        struct ea_suffix_tree_node *child = v->child;
+        // FIXME: alph size
+        uint32_t i = 0;
+        struct ea_suffix_tree_node *child = 0;
+        for ( ; i < 256; ++i) {
+            child = v->children[i];
+            if (child) break;
+        }
         uint32_t this_depth = node_depth + ea_edge_length(v);
         lcp_traverse(child, data, left_depth, this_depth);
-        for (child = child->sibling; child; child = child->sibling) {
-            // handle the remaining children
+        
+
+        for (i++ ; i < 256; ++i) {
+            child = v->children[i];
+            if (!child) continue;
             lcp_traverse(child, data, this_depth, this_depth);
         }
     }
