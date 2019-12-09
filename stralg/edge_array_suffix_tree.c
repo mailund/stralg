@@ -82,9 +82,11 @@ static void insert_child(
     // edge array code
     uint8_t out = *child->range.from;
     parent->children[out] = child;
+    child->parent = parent;
     // edge array code
 
     //FIXME: test code
+    assert(is_inner_node(parent)); // we really only insert in inner nodes
     for (uint32_t i = 0; i < 256; ++i) {
         struct ea_suffix_tree_node *w = parent->children[i];
         if (!w) continue;
@@ -147,8 +149,7 @@ static void remove_child(
         //assert(*w->range.from == i);
     }
     
-    if (!v->child) return;
-    //if (is_inner_node(v)) return;
+    if (is_leaf(v)) return;
     if (v->child == w) {
         v->child = w->sibling;
         w->sibling = 0;
@@ -158,6 +159,15 @@ static void remove_child(
             if (u->sibling == w) {
                 u->sibling = w->sibling;
                 w->sibling = 0;
+ 
+                for (uint32_t i = 0; i < 256; ++i) {
+                    struct ea_suffix_tree_node *u = v->children[i];
+                    if (!u) continue;
+                    //assert(*u->range.from == i);
+                }
+                assert(v->child);
+                assert(is_inner_node(v));
+                
                 return;
             }
             u = u->sibling;
@@ -169,6 +179,8 @@ static void remove_child(
         if (!u) continue;
         //assert(*u->range.from == i);
     }
+    assert(v->child);
+    assert(is_inner_node(v));
 }
 
 static struct ea_suffix_tree_node *
@@ -215,6 +227,16 @@ split_edge(
         if (!x) continue;
         assert(*x->range.from == i);
     }
+
+    assert(is_inner_node(v) ? v->child : is_leaf(v));
+    assert(v->child);
+    assert(is_inner_node(v));
+
+    assert(is_inner_node(u) ? u->child : is_leaf(u));
+    assert(u->child);
+    assert(is_inner_node(u));
+
+    assert(is_inner_node(w) ? v->child : is_leaf(w));
 
     return u;
 }
