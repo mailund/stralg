@@ -50,7 +50,7 @@ new_node(
     v->parent = 0;
     v->sibling = 0;
     // FIXME: allocate children vector based on size (use pool)
-    memset(v->children, 0, 256 * sizeof(struct ea_suffix_tree));
+    memset(v->children, 0, 256 * sizeof(struct ea_suffix_tree *));
     v->child = 0;
     v->suffix_link = 0;
     
@@ -71,16 +71,7 @@ find_outgoing_edge(
     struct ea_suffix_tree_node *v,
     const uint8_t *x
 ) {
-    //FIXME: array version return v->children[*x];
-    
-    
-    // FIXME: remove
-    struct ea_suffix_tree_node *w = v->child;
-    while (w) {
-        if (*(w->range.from) == *x) break;
-        w = w->sibling;
-    }
-    return w;
+    return v->children[*x];
 }
 
 // Insert sorted (lex order)
@@ -92,6 +83,14 @@ static void insert_child(
     uint8_t out = *child->range.from;
     parent->children[out] = child;
     // edge array code
+
+    //FIXME: test code
+    for (uint32_t i = 0; i < 256; ++i) {
+        struct ea_suffix_tree_node *w = parent->children[i];
+        if (!w) continue;
+        assert(*w->range.from == i);
+    }
+
     
     //Special case when inserting the first edge
     // we need this when we split edges
@@ -100,6 +99,7 @@ static void insert_child(
         return;
     }
     
+    // FIXME: lists code -- DELETE
     const char x = *child->range.from;
     struct ea_suffix_tree_node *w = parent->child;
     if (x < out_letter(w)) { // special case for the first child
@@ -134,10 +134,12 @@ static void remove_child(
         if (!u) continue;
         assert(*u->range.from == i);
     }
+    
     // edge array code
     uint8_t out = *w->range.from;
     v->children[out] = 0;
     // Done
+    
     //FIXME: test code
     for (uint32_t i = 0; i < 256; ++i) {
         struct ea_suffix_tree_node *w = v->children[i];
@@ -146,6 +148,7 @@ static void remove_child(
     }
     
     if (!v->child) return;
+    //if (is_inner_node(v)) return;
     if (v->child == w) {
         v->child = w->sibling;
         w->sibling = 0;
@@ -307,6 +310,9 @@ struct ea_suffix_tree *naive_ea_suffix_tree(
     for (uint32_t i = 1; i < st->length; ++i) {
         struct ea_suffix_tree_node *leaf =
             naive_insert(st, st->root, string + i, xend);
+        // they shoujld be inner nodes until we fix them here
+        // FIXME: remove
+        assert(is_inner_node(leaf));
         leaf->leaf_label = i;
     }
 

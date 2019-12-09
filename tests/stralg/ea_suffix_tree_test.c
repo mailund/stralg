@@ -79,6 +79,7 @@ static void check_suffix_tree(struct ea_suffix_tree *st)
     struct ea_st_leaf_iter_result res;
     struct index_vector *indices = alloc_index_vector(100);
     
+    printf("collecting indices\n");
     init_ea_st_leaf_iter(&iter, st, st->root);
     while (next_ea_st_leaf(&iter, &res)) {
         index_vector_append(indices, res.leaf->leaf_label);
