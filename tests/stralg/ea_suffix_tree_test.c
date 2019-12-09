@@ -15,25 +15,35 @@ static void check_nodes(struct ea_suffix_tree *st, struct ea_suffix_tree_node *v
         assert(v->range.to <= st->string + st->length);
         assert(v->range.to > v->range.from);
     }
-    struct ea_suffix_tree_node *w = v->child;
-    while (w) {
+    // FIXME: alphabet size
+    for (uint32_t i = 0; i < 256; ++i) {
+        struct ea_suffix_tree_node *w = v->children[i];
+        if (!w) continue;
         check_nodes(st, w);
-        w = w->sibling;
     }
 }
 
 
 static void check_parent_pointers(struct ea_suffix_tree_node *v)
 {
-    struct ea_suffix_tree_node *w = v->child;
-    while (w) {
-        assert(w->parent == v);
+    // FIXME: alphabet size
+    for (uint32_t i = 0; i < 256; ++i) {
+        struct ea_suffix_tree_node *w = v->children[i];
+        if (!w) continue;
         check_parent_pointers(w);
-        w = w->sibling;
     }
 }
 
 #ifndef NDEBUG
+static bool inline
+is_inner_node(struct ea_suffix_tree_node *n) {
+    return n->leaf_label == ~0;
+}
+static bool inline
+is_leaf(struct ea_suffix_tree_node *n) {
+    return !is_inner_node(n);
+}
+
 static bool has_leaf(struct ea_suffix_tree *st,
                      struct ea_suffix_tree_node *v, uint32_t leaf)
 {
@@ -42,7 +52,7 @@ static bool has_leaf(struct ea_suffix_tree *st,
     
     init_ea_st_leaf_iter(&iter, st, v);
     while (next_ea_st_leaf(&iter, &res)) {
-        if (!res.leaf->child && res.leaf->leaf_label == leaf) {
+        if (is_leaf(res.leaf) && res.leaf->leaf_label == leaf) {
             dealloc_ea_st_leaf_iter(&iter);
             return true;
         }
