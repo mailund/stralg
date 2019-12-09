@@ -671,23 +671,10 @@ void init_ea_st_leaf_iter(
     else iter->stack = 0;
 }
 
-static void reverse_push(
-    struct ea_st_leaf_iter *iter,
-    struct ea_suffix_tree_node *child
-) {
-    if (child->sibling) reverse_push(iter, child->sibling);
-    struct ea_st_leaf_iter_frame *child_frame = new_frame(child);
-    child_frame->next = iter->stack;
-    iter->stack = child_frame;
-}
-
 static void reverse_push_children(
     struct ea_st_leaf_iter *iter,
     struct ea_suffix_tree_node *v
 ) {
-#if 0
-    reverse_push(iter, v->child);
-#endif
     // FIXME: alphabet size
     for (uint32_t i = 256; i > 0; --i) {
         struct ea_suffix_tree_node *w = v->children[i - 1];
@@ -708,7 +695,6 @@ bool next_ea_st_leaf(
         iter->stack = frame->next;
         struct ea_suffix_tree_node *node = frame->node;
         
-        //FIXME if (node->child) {
         if (is_inner_node(node)) {
             // we have to push in reverse order to get
             // an in-order depth-first traversal
@@ -754,14 +740,7 @@ ea_st_search_internal(
         return v;
     
     // find child that matches *x
-    struct ea_suffix_tree_node *w = v->child;
-    while (w) {
-        // We might be able to exploit that the lists are sorted
-        // but it requires lookups in the string, so it might not be
-        // worthwhile.
-        if (*(w->range.from) == *p) break;
-        w = w->sibling;
-    }
+    struct ea_suffix_tree_node *w = v->children[*p];
     if (!w) return 0; // the pattern is not here.
 
     // we have an edge to follow!
@@ -875,16 +854,16 @@ static void push_children(
     const uint8_t *p,
     int edits
 ) {
-    struct ea_suffix_tree_node *child = v->child;
-    while (child) {
+    // FIXME alphabet size
+    for (uint32_t i = 0; i < 256; ++i){
+        struct ea_suffix_tree_node *child = v->children[i];
+        if (!child) continue;
         const uint8_t *x = child->range.from;
         const uint8_t *end = child->range.to;
         push_frame(&iter->sentinel, child,
                    leading,
                    x, end, match_depth,
                    p, '\0', cigar, edits);
-        
-        child = child->sibling;
     }
 }
 
@@ -1069,11 +1048,12 @@ static void lcp_traverse(
     uint32_t left_depth,
     uint32_t node_depth
 ) {
-    if (!v->child) {
+    if (is_leaf(v)) {
         // Leaf
         data->sa[data->idx] = v->leaf_label;
         data->lcp[data->idx] = left_depth;
         data->idx++;
+        
     } else {
         // Inner node
         // The first child should be treated differently than
