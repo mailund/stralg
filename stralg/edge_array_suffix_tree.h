@@ -21,6 +21,7 @@ struct ea_suffix_tree_node {
     struct range range;
     struct ea_suffix_tree_node *parent;
     struct ea_suffix_tree_node *sibling;
+    struct ea_suffix_tree_node *children[256]; // FIXME alph size
     struct ea_suffix_tree_node *child;
     struct ea_suffix_tree_node *suffix_link;
 };

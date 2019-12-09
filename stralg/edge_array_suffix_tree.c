@@ -49,6 +49,8 @@ new_node(
     v->range.to = to;
     v->parent = 0;
     v->sibling = 0;
+    // FIXME: allocate children vector based on size (use pool)
+    memset(v->children, 0, 256 * sizeof(struct ea_suffix_tree));
     v->child = 0;
     v->suffix_link = 0;
     
@@ -69,6 +71,10 @@ find_outgoing_edge(
     struct ea_suffix_tree_node *v,
     const uint8_t *x
 ) {
+    //return v->children[*x];
+    
+    
+    // FIXME: remove
     struct ea_suffix_tree_node *w = v->child;
     while (w) {
         if (*(w->range.from) == *x) break;
@@ -82,6 +88,12 @@ static void insert_child(
     struct ea_suffix_tree_node *parent,
     struct ea_suffix_tree_node *child
 ) {
+    // edge array code
+    uint8_t out = *child->range.from;
+    parent->children[out] = child;
+    // edge array code
+    
+    //Special case when inserting the first edge
     // we need this when we split edges
     if (!parent->child) {
         parent->child = child;
@@ -108,6 +120,11 @@ static void remove_child(
     struct ea_suffix_tree_node *v,
     struct ea_suffix_tree_node *w
 ) {
+    // edge array code
+    uint8_t out = *w->range.from;
+    v->children[out] = 0;
+    // Done
+    
     if (!v->child) return;
     if (v->child == w) {
         v->child = w->sibling;
@@ -137,12 +154,18 @@ split_edge(
     struct ea_suffix_tree_node *v = w->parent;
     struct ea_suffix_tree_node *u = new_node(st, w->range.from, s);
     u->parent = v;
-    u->child = w;
+    
     w->range.from = s;
     w->parent = u;
     
     remove_child(v, w);
     insert_child(v, u);
+
+    //FIXME: if we insert like this it also works for
+    // arrays
+    //u->child = w;
+    insert_child(u, w);
+    
     
     return u;
 }
@@ -206,6 +229,8 @@ alloc_suffix_tree(
     uint32_t pool_size = st->length == 1 ? 2 : (2 * st->length - 1);
     st->pool.nodes = malloc(pool_size * sizeof(struct ea_suffix_tree_node));
     st->pool.next_node = st->pool.nodes;
+    
+    // FIXME: make edge alphabet pool here as well.
 
     st->root = new_node(st, 0, 0);
     st->root->parent = st->root;
@@ -240,10 +265,13 @@ struct ea_suffix_tree *naive_ea_suffix_tree(
     return st;
 }
 
+// FIXME: remove and replace with insert when we
+// have the complete array implementation
 static void append_child(
     struct ea_suffix_tree_node *v,
     struct ea_suffix_tree_node *w
 ) {
+#if 0
     struct ea_suffix_tree_node *child = v->child;
     assert(child != 0); // all inner nodes should have at least one child
     while (child->sibling) {
@@ -251,6 +279,10 @@ static void append_child(
     }
     child->sibling = w;
     w->parent = v;
+#endif
+    
+    // if we just use insert child it works with both versoins
+    insert_child(v, w);
 }
 
 static struct ea_suffix_tree_node *
@@ -397,11 +429,19 @@ static void set_suffix_links(
 ) {
     v->suffix_link = suffix_search(st, v);
     
+#if 0
     // recursion
     struct ea_suffix_tree_node *child = v->child;
     while (child) {
         set_suffix_links(st, child);
         child = child->sibling;
+    }
+#endif
+    
+    // Array code
+    for (uint32_t i = 0; i < 256; i++) { // FIXME: alphabet sizez
+        struct ea_suffix_tree_node *w = v->children[i];
+        if (w) set_suffix_links(st, w);
     }
 }
 
