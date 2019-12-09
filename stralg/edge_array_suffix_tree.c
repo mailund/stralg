@@ -28,8 +28,12 @@ static void check_nodes(struct suffix_tree *st, struct suffix_tree_node *v)
 
 
 static bool inline
+is_inner_node(struct ea_suffix_tree_node *n) {
+    return n->leaf_label == ~0;
+}
+static bool inline
 is_leaf(struct ea_suffix_tree_node *n) {
-    return n->leaf_label != (uint32_t)-1;
+    return !is_inner_node(n);
 }
 
 static struct ea_suffix_tree_node *
@@ -40,7 +44,7 @@ new_node(
 ) {
     struct ea_suffix_tree_node *v = st->pool.next_node++;
     
-    v->leaf_label = 0; // FIXME: (uint32_t)-1; // mark for inner nodes
+    v->leaf_label = ~0; // inner node label
     v->range.from = from;
     v->range.to = to;
     v->parent = 0;
@@ -225,6 +229,7 @@ struct ea_suffix_tree *naive_ea_suffix_tree(
         new_node(st, st->string, st->string + st->length);
     st->root->child = first;
     first->parent = st->root;
+    first->leaf_label = 0;
     const uint8_t *xend = st->string + st->length;
     for (uint32_t i = 1; i < st->length; ++i) {
         struct ea_suffix_tree_node *leaf =
