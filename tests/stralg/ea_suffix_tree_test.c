@@ -140,7 +140,7 @@ int main(int argc, const char **argv)
     check_nodes(st, st->root);
     
     printf("Printing tree.\n");
-    FILE *f = fopen("tree.dot", "w");
+    FILE *f = fopen("eatree.dot", "w");
     ea_st_print_dot(st, 0, f);
     fclose(f);
 

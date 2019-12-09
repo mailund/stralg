@@ -85,6 +85,7 @@ static void insert_child(
     child->parent = parent;
     // edge array code
 
+    
     //FIXME: test code
     assert(is_inner_node(parent)); // we really only insert in inner nodes
     for (uint32_t i = 0; i < 256; ++i) {
@@ -1098,9 +1099,8 @@ static void print_out_edges(
     struct ea_suffix_tree_node *from,
     char *label_buffer
 ) {
-    struct ea_suffix_tree_node *child = from->child;
     
-    if (!child) {
+    if (is_leaf(from)) {
         // this is a leaf
         fprintf(f, "\"%p\" [label=\"%u\"];\n", from, from->leaf_label);
         return;
@@ -1112,7 +1112,10 @@ static void print_out_edges(
     else
         fprintf(f, "\"%p\" [shape=point];\n", from);
     
-    while (child) {
+    //FIXME: alphabet size
+    for (uint32_t i = 0; i < 256; ++i) {
+        struct ea_suffix_tree_node *child = from->children[i];
+        if (!child) continue;
         get_ea_edge_label(st, child, (uint8_t *)label_buffer);
         uint32_t from_idx = (uint32_t)(child->range.from - st->string);
         uint32_t to_idx = (uint32_t)(child->range.to - st->string);
@@ -1125,7 +1128,6 @@ static void print_out_edges(
                     child, child->suffix_link);
         }
         print_out_edges(f, st, child, label_buffer);
-        child = child->sibling;
     }
 }
 
