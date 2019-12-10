@@ -137,7 +137,7 @@ static void test_matching(const uint8_t *pattern, uint8_t *string) {
     
     
     // Get the matches using the suffix tree
-    struct ea_suffix_tree *st = naive_ea_suffix_tree(string);
+    struct ea_suffix_tree *st = naive_ea_suffix_tree(256, string);
     test_suffix_tree_match(naive_matches, pattern, st, string);
     
     uint32_t sa[st->length];
@@ -147,7 +147,7 @@ static void test_matching(const uint8_t *pattern, uint8_t *string) {
     free_ea_suffix_tree(st);
     
     
-    st = lcp_ea_suffix_tree(string, sa, lcp);
+    st = lcp_ea_suffix_tree(256, string, sa, lcp);
     test_suffix_tree_match(naive_matches, pattern, st, string);
     free_ea_suffix_tree(st);
     

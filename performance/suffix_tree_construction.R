@@ -13,8 +13,6 @@ current_performance <- read_table2("suffix_tree_construction.txt",
 
 performance <- current_performance
 
-performance <- current_performance %>% filter(!(Algorithm %in% c("EA-Naive", "Naive")))
-    #current_performance #rbind(performance1, performance2, current_performance)
 
 ggplot(performance,
        aes(x = Size, y = Time, color = Algorithm)) +
@@ -23,19 +21,30 @@ ggplot(performance,
     geom_smooth() +
     theme_minimal()
 
-performance %>%
-    filter(!(String == "equal")) %>%
+performance %>% filter(!(Algorithm %in% c("EA-Naive", "Naive"))) %>%
     ggplot(
-       aes(x = Size, y = Time, color = String)) +
-    facet_grid(. ~ Algorithm) +
+       aes(x = Size, y = Time, color = Algorithm)
+     ) +
+    facet_grid(String ~ ., scales = "free_y") +
     geom_jitter() +
     geom_smooth() +
     theme_minimal()
 
 
 performance %>%
+    filter(!(String == "equal")) %>%
     ggplot(
-        aes(x = Time, y = Nodes, colour = String)
+       aes(x = Size, y = Time, color = String)
+     )  +
+    facet_grid(. ~ Algorithm) +
+    geom_jitter() +
+    geom_smooth() +
+    theme_minimal()
+
+
+performance %>% filter(!(Algorithm %in% c("EA-Naive", "Naive"))) %>%
+    ggplot(
+        aes(y = Time, x = Nodes, colour = String)
     )   +
     facet_grid(. ~ Algorithm) +
     geom_jitter() +

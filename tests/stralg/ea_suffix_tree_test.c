@@ -136,7 +136,7 @@ int main(int argc, const char **argv)
 {
     const uint8_t *string = (uint8_t *)"mississippi";
     //const char *string = "aaaa";
-    struct ea_suffix_tree *st = naive_ea_suffix_tree(string);
+    struct ea_suffix_tree *st = naive_ea_suffix_tree(256, string);
     check_nodes(st, st->root);
     
     printf("Printing tree.\n");
@@ -174,14 +174,14 @@ int main(int argc, const char **argv)
     
     free_ea_suffix_tree(st);
     
-    st = lcp_ea_suffix_tree(string, sa, lcp);
+    st = lcp_ea_suffix_tree(256, string, sa, lcp);
     
     printf("checking LCP construction\n");
     check_suffix_tree(st);
     free_ea_suffix_tree(st);
 
     
-    st = mccreight_ea_suffix_tree(string);
+    st = mccreight_ea_suffix_tree(256, string);
     
     
     printf("checking McCreight construction\n");

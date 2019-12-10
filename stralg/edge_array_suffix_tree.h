@@ -33,6 +33,7 @@ struct ea_suffix_tree_children_pool {
 struct ea_suffix_tree {
     const uint8_t *string;
     uint32_t length;
+    uint32_t alphabet_size;
     struct ea_suffix_tree_node *root;
     struct ea_suffix_tree_node_pool node_pool;
     struct ea_suffix_tree_children_pool children_pool;
@@ -40,14 +41,17 @@ struct ea_suffix_tree {
 
 struct ea_suffix_tree *
 naive_ea_suffix_tree(
+    uint32_t alphabet_size,
     const uint8_t *string
 );
 struct ea_suffix_tree *
 mccreight_ea_suffix_tree(
+    uint32_t alphabet_size,
     const uint8_t *string
 );
 struct ea_suffix_tree *
 lcp_ea_suffix_tree(
+    uint32_t alphabet_size,
     const uint8_t *string,
     uint32_t *sa,
     uint32_t *lcp
@@ -71,6 +75,7 @@ void ea_st_compute_sa_and_lcp(
 
 // Iteration
 struct ea_st_leaf_iter {
+    struct ea_suffix_tree *st;
     struct ea_st_leaf_iter_frame *stack;
 };
 struct ea_st_leaf_iter_result {

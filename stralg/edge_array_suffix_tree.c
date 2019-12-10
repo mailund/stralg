@@ -50,7 +50,7 @@ new_node(
     v->parent = 0;
     v->suffix_link = 0;
     v->children = st->children_pool.next_array;
-    st->children_pool.next_array += 256; // FIXME: alphabet size
+    st->children_pool.next_array += st->alphabet_size;
     
     return v;
 }
@@ -172,17 +172,16 @@ alloc_suffix_tree(
     st->node_pool.next_node = st->node_pool.nodes;
     
     // FIXME: alphabet size
+    st->alphabet_size = 256;
     st->children_pool.children =
         malloc(
-            256 * pool_size * sizeof(struct ea_suffix_tree_node *)
+            st->alphabet_size * pool_size * sizeof(struct ea_suffix_tree_node *)
     );
     memset(st->children_pool.children, 0,
-           256 * pool_size * sizeof(struct ea_suffix_tree_node *)
+           st->alphabet_size * pool_size * sizeof(struct ea_suffix_tree_node *)
     );
     st->children_pool.next_array = st->children_pool.children;
     
-    // FIXME: make edge alphabet pool here as well.
-
     st->root = new_node(st, 0, 0);
     st->root->parent = st->root;
     st->root->suffix_link = st->root;
@@ -191,9 +190,11 @@ alloc_suffix_tree(
 }
 
 struct ea_suffix_tree *naive_ea_suffix_tree(
+    uint32_t alphabet_size,
     const uint8_t *string
 ) {
     struct ea_suffix_tree *st = alloc_suffix_tree(string);
+    st->alphabet_size = alphabet_size;
     
     // I am inserting the first suffix manually to ensure that all
     // inner nodes have at least one child.
@@ -258,11 +259,13 @@ lcp_insert(
 
 struct ea_suffix_tree *
 lcp_ea_suffix_tree(
+    uint32_t alphabet_size,
     const uint8_t *string,
     uint32_t *sa,
     uint32_t *lcp
 ) {
     struct ea_suffix_tree *st = alloc_suffix_tree(string);
+    st->alphabet_size = alphabet_size;
     
     uint32_t first_label = sa[0];
     struct ea_suffix_tree_node *v =
@@ -361,7 +364,7 @@ static void set_suffix_links(
     struct ea_suffix_tree_node *v
 ) {
     v->suffix_link = suffix_search(st, v);
-    for (uint32_t i = 0; i < 256; i++) { // FIXME: alphabet sizez
+    for (uint32_t i = 0; i < st->alphabet_size; i++) {
         struct ea_suffix_tree_node *w = v->children[i];
         if (w) set_suffix_links(st, w);
     }
@@ -376,9 +379,11 @@ void annotate_ae_suffix_links(
 
 struct ea_suffix_tree *
 mccreight_ea_suffix_tree(
+    uint32_t alphabet_size,
     const uint8_t *x
 ) {
     struct ea_suffix_tree *st = alloc_suffix_tree(x);
+    st->alphabet_size = alphabet_size;
     uint32_t n = st->length;
     
     struct ea_suffix_tree_node *leaf = new_node(st, x, x + st->length);
@@ -506,6 +511,7 @@ void init_ea_st_leaf_iter(
     struct ea_suffix_tree *st,
     struct ea_suffix_tree_node *node
 ) {
+    iter->st = st;
     if (node) iter->stack = new_frame(node);
     else iter->stack = 0;
 }
@@ -514,8 +520,7 @@ static void reverse_push_children(
     struct ea_st_leaf_iter *iter,
     struct ea_suffix_tree_node *v
 ) {
-    // FIXME: alphabet size
-    for (uint32_t i = 256; i > 0; --i) {
+    for (uint32_t i = iter->st->alphabet_size; i > 0; --i) {
         struct ea_suffix_tree_node *w = v->children[i - 1];
         if (!w) continue;
         struct ea_st_leaf_iter_frame *child_frame = new_frame(w);
@@ -693,8 +698,7 @@ static void push_children(
     const uint8_t *p,
     int edits
 ) {
-    // FIXME alphabet size
-    for (uint32_t i = 0; i < 256; ++i){
+    for (uint32_t i = 0; i < st->alphabet_size; ++i){
         struct ea_suffix_tree_node *child = v->children[i];
         if (!child) continue;
         const uint8_t *x = child->range.from;
@@ -882,6 +886,7 @@ struct sa_lcp_data {
     uint32_t idx;
 };
 static void lcp_traverse(
+    struct ea_suffix_tree *st,
     struct ea_suffix_tree_node *v,
     struct sa_lcp_data *data,
     uint32_t left_depth,
@@ -902,18 +907,18 @@ static void lcp_traverse(
         // FIXME: alph size
         uint32_t i = 0;
         struct ea_suffix_tree_node *child = 0;
-        for ( ; i < 256; ++i) {
+        for ( ; i < st->alphabet_size; ++i) {
             child = v->children[i];
             if (child) break;
         }
         uint32_t this_depth = node_depth + ea_edge_length(v);
-        lcp_traverse(child, data, left_depth, this_depth);
+        lcp_traverse(st, child, data, left_depth, this_depth);
         
 
         for (i++ ; i < 256; ++i) {
             child = v->children[i];
             if (!child) continue;
-            lcp_traverse(child, data, this_depth, this_depth);
+            lcp_traverse(st, child, data, this_depth, this_depth);
         }
     }
 }
@@ -925,7 +930,7 @@ void ea_st_compute_sa_and_lcp(
 ) {
     struct sa_lcp_data data;
     data.sa = sa; data.lcp = lcp; data.idx = 0;
-    lcp_traverse(st->root, &data, 0, 0);
+    lcp_traverse(st, st->root, &data, 0, 0);
 }
 
 
@@ -950,8 +955,7 @@ static void print_out_edges(
     else
         fprintf(f, "\"%p\" [shape=point];\n", from);
     
-    //FIXME: alphabet size
-    for (uint32_t i = 0; i < 256; ++i) {
+    for (uint32_t i = 0; i < st->alphabet_size; ++i) {
         struct ea_suffix_tree_node *child = from->children[i];
         if (!child) continue;
         get_ea_edge_label(st, child, (uint8_t *)label_buffer);
