@@ -7,20 +7,12 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <assert.h>
-
-struct range {
-    const uint8_t *from;
-    const uint8_t *to;
-};
-static inline uint32_t range_length(struct range r) {
-    return (uint32_t)(r.to - r.from);
-}
+#include <suffix_tree.h> // we get range from here...
 
 struct ea_suffix_tree_node {
     uint32_t leaf_label;
     struct range range;
     struct ea_suffix_tree_node *parent;
-    struct ea_suffix_tree_node *sibling;
     struct ea_suffix_tree_node *children[256]; // FIXME alph size
     struct ea_suffix_tree_node *suffix_link;
 };
