@@ -18,7 +18,7 @@ static uint8_t *build_equal(uint32_t size)
 {
     uint8_t *s = malloc(size + 1);
     for (uint32_t i = 0; i < size; ++i) {
-        s[i] = 'A';
+        s[i] = 1;//'A';
     }
     s[size] = '\0';
     
@@ -27,12 +27,14 @@ static uint8_t *build_equal(uint32_t size)
 
 static uint8_t *build_random(uint32_t size)
 {
+#if 0
     const char *alphabet = "ACGT";
     int n = strlen(alphabet);
+#endif
     uint8_t *s = malloc(size + 1);
 
     for (uint32_t i = 0; i < size; ++i) {
-        s[i] = alphabet[rand() % n];
+        s[i] = (rand() % 4) + 1;
     }
     s[size] = '\0';
     
@@ -103,7 +105,7 @@ static void get_performance(uint32_t size)
     // --- Edge arrays ---
     
     begin = clock();
-    east = naive_ea_suffix_tree(256, s); // FIXME alph size
+    east = naive_ea_suffix_tree(2, s);
     end = clock();
     printf("EA-Naive equal %u %f %ld\n",
            size, (double)(end - begin) / CLOCKS_PER_SEC,
@@ -115,7 +117,7 @@ static void get_performance(uint32_t size)
     free_ea_suffix_tree(east);
     
     begin = clock();
-    east = lcp_ea_suffix_tree(256, s, sa, lcp); // FIXME alph size
+    east = lcp_ea_suffix_tree(2, s, sa, lcp);
     end = clock();
     printf("EA-LCP equal %u %f %ld\n",
            size, (double)(end - begin) / CLOCKS_PER_SEC,
@@ -124,7 +126,7 @@ static void get_performance(uint32_t size)
     
     
     begin = clock();
-    east = mccreight_ea_suffix_tree(256, s);  // FIXME alph size
+    east = mccreight_ea_suffix_tree(2, s);
     end = clock();
     printf("EA-McCreight equal %u %f %ld\n",
            size, (double)(end - begin) / CLOCKS_PER_SEC,
@@ -170,7 +172,7 @@ static void get_performance(uint32_t size)
     // --- Edge arrays ---
     
     begin = clock();
-    east = naive_ea_suffix_tree(256, s); // FIXME alph size
+    east = naive_ea_suffix_tree(5, s);
     end = clock();
     printf("EA-Naive random %u %f %ld\n",
            size, (double)(end - begin) / CLOCKS_PER_SEC,
@@ -182,7 +184,7 @@ static void get_performance(uint32_t size)
     free_ea_suffix_tree(east);
     
     begin = clock();
-    east = lcp_ea_suffix_tree(256, s, sa, lcp);  // FIXME alph size
+    east = lcp_ea_suffix_tree(5, s, sa, lcp);
     end = clock();
     printf("EA-LCP random %u %f %ld\n",
            size, (double)(end - begin) / CLOCKS_PER_SEC,
@@ -192,7 +194,7 @@ static void get_performance(uint32_t size)
     
     
     begin = clock();
-    east = mccreight_ea_suffix_tree(256, s);  // FIXME alph size
+    east = mccreight_ea_suffix_tree(5, s);
     end = clock();
     printf("EA-McCreight random %u %f %ld\n",
            size, (double)(end - begin) / CLOCKS_PER_SEC,
@@ -238,8 +240,12 @@ static void get_performance(uint32_t size)
     // --- Edge arrays ---
        
 
+    //warmup -- seems necessary although I don't know why
+    east = naive_ea_suffix_tree(256, s);
+    free_ea_suffix_tree(east);
+    
     begin = clock();
-    east = naive_ea_suffix_tree(256, s); // FIXME alph size
+    east = naive_ea_suffix_tree(256, s);
     end = clock();
     printf("EA-Naive random_large %u %f %ld\n",
            size, (double)(end - begin) / CLOCKS_PER_SEC,
@@ -250,7 +256,7 @@ static void get_performance(uint32_t size)
     free_ea_suffix_tree(east);
        
     begin = clock();
-    east = lcp_ea_suffix_tree(256, s, sa, lcp); // FIXME alph size
+    east = lcp_ea_suffix_tree(256, s, sa, lcp);
     end = clock();
     printf("EA-LCP random_large %u %f %ld\n",
            size, (double)(end - begin) / CLOCKS_PER_SEC,
@@ -259,7 +265,7 @@ static void get_performance(uint32_t size)
     free_ea_suffix_tree(east);
        
     begin = clock();
-    east = mccreight_ea_suffix_tree(256, s); // FIXME alph size
+    east = mccreight_ea_suffix_tree(256, s);
     end = clock();
     printf("EA-McCreight random_large %u %f %ld\n",
            size, (double)(end - begin) / CLOCKS_PER_SEC,
@@ -272,20 +278,7 @@ static void get_performance(uint32_t size)
 
 
 #else // for profiling
-#if 0
-    char *s;
-    struct suffix_tree *st;
-    clock_t begin, end;
-    
-    s = build_random(size);
-    
-    begin = clock();
-    st = mccreight_suffix_tree(s);
-    end = clock();
-    //printf("McCreight random %u %f\n", size, (double)(end - begin) / CLOCKS_PER_SEC);
-    free_suffix_tree(st);
-    free(s);
-#else
+
     uint8_t *s;
     struct ea_suffix_tree *east;
     
@@ -293,19 +286,19 @@ static void get_performance(uint32_t size)
     s = build_random(size);
 
     // NAIVE
-    east = naive_ea_suffix_tree(s);
+    east = naive_ea_suffix_tree(5, s);
 
     uint32_t sa[east->length];
     uint32_t lcp[east->length];
-    ea_st_compute_sa_and_lcp(256, east, sa, lcp); // FIXME alph size
+    ea_st_compute_sa_and_lcp(east, sa, lcp);
     free_ea_suffix_tree(east);
 
     // McC
-    east = mccreight_ea_suffix_tree(256, s); // FIXME alph size
+    east = mccreight_ea_suffix_tree(5, s);
     free_ea_suffix_tree(east);
     
     // LCP
-    east = lcp_ea_suffix_tree(256, s, sa, lcp); // FIXME alph size
+    east = lcp_ea_suffix_tree(5, s, sa, lcp);
     free_ea_suffix_tree(east);
 
 
@@ -323,9 +316,6 @@ static void get_performance(uint32_t size)
     free_suffix_tree(st);
     free(s);
 
-    
-
-#endif
 
     
 #endif
@@ -337,7 +327,7 @@ int main(int argc, const char **argv)
     srand(time(NULL));
     
 #if PERFORMANCE
-    for (uint32_t n = 500; n < 10000; n += 500) {
+    for (uint32_t n = 1000; n < 50000; n += 1000) {
         for (int rep = 0; rep < 5; ++rep) {
             get_performance(n);
         }

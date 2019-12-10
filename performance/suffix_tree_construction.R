@@ -3,6 +3,14 @@ library(readr)
 library(dplyr)
 library(ggplot2)
 
+strings = c(equal = "Equal", random = "DNA", random_large = "ASCII")
+algomap = c("EA-LCP" = "Array LCP", "EA-McCreight" = "Array McCreight", "EA-Naive" = "Array Naive")
+algorithms <- Vectorize(function(alg) {
+    if (alg %in% names(algomap)) algomap[alg]
+    else alg
+})
+
+
 performance1 <- read_table2("suffix_tree_construction_v1.txt",
                            col_names = c("Algorithm", "String", "Size", "Time"))
 performance2 <- read_table2("suffix_tree_construction_v2.txt",
@@ -13,42 +21,55 @@ current_performance <- read_table2("suffix_tree_construction.txt",
 
 performance <- current_performance
 
-
-ggplot(performance,
+performance %>%
+    mutate(String = strings[String], Algorithm = algorithms(Algorithm)) %>%
+    filter(Algorithm %in% c("LCP", "Naive", "McCreight")) %>%
+    mutate(String = factor(String, levels = c("Equal", "DNA", "ASCII"))) %>%
+    ggplot(
        aes(x = Size, y = Time, color = Algorithm)) +
     facet_grid(String ~ ., scales = "free_y") +
     geom_jitter() +
-    geom_smooth() +
+    geom_smooth(se = FALSE) +
+    scale_color_grey() +
     theme_minimal()
-
-performance %>% filter(!(Algorithm %in% c("EA-Naive", "Naive"))) %>%
-    ggplot(
-       aes(x = Size, y = Time, color = Algorithm)
-     ) +
-    facet_grid(String ~ ., scales = "free_y") +
-    geom_jitter() +
-    geom_smooth() +
-    theme_minimal()
-
 
 performance %>%
-    filter(!(String == "equal")) %>%
+    filter(!(Algorithm %in% c("EA-Naive", "Naive"))) %>%
+    mutate(String = strings[String], Algorithm = algorithms(Algorithm)) %>%
+    filter(Algorithm %in% c("LCP", "Naive", "McCreight")) %>%
+    mutate(String = factor(String, levels = c("Equal", "DNA", "ASCII"))) %>%
     ggplot(
-       aes(x = Size, y = Time, color = String)
-     )  +
-    facet_grid(. ~ Algorithm) +
+        aes(x = Size, y = Time, color = Algorithm)) +
+    facet_grid(String ~ ., scales = "free_y") +
     geom_jitter() +
-    geom_smooth() +
+    geom_smooth(se = FALSE) +
+    scale_color_grey() +
     theme_minimal()
 
-
 performance %>% filter(!(Algorithm %in% c("EA-Naive", "Naive"))) %>%
+    mutate(String = strings[String], Algorithm = algorithms(Algorithm)) %>%
     ggplot(
         aes(y = Time, x = Nodes, colour = String)
     )   +
     facet_grid(. ~ Algorithm) +
+    scale_color_grey() +
     geom_jitter() +
     theme_minimal()
+
+
+performance %>%
+    filter(Algorithm %in% c("EA-LCP", "LCP")) %>%
+    mutate(String = strings[String], Algorithm = algorithms(Algorithm)) %>%
+    #filter(!(String == "equal")) %>%
+    ggplot(
+        aes(x = Size, y = Time, color = Algorithm)
+    )  +
+    facet_grid(String ~ ., scales = "free_y") +
+    geom_jitter() +
+    geom_smooth(se = FALSE) +
+    scale_color_grey() +
+    theme_minimal()
+
 
 
 # performance %>% filter(Algorithm != "naive") %>%

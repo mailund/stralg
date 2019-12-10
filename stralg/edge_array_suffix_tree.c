@@ -154,6 +154,7 @@ naive_insert(
 // allocates and set meta-data for a suffix tree.
 static struct ea_suffix_tree *
 alloc_suffix_tree(
+    uint32_t alphabet_size,
     const uint8_t *string
 ) {
     struct ea_suffix_tree *st = malloc(sizeof(struct ea_suffix_tree));
@@ -172,7 +173,7 @@ alloc_suffix_tree(
     st->node_pool.next_node = st->node_pool.nodes;
     
     // FIXME: alphabet size
-    st->alphabet_size = 256;
+    st->alphabet_size = alphabet_size;
     st->children_pool.children =
         malloc(
             st->alphabet_size * pool_size * sizeof(struct ea_suffix_tree_node *)
@@ -193,8 +194,7 @@ struct ea_suffix_tree *naive_ea_suffix_tree(
     uint32_t alphabet_size,
     const uint8_t *string
 ) {
-    struct ea_suffix_tree *st = alloc_suffix_tree(string);
-    st->alphabet_size = alphabet_size;
+    struct ea_suffix_tree *st = alloc_suffix_tree(alphabet_size, string);
     
     // I am inserting the first suffix manually to ensure that all
     // inner nodes have at least one child.
@@ -264,8 +264,7 @@ lcp_ea_suffix_tree(
     uint32_t *sa,
     uint32_t *lcp
 ) {
-    struct ea_suffix_tree *st = alloc_suffix_tree(string);
-    st->alphabet_size = alphabet_size;
+    struct ea_suffix_tree *st = alloc_suffix_tree(alphabet_size, string);
     
     uint32_t first_label = sa[0];
     struct ea_suffix_tree_node *v =
@@ -382,8 +381,7 @@ mccreight_ea_suffix_tree(
     uint32_t alphabet_size,
     const uint8_t *x
 ) {
-    struct ea_suffix_tree *st = alloc_suffix_tree(x);
-    st->alphabet_size = alphabet_size;
+    struct ea_suffix_tree *st = alloc_suffix_tree(alphabet_size, x);
     uint32_t n = st->length;
     
     struct ea_suffix_tree_node *leaf = new_node(st, x, x + st->length);
@@ -915,7 +913,7 @@ static void lcp_traverse(
         lcp_traverse(st, child, data, left_depth, this_depth);
         
 
-        for (i++ ; i < 256; ++i) {
+        for (i++ ; i < st->alphabet_size; ++i) {
             child = v->children[i];
             if (!child) continue;
             lcp_traverse(st, child, data, this_depth, this_depth);
