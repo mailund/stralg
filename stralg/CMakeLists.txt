@@ -22,6 +22,7 @@ add_library(stralg SHARED
 	string_utils.h string_utils.c
 	suffix_array.h suffix_array.c
 	suffix_tree.h suffix_tree.c
+	edge_array_suffix_tree.h edge_array_suffix_tree.c
 	trie.h trie.c
 )
 set_target_properties(
