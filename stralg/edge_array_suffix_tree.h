@@ -13,7 +13,7 @@ struct ea_suffix_tree_node {
     uint32_t leaf_label;
     struct range range;
     struct ea_suffix_tree_node *parent;
-    struct ea_suffix_tree_node *children[256]; // FIXME alph size
+    struct ea_suffix_tree_node **children;
     struct ea_suffix_tree_node *suffix_link;
 };
 static inline uint32_t ea_edge_length(
@@ -26,11 +26,16 @@ struct ea_suffix_tree_node_pool {
     struct ea_suffix_tree_node *nodes;
     struct ea_suffix_tree_node *next_node;
 };
+struct ea_suffix_tree_children_pool {
+    struct ea_suffix_tree_node **children;
+    struct ea_suffix_tree_node **next_array;
+};
 struct ea_suffix_tree {
     const uint8_t *string;
     uint32_t length;
     struct ea_suffix_tree_node *root;
-    struct ea_suffix_tree_node_pool pool;
+    struct ea_suffix_tree_node_pool node_pool;
+    struct ea_suffix_tree_children_pool children_pool;
 };
 
 struct ea_suffix_tree *

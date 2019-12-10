@@ -107,7 +107,7 @@ static void get_performance(uint32_t size)
     end = clock();
     printf("EA-Naive equal %u %f %ld\n",
            size, (double)(end - begin) / CLOCKS_PER_SEC,
-           east->pool.next_node - east->pool.nodes);
+           east->node_pool.next_node - east->node_pool.nodes);
 
     
     ea_st_compute_sa_and_lcp(east, sa, lcp);
@@ -119,7 +119,7 @@ static void get_performance(uint32_t size)
     end = clock();
     printf("EA-LCP equal %u %f %ld\n",
            size, (double)(end - begin) / CLOCKS_PER_SEC,
-           east->pool.next_node - east->pool.nodes);
+           east->node_pool.next_node - east->node_pool.nodes);
     free_ea_suffix_tree(east);
     
     
@@ -128,7 +128,7 @@ static void get_performance(uint32_t size)
     end = clock();
     printf("EA-McCreight equal %u %f %ld\n",
            size, (double)(end - begin) / CLOCKS_PER_SEC,
-           east->pool.next_node - east->pool.nodes);
+           east->node_pool.next_node - east->node_pool.nodes);
 
     free_ea_suffix_tree(east);
 
@@ -174,7 +174,7 @@ static void get_performance(uint32_t size)
     end = clock();
     printf("EA-Naive random %u %f %ld\n",
            size, (double)(end - begin) / CLOCKS_PER_SEC,
-           east->pool.next_node - east->pool.nodes);
+           east->node_pool.next_node - east->node_pool.nodes);
 
     
     ea_st_compute_sa_and_lcp(east, sa, lcp);
@@ -186,7 +186,7 @@ static void get_performance(uint32_t size)
     end = clock();
     printf("EA-LCP random %u %f %ld\n",
            size, (double)(end - begin) / CLOCKS_PER_SEC,
-           east->pool.next_node - east->pool.nodes);
+           east->node_pool.next_node - east->node_pool.nodes);
 
     free_ea_suffix_tree(east);
     
@@ -196,7 +196,7 @@ static void get_performance(uint32_t size)
     end = clock();
     printf("EA-McCreight random %u %f %ld\n",
            size, (double)(end - begin) / CLOCKS_PER_SEC,
-           east->pool.next_node - east->pool.nodes);
+           east->node_pool.next_node - east->node_pool.nodes);
 
     free_ea_suffix_tree(east);
     
@@ -243,7 +243,7 @@ static void get_performance(uint32_t size)
     end = clock();
     printf("EA-Naive random_large %u %f %ld\n",
            size, (double)(end - begin) / CLOCKS_PER_SEC,
-           east->pool.next_node - east->pool.nodes);
+           east->node_pool.next_node - east->node_pool.nodes);
 
     ea_st_compute_sa_and_lcp(east, sa, lcp);
        
@@ -254,7 +254,7 @@ static void get_performance(uint32_t size)
     end = clock();
     printf("EA-LCP random_large %u %f %ld\n",
            size, (double)(end - begin) / CLOCKS_PER_SEC,
-           east->pool.next_node - east->pool.nodes);
+           east->node_pool.next_node - east->node_pool.nodes);
 
     free_ea_suffix_tree(east);
        
@@ -263,7 +263,7 @@ static void get_performance(uint32_t size)
     end = clock();
     printf("EA-McCreight random_large %u %f %ld\n",
            size, (double)(end - begin) / CLOCKS_PER_SEC,
-           east->pool.next_node - east->pool.nodes);
+           east->node_pool.next_node - east->node_pool.nodes);
 
     free_ea_suffix_tree(east);
     free(s);

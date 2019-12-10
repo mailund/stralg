@@ -42,17 +42,15 @@ new_node(
     const uint8_t *from,
     const uint8_t *to
 ) {
-    struct ea_suffix_tree_node *v = st->pool.next_node++;
+    struct ea_suffix_tree_node *v = st->node_pool.next_node++;
     
     v->leaf_label = ~0; // inner node label
     v->range.from = from;
     v->range.to = to;
     v->parent = 0;
     v->suffix_link = 0;
-    // FIXME: allocate children vector based on size (use pool)
-    // NB we are not setting this to zero here because we did
-    // when we made the pool
-    //memset(v->children, 0, 256 * sizeof(struct ea_suffix_tree *));
+    v->children = st->children_pool.next_array;
+    st->children_pool.next_array += 256; // FIXME: alphabet size
     
     return v;
 }
@@ -169,11 +167,19 @@ alloc_suffix_tree(
     // in testing, but never the less. In that case, there should be
     // two and not one node (the root and a single child.
     uint32_t pool_size = st->length == 1 ? 2 : (2 * st->length - 1);
-    st->pool.nodes = malloc(pool_size * sizeof(struct ea_suffix_tree_node));
-    // this is because we do not want to use time for it in each
-    // new_node() call
-    memset(st->pool.nodes, 0, pool_size * sizeof(struct ea_suffix_tree_node));
-    st->pool.next_node = st->pool.nodes;
+    
+    st->node_pool.nodes = malloc(pool_size * sizeof(struct ea_suffix_tree_node));
+    st->node_pool.next_node = st->node_pool.nodes;
+    
+    // FIXME: alphabet size
+    st->children_pool.children =
+        malloc(
+            256 * pool_size * sizeof(struct ea_suffix_tree_node *)
+    );
+    memset(st->children_pool.children, 0,
+           256 * pool_size * sizeof(struct ea_suffix_tree_node *)
+    );
+    st->children_pool.next_array = st->children_pool.children;
     
     // FIXME: make edge alphabet pool here as well.
 
@@ -417,7 +423,8 @@ void free_ea_suffix_tree(
     struct ea_suffix_tree *st
 ) {
     // Do not free string; we are not managing it
-    free(st->pool.nodes);
+    free(st->node_pool.nodes);
+    free(st->children_pool.children);
     free(st);
 }
 
@@ -969,7 +976,7 @@ void ea_st_print_dot(
 ) {
     struct ea_suffix_tree_node *root = n ? n : st->root;
     // + 1 for the sentinel
-    char buffer[strlen((char *)st->string) + 1];
+    char buffer[strlen((char *)st->string) + 2]; // FIXME: why 2???
 
     fprintf(file, "digraph {\n");
     fprintf(file, "node[shape=circle];\n");
