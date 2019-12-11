@@ -143,3 +143,5 @@ performance/bwt_search
 tests/stralg/border_test
 tests/stralg/ea_suffix_tree_match_test
 tests/stralg/ea_suffix_tree_test
+performance/Adding arrays times.pdf
+performance/LCP comparisons.pdf
