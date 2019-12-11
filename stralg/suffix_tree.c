@@ -8,6 +8,16 @@
 
 #pragma helpers
 
+static bool inline
+is_inner_node(struct suffix_tree_node *n) {
+    return n->child;
+}
+static bool inline
+is_leaf(struct suffix_tree_node *n) {
+    return !is_inner_node(n);
+}
+
+
 /*
 static void check_nodes(struct suffix_tree *st, struct suffix_tree_node *v)
 {
@@ -903,35 +913,93 @@ void dealloc_st_approx_iter(
 
 
 // Build suffix array and LCP
-struct sa_lcp_data {
-    uint32_t *sa;
-    uint32_t *lcp;
-    uint32_t idx;
+struct sa_lcp_frame {
+    struct suffix_tree_node *v;
+    uint32_t left_depth;
+    uint32_t node_depth;
+    struct sa_lcp_frame *next;
 };
-static void lcp_traverse(
+static struct sa_lcp_frame *new_lcp_frame(
     struct suffix_tree_node *v,
-    struct sa_lcp_data *data,
     uint32_t left_depth,
-    uint32_t node_depth
+    uint32_t node_depth,
+    struct sa_lcp_frame *next
 ) {
-    if (!v->child) {
-        // Leaf
-        data->sa[data->idx] = v->leaf_label;
-        data->lcp[data->idx] = left_depth;
-        data->idx++;
-    } else {
-        // Inner node
-        // The first child should be treated differently than
-        // the rest; it has a different branch depth because
-        // the LCP is relative to the last node in the previous
-        // leaf in v's previous sibling.
-        struct suffix_tree_node *child = v->child;
-        uint32_t this_depth = node_depth + edge_length(v);
-        lcp_traverse(child, data, left_depth, this_depth);
-        for (child = child->sibling; child; child = child->sibling) {
-            // handle the remaining children
-            lcp_traverse(child, data, this_depth, this_depth);
+    struct sa_lcp_frame *new = malloc(sizeof(struct sa_lcp_frame));
+    new->v = v;
+    new->left_depth = left_depth;
+    new->node_depth = node_depth;
+    new->next = next;
+    return new;
+}
+
+static struct sa_lcp_frame *
+lcp_stack_push_reverse(
+    struct suffix_tree_node *v,
+    uint32_t left_depth,
+    uint32_t node_depth,
+    struct sa_lcp_frame *stack
+) {
+    if (v->sibling) {
+        stack = lcp_stack_push_reverse(v->sibling, left_depth, node_depth, stack);
+    }
+    return new_lcp_frame(v, left_depth, node_depth, stack);
+}
+
+static void lcp_traverse(
+    struct suffix_tree *st,
+    uint32_t *sa,
+    uint32_t *lcp
+) {
+    struct sa_lcp_frame *stack = new_lcp_frame(st->root, 0, 0, 0);
+    uint32_t idx = 0;
+
+    while (stack) {
+
+        struct sa_lcp_frame *frame = stack;
+        stack = stack->next;
+        
+        if (is_leaf(frame->v)) {
+            // Leaf
+            sa[idx] = frame->v->leaf_label;
+            lcp[idx] = frame->left_depth;
+            idx++;
+            
+        } else {
+            // Inner node
+            // The first child should be treated differently than
+            // the rest; it has a different branch depth because
+            // the LCP is relative to the last node in the previous
+            // leaf in v's previous sibling.
+            
+            uint32_t this_depth = frame->node_depth + edge_length(frame->v);
+            
+            assert(frame->v->child); // it must be an inner node
+            if (frame->v->child->sibling) {
+                stack = lcp_stack_push_reverse(frame->v->child->sibling,
+                                               this_depth, this_depth, stack);
+            }
+            // first child
+            struct suffix_tree_node *first_child = frame->v->child;
+            stack = new_lcp_frame(first_child, frame->left_depth, this_depth, stack);
+            /*
+            uint32_t i = 0;
+            struct ea_suffix_tree_node *first_child = 0;
+            for ( ; i < st->alphabet_size; ++i) {
+                first_child = frame->v->children[i];
+                if (first_child) break;
+            }
+            for (uint32_t j = st->alphabet_size; j - 1 > i; j--) {
+                struct ea_suffix_tree_node *child = frame->v->children[j - 1];
+                if (!child) continue;
+                stack = new_lcp_frame(child, this_depth, this_depth, stack);
+            }
+
+            stack = new_lcp_frame(first_child, frame->left_depth, this_depth, stack);
+             */
         }
+        
+        free(frame);
     }
 }
 
@@ -940,12 +1008,8 @@ void st_compute_sa_and_lcp(
     uint32_t *sa,
     uint32_t *lcp
 ) {
-    struct sa_lcp_data data;
-    data.sa = sa; data.lcp = lcp; data.idx = 0;
-    lcp_traverse(st->root, &data, 0, 0);
+    lcp_traverse(st, sa, lcp);
 }
-
-
 #pragma mark IO
 
 static void print_out_edges(

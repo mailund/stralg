@@ -522,7 +522,9 @@ static void get_performance_naive2(uint32_t size)
 int main(int argc, const char **argv)
 {
     srand(time(NULL));
-
+    //get_performance(500000);
+    //return 0;
+    
 #if PERFORMANCE
     uint32_t n = 1000;
     for (; n < 11000; n += 1000) {
@@ -537,7 +539,7 @@ int main(int argc, const char **argv)
             get_performance_naive2(n);
         }
     }
-    for (; n <= 90000; n += 1000) { // We cannot go beyond this because lcp_traverse crash
+    for (; n <= 100000; n += 1000) { // We cannot go beyond this because lcp_traverse crash
         for (int rep = 0; rep < 5; ++rep) {
             get_performance(n);
         }
