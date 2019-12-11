@@ -878,19 +878,13 @@ void dealloc_ea_st_approx_iter(
 
 
 // Build suffix array and LCP
-struct sa_lcp_data {
-    uint32_t *sa;
-    uint32_t *lcp;
-    uint32_t idx;
-};
-
 struct sa_lcp_frame {
     struct ea_suffix_tree_node *v;
     uint32_t left_depth;
     uint32_t node_depth;
     struct sa_lcp_frame *next;
 };
-struct sa_lcp_frame *new_lcp_frame(
+static struct sa_lcp_frame *new_lcp_frame(
     struct ea_suffix_tree_node *v,
     uint32_t left_depth,
     uint32_t node_depth,
