@@ -74,17 +74,16 @@ static void get_performance(uint32_t size)
 #if EQUAL
     s = build_equal(size);
     
+
     begin = clock();
-    st = naive_suffix_tree(s);
+    st = mccreight_suffix_tree(s);
     end = clock();
-    printf("Naive equal %u %f %ld\n",
+    printf("McCreight equal %u %f %ld\n",
            size, (double)(end - begin) / CLOCKS_PER_SEC,
            st->pool.next_node - st->pool.nodes);
-    
     st_compute_sa_and_lcp(st, sa, lcp);
-    
     free_suffix_tree(st);
-    
+
     begin = clock();
     st = lcp_suffix_tree(s, sa, lcp);
     end = clock();
@@ -102,28 +101,22 @@ static void get_performance(uint32_t size)
     free_suffix_tree(st);
     free_suffix_tree(st2);
     
-    begin = clock();
-    st = mccreight_suffix_tree(s);
-    end = clock();
-    printf("McCreight equal %u %f %ld\n",
-           size, (double)(end - begin) / CLOCKS_PER_SEC,
-           st->pool.next_node - st->pool.nodes);
-    free_suffix_tree(st);
-
     // --- Edge arrays ---
     
+    
+    // warmup
+    //east = mccreight_ea_suffix_tree(2, s);
+    //free_ea_suffix_tree(east);
+    
     begin = clock();
-    east = naive_ea_suffix_tree(2, s);
+    east = mccreight_ea_suffix_tree(2, s);
     end = clock();
-    printf("EA-Naive equal %u %f %ld\n",
+    printf("EA-McCreight equal %u %f %ld\n",
            size, (double)(end - begin) / CLOCKS_PER_SEC,
            east->node_pool.next_node - east->node_pool.nodes);
-
-    
     ea_st_compute_sa_and_lcp(east, sa, lcp);
-    
     free_ea_suffix_tree(east);
-    
+
     begin = clock();
     east = lcp_ea_suffix_tree(2, s, sa, lcp);
     end = clock();
@@ -143,14 +136,6 @@ static void get_performance(uint32_t size)
     free_ea_suffix_tree(east2);
 
     
-    begin = clock();
-    east = mccreight_ea_suffix_tree(2, s);
-    end = clock();
-    printf("EA-McCreight equal %u %f %ld\n",
-           size, (double)(end - begin) / CLOCKS_PER_SEC,
-           east->node_pool.next_node - east->node_pool.nodes);
-
-    free_ea_suffix_tree(east);
 
 
 #endif
@@ -158,17 +143,16 @@ static void get_performance(uint32_t size)
     if (s) free(s);
     s = build_random(size);
     
+    
     begin = clock();
-    st = naive_suffix_tree(s);
+    st = mccreight_suffix_tree(s);
     end = clock();
-    printf("Naive random %u %f %ld\n",
+    printf("McCreight random %u %f %ld\n",
            size, (double)(end - begin) / CLOCKS_PER_SEC,
            st->pool.next_node - st->pool.nodes);
-
-    
     st_compute_sa_and_lcp(st, sa, lcp);
     free_suffix_tree(st);
-    
+
     begin = clock();
     st = lcp_suffix_tree(s, sa, lcp);
     end = clock();
@@ -188,27 +172,18 @@ static void get_performance(uint32_t size)
     free_suffix_tree(st2);
 
     
-    begin = clock();
-    st = mccreight_suffix_tree(s);
-    end = clock();
-    printf("McCreight random %u %f %ld\n",
-           size, (double)(end - begin) / CLOCKS_PER_SEC,
-           st->pool.next_node - st->pool.nodes);
-
-    free_suffix_tree(st);
     
     // --- Edge arrays ---
     
+
     begin = clock();
-    east = naive_ea_suffix_tree(5, s);
+    east = mccreight_ea_suffix_tree(5, s);
     end = clock();
-    printf("EA-Naive random %u %f %ld\n",
+    printf("EA-McCreight random %u %f %ld\n",
            size, (double)(end - begin) / CLOCKS_PER_SEC,
            east->node_pool.next_node - east->node_pool.nodes);
 
-    
     ea_st_compute_sa_and_lcp(east, sa, lcp);
-    
     free_ea_suffix_tree(east);
     
     begin = clock();
@@ -229,16 +204,7 @@ static void get_performance(uint32_t size)
 
     free_ea_suffix_tree(east);
 
-    
-    begin = clock();
-    east = mccreight_ea_suffix_tree(5, s);
-    end = clock();
-    printf("EA-McCreight random %u %f %ld\n",
-           size, (double)(end - begin) / CLOCKS_PER_SEC,
-           east->node_pool.next_node - east->node_pool.nodes);
-
-    free_ea_suffix_tree(east);
-    
+        
 
 #endif
 #if LARGE_RANDOM
@@ -246,16 +212,19 @@ static void get_performance(uint32_t size)
     if (s) free(s);
     s = build_random_large(size);
     
-    begin = clock();
-    st = naive_suffix_tree(s);
-    end = clock();
-    printf("Naive random_large %u %f %ld\n",
-           size, (double)(end - begin) / CLOCKS_PER_SEC,
-           st->pool.next_node - st->pool.nodes);
+    // warmup
+    east = mccreight_ea_suffix_tree(256, s);
+    free_ea_suffix_tree(east);
 
-    
+    begin = clock();
+    st = mccreight_suffix_tree(s);
+    end = clock();
+    printf("McCreight random_large %u %f %ld\n",
+    size, (double)(end - begin) / CLOCKS_PER_SEC,
+    st->pool.next_node - st->pool.nodes);
     st_compute_sa_and_lcp(st, sa, lcp);
     free_suffix_tree(st);
+
     
     begin = clock();
     st = lcp_suffix_tree(s, sa, lcp);
@@ -274,30 +243,17 @@ static void get_performance(uint32_t size)
     free_suffix_tree(st);
     free_suffix_tree(st2);
     
-    begin = clock();
-    st = mccreight_suffix_tree(s);
-    end = clock();
-    printf("McCreight random_large %u %f %ld\n",
-    size, (double)(end - begin) / CLOCKS_PER_SEC,
-    st->pool.next_node - st->pool.nodes);
-    free_suffix_tree(st);
 
     // --- Edge arrays ---
        
 
-    //warmup -- seems necessary although I don't know why
-    east = naive_ea_suffix_tree(256, s);
-    free_ea_suffix_tree(east);
-    
     begin = clock();
-    east = naive_ea_suffix_tree(256, s);
+    east = mccreight_ea_suffix_tree(256, s);
     end = clock();
-    printf("EA-Naive random_large %u %f %ld\n",
+    printf("EA-McCreight random_large %u %f %ld\n",
            size, (double)(end - begin) / CLOCKS_PER_SEC,
            east->node_pool.next_node - east->node_pool.nodes);
-
     ea_st_compute_sa_and_lcp(east, sa, lcp);
-       
     free_ea_suffix_tree(east);
        
     begin = clock();
@@ -321,14 +277,6 @@ static void get_performance(uint32_t size)
     free_ea_suffix_tree(east);
     free_ea_suffix_tree(east2);
 
-    begin = clock();
-    east = mccreight_ea_suffix_tree(256, s);
-    end = clock();
-    printf("EA-McCreight random_large %u %f %ld\n",
-           size, (double)(end - begin) / CLOCKS_PER_SEC,
-           east->node_pool.next_node - east->node_pool.nodes);
-
-    free_ea_suffix_tree(east);
     free(s);
 #endif
     
@@ -379,12 +327,217 @@ static void get_performance(uint32_t size)
     
 }
 
+static void get_performance_naive(uint32_t size)
+{
+    uint8_t *s = 0;
+    struct suffix_tree *st;
+    struct ea_suffix_tree *east;
+    clock_t begin, end;
+
+#if EQUAL
+    s = build_equal(size);
+    
+    begin = clock();
+    st = naive_suffix_tree(s);
+    end = clock();
+    printf("Naive equal %u %f %ld\n",
+           size, (double)(end - begin) / CLOCKS_PER_SEC,
+           st->pool.next_node - st->pool.nodes);
+    
+    free_suffix_tree(st);
+    
+
+
+    // --- Edge arrays ---
+    
+    begin = clock();
+    east = naive_ea_suffix_tree(2, s);
+    end = clock();
+    printf("EA-Naive equal %u %f %ld\n",
+           size, (double)(end - begin) / CLOCKS_PER_SEC,
+           east->node_pool.next_node - east->node_pool.nodes);
+    free_ea_suffix_tree(east);
+    
+
+#endif
+#if RANDOM
+    if (s) free(s);
+    s = build_random(size);
+    
+    begin = clock();
+    st = naive_suffix_tree(s);
+    end = clock();
+    printf("Naive random %u %f %ld\n",
+           size, (double)(end - begin) / CLOCKS_PER_SEC,
+           st->pool.next_node - st->pool.nodes);
+    free_suffix_tree(st);
+    
+
+    
+    begin = clock();
+    east = naive_ea_suffix_tree(5, s);
+    end = clock();
+    printf("EA-Naive random %u %f %ld\n",
+           size, (double)(end - begin) / CLOCKS_PER_SEC,
+           east->node_pool.next_node - east->node_pool.nodes);
+
+    free_ea_suffix_tree(east);
+    
+
+#endif
+#if LARGE_RANDOM
+    
+    if (s) free(s);
+    s = build_random_large(size);
+    
+    begin = clock();
+    st = naive_suffix_tree(s);
+    end = clock();
+    printf("Naive random_large %u %f %ld\n",
+           size, (double)(end - begin) / CLOCKS_PER_SEC,
+           st->pool.next_node - st->pool.nodes);
+    free_suffix_tree(st);
+    
+
+
+    // --- Edge arrays ---
+       
+
+    //warmup -- seems necessary although I don't know why
+    east = naive_ea_suffix_tree(256, s);
+    free_ea_suffix_tree(east);
+    
+    begin = clock();
+    east = naive_ea_suffix_tree(256, s);
+    end = clock();
+    printf("EA-Naive random_large %u %f %ld\n",
+           size, (double)(end - begin) / CLOCKS_PER_SEC,
+           east->node_pool.next_node - east->node_pool.nodes);
+
+    free_ea_suffix_tree(east);
+
+    free(s);
+#endif
+    
+
+    
+}
+
+static void get_performance_naive2(uint32_t size)
+{
+    uint8_t *s = 0;
+    struct suffix_tree *st;
+    struct ea_suffix_tree *east;
+    clock_t begin, end;
+
+#if 0 //EQUAL
+    s = build_equal(size);
+    
+    begin = clock();
+    st = naive_suffix_tree(s);
+    end = clock();
+    printf("Naive equal %u %f %ld\n",
+           size, (double)(end - begin) / CLOCKS_PER_SEC,
+           st->pool.next_node - st->pool.nodes);
+    
+    free_suffix_tree(st);
+    
+
+
+    // --- Edge arrays ---
+    
+    begin = clock();
+    east = naive_ea_suffix_tree(2, s);
+    end = clock();
+    printf("EA-Naive equal %u %f %ld\n",
+           size, (double)(end - begin) / CLOCKS_PER_SEC,
+           east->node_pool.next_node - east->node_pool.nodes);
+    free_ea_suffix_tree(east);
+    
+
+#endif
+#if RANDOM
+    if (s) free(s);
+    s = build_random(size);
+    
+    begin = clock();
+    st = naive_suffix_tree(s);
+    end = clock();
+    printf("Naive random %u %f %ld\n",
+           size, (double)(end - begin) / CLOCKS_PER_SEC,
+           st->pool.next_node - st->pool.nodes);
+    free_suffix_tree(st);
+    
+
+    
+    begin = clock();
+    east = naive_ea_suffix_tree(5, s);
+    end = clock();
+    printf("EA-Naive random %u %f %ld\n",
+           size, (double)(end - begin) / CLOCKS_PER_SEC,
+           east->node_pool.next_node - east->node_pool.nodes);
+
+    free_ea_suffix_tree(east);
+    
+
+#endif
+#if LARGE_RANDOM
+    
+    if (s) free(s);
+    s = build_random_large(size);
+    
+    begin = clock();
+    st = naive_suffix_tree(s);
+    end = clock();
+    printf("Naive random_large %u %f %ld\n",
+           size, (double)(end - begin) / CLOCKS_PER_SEC,
+           st->pool.next_node - st->pool.nodes);
+    free_suffix_tree(st);
+    
+
+
+    // --- Edge arrays ---
+       
+
+    //warmup -- seems necessary although I don't know why
+    east = naive_ea_suffix_tree(256, s);
+    free_ea_suffix_tree(east);
+    
+    begin = clock();
+    east = naive_ea_suffix_tree(256, s);
+    end = clock();
+    printf("EA-Naive random_large %u %f %ld\n",
+           size, (double)(end - begin) / CLOCKS_PER_SEC,
+           east->node_pool.next_node - east->node_pool.nodes);
+
+    free_ea_suffix_tree(east);
+
+    free(s);
+#endif
+    
+
+    
+}
+
 int main(int argc, const char **argv)
 {
     srand(time(NULL));
-    
+
 #if PERFORMANCE
-    for (uint32_t n = 1000; n < 100000; n += 1000) {
+    uint32_t n = 1000;
+    for (; n < 11000; n += 1000) {
+        for (int rep = 0; rep < 5; ++rep) {
+            get_performance(n);
+            get_performance_naive(n);
+        }
+    }
+    for (; n < 30000; n += 1000) {
+        for (int rep = 0; rep < 5; ++rep) {
+            get_performance(n);
+            get_performance_naive2(n);
+        }
+    }
+    for (; n <= 90000; n += 1000) { // We cannot go beyond this because lcp_traverse crash
         for (int rep = 0; rep < 5; ++rep) {
             get_performance(n);
         }

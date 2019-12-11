@@ -38,6 +38,7 @@ ggsave("All linked lists times.pdf", width = 7, height = 7)
 performance %>%
     mutate(String = strings[String], Algorithm = algorithms(Algorithm)) %>%
     filter(Algorithm %in% c("LCP", "McCreight", "Naive")) %>%
+    #filter(Size <= 10000) %>%
     mutate(String = factor(String, levels = c("Equal", "DNA", "ASCII"))) %>%
     filter(!(String == "Equal" & Algorithm == "Naive")) %>%
     ggplot(

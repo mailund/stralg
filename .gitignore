@@ -145,3 +145,5 @@ tests/stralg/ea_suffix_tree_match_test
 tests/stralg/ea_suffix_tree_test
 performance/Adding arrays times.pdf
 performance/LCP comparisons.pdf
+performance/All linked lists times.pdf
+performance/Linked lists without naive equal.pdf
