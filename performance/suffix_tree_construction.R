@@ -38,7 +38,7 @@ ggsave("All linked lists times.pdf", width = 7, height = 7)
 performance %>%
     mutate(String = strings[String], Algorithm = algorithms(Algorithm)) %>%
     filter(Algorithm %in% c("LCP", "McCreight", "Naive")) %>%
-    #filter(Size <= 10000) %>%
+    filter(Size <= 50000) %>%
     mutate(String = factor(String, levels = c("Equal", "DNA", "ASCII"))) %>%
     filter(!(String == "Equal" & Algorithm == "Naive")) %>%
     ggplot(
@@ -61,6 +61,7 @@ performance %>%
     facet_grid(. ~ Algorithm) +
     scale_color_grey() +
     geom_jitter() +
+    ylim(0,0.06) +
     theme_minimal() +
     theme(axis.text.x = element_text(angle = 90, hjust = 1))
 ggsave("Adding arrays times.pdf", width = 7, height = 7)
@@ -82,19 +83,20 @@ ggsave("LCP comparisons.pdf", width = 7, height = 7)
 
 
 performance %>%
-    filter(Algorithm %in% c("EA-LCP-build", "LCP", "EA-LCP", "LCP-build", "McCreight")) %>%
+    #filter(Algorithm %in% c("EA-LCP-build", "LCP", "EA-LCP", "LCP-build", "McCreight")) %>%
+    filter(Algorithm %in% c("LCP", "LCP-build", "McCreight")) %>%
     mutate(String = strings[String], Algorithm = algorithms(Algorithm)) %>%
     #filter(!(String == "equal")) %>%
     ggplot(
-        aes(x = Size, y = Time, color = Algorithm)
+        aes(x = Size, y = Time)
     )  +
     facet_grid(String ~ Algorithm, scales = "free_y") +
     geom_jitter() +
-    geom_smooth(se = FALSE) +
+    #geom_smooth(se = FALSE) +
     scale_color_grey() +
     theme_minimal() +
     theme(axis.text.x = element_text(angle = 90, hjust = 1))
-ggsave("Adding array construction.pdf", width = 8, height = 8)
+ggsave("Adding array construction.pdf", width = 9, height = 8)
 
 
 # performance %>% filter(Algorithm != "naive") %>%
