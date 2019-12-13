@@ -390,9 +390,8 @@ static void skew(
     // During the algorithm we can have letters larger than
     // those in the input, so we map the string to one
     // over a larger alphabet. In uint32_t we can contain
-    // triplets of uint8_t so this alphabet size is
-    // large enough for the strings we create
-    // in the algorithm.
+    // triplets of uint8_t so this alphabet size is large
+    // enough for all the strings we create in the algorithm.
     
     // We are not including the termination sentinel in this algorithm
     // but we explicitly set it at index zero in sa. We reserve
