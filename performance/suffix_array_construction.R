@@ -12,6 +12,7 @@ performance8 <- read_table2("suffix_array_construction_v8.txt",
 
 
 performance <- performance8 #rbind(performance6, performance7, performance8)
+performance <- rbind(performance6, performance7, performance8)
 
 ggplot(performance,
        aes(x = Size, y = Time, color = Algorithm)) +

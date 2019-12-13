@@ -65,6 +65,8 @@ PROFILE(profile_naive, "Naive", struct
         next_naive_match, dealloc_naive_match_iter);
 PROFILE(profile_border, "Border", struct border_match_iter,
         init_border_match_iter, next_border_match, dealloc_border_match_iter);
+PROFILE(profile_kmp, "KMP", struct kmp_match_iter,
+        init_kmp_match_iter, next_kmp_match, dealloc_kmp_match_iter);
 PROFILE(profile_bmh, "BMH", struct bmh_match_iter,
         init_bmh_match_iter, next_bmh_match, dealloc_bmh_match_iter);
 PROFILE(profile_bm, "BM", struct bm_match_iter,
@@ -76,6 +78,7 @@ static void profile(const char *alphabet,
 {
     profile_naive(alphabet, x, n, p, m);
     profile_border(alphabet, x, n, p, m);
+    profile_kmp(alphabet, x, n, p, m);
     profile_bmh(alphabet, x, n, p, m);
     profile_bm(alphabet, x, n, p, m);
 }

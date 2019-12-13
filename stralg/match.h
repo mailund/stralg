@@ -91,7 +91,7 @@ struct bm_match_iter {
     const uint8_t *p; uint32_t m;
     int32_t rightmost[256];
     struct index_linked_list *rightmost_table[256];
-    uint32_t *jump1, *jump2;
+    uint32_t *jump;
     uint32_t j;
 };
 void init_bm_match_iter(

@@ -147,3 +147,7 @@ performance/Adding arrays times.pdf
 performance/LCP comparisons.pdf
 performance/All linked lists times.pdf
 performance/Linked lists without naive equal.pdf
+performance/m dependency linear algorithms.pdf
+performance/m dependency quadratic algorithms.pdf
+performance/Match search dependency on m.pdf
+performance/Match search overall.pdf

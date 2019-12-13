@@ -214,10 +214,16 @@ void init_bmh_match_iter(
 }
 
 
-#define MAX(a,b) (((a) > (b)) ? (a) : (b))
+static inline uint32_t MAX(uint32_t a, uint32_t b) {
+    return (((a) > (b)) ? (a) : (b));
+}
+static inline uint32_t MIN(uint32_t a, uint32_t b) {
+    return (((a) < (b)) ? (a) : (b));
+}
 #define BMH_JUMP() \
     MAX(i - find_rightmost(iter->rightmost_table[x[j + i]], i), \
         (int32_t)m - iter->rightmost[x[j + m - 1]] - 1)
+
 
 bool next_bmh_match(
     struct bmh_match_iter *iter,
@@ -229,7 +235,7 @@ bool next_bmh_match(
     uint32_t n = iter->n;
     uint32_t m = iter->m;
 
-    if (m > strlen((char *)x)) return false;
+    if (m > n) return false;
     if (m == 0) return false;
 
     // We need to handle negative numbers, and we have already
@@ -278,10 +284,12 @@ void init_bm_match_iter(
             new_index_link(k,
                 iter->rightmost_table[p[k]]);
     }
-    
-    iter->jump1 = malloc(sizeof(uint32_t) * m);
+
+    uint32_t jump1[m];
+    uint32_t jump2[m];
+
     for (uint32_t i = 0; i < m; i++) {
-        iter->jump1[i] = 0;
+        jump1[i] = 0;
     }
     uint32_t rZ[m];
     compute_reverse_z_array(iter->p, m, rZ);
@@ -292,23 +300,29 @@ void init_bm_match_iter(
         // For the last index we set this to n - i - 1
         // which is zero. When this jump is zero,
         // one of the other rules will be used.
-        iter->jump1[m - rZ[i] - 1] = m - i - 1;
+        jump1[m - rZ[i] - 1] = m - i - 1;
     }
-
-    iter->jump2 = malloc(sizeof(uint32_t) * m);
     for (uint32_t i = 0; i < m; i++) {
-        iter->jump2[i] = 0;
+        jump2[i] = 0;
     }
     uint32_t ba[m];
     compute_border_array(iter->p, m, ba);
+    
+    // Combine the jump tables
+    iter->jump = malloc(m * sizeof(uint32_t));
+    for (uint32_t i = 0; i < m; ++i) {
+        iter->jump[i] = jump1[i] ? jump1[i] : jump2[i];
+    }
 }
 
 
 /// Boyer-Moore
-#define MAX(a,b) (((a) > (b)) ? (a) : (b))
-#define MIN(a,b) (((a) < (b)) ? (a) : (b))
-#define BM_JUMP() \
-    MAX(MIN(iter->jump1[i], iter->jump2[i]), BMH_JUMP())
+static inline uint32_t minmax(uint32_t a, uint32_t b, uint32_t c) {
+    return MAX(MIN(a,b),c);
+}
+
+
+#define BM_JUMP() MAX(iter->jump[i], BMH_JUMP())
 
 bool next_bm_match(
     struct bm_match_iter *iter,
@@ -348,6 +362,6 @@ void dealloc_bm_match_iter(
     for (uint32_t k = 0; k < 256; k++) {
         free_index_list(iter->rightmost_table[k]);
     }
-    free(iter->jump1);
+    free(iter->jump);
 }
 
