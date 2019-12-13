@@ -9,7 +9,6 @@ performance$String <- factor(performance$String, levels = c("EQUAL", "DNA", "ASC
 # Overall
 performance %>%
     filter(m == 100) %>%
-    filter(Algorithm %in% c("BM", "BMH")) %>%
     ggplot(
         aes(x = n, y = Time, color = Algorithm)) +
     facet_grid(String ~ ., scales = "free_y") +
@@ -53,7 +52,8 @@ performance %>%
     #geom_jitter() +
     geom_smooth(se = FALSE) +
     scale_color_grey() +
-    theme_minimal()
+    theme_minimal()+
+    theme(axis.text.x = element_text(angle = 90, hjust = 1))
 ggsave("m dependency quadratic algorithms.pdf", width = 7, height = 7)
 
 
