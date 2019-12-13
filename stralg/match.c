@@ -317,10 +317,6 @@ void init_bm_match_iter(
 
 
 /// Boyer-Moore
-static inline uint32_t minmax(uint32_t a, uint32_t b, uint32_t c) {
-    return MAX(MIN(a,b),c);
-}
-
 
 #define BM_JUMP() MAX(iter->jump[i], BMH_JUMP())
 

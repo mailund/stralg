@@ -78,6 +78,10 @@ inline static uint32_t map_u_s(uint32_t i, uint32_t m)
 struct skew_buffers {
     uint32_t *sa12;                // 2/3n +
     uint32_t *sa3;                 // 1/3n = n
+    
+    uint32_t current_u;
+    uint32_t *u;                   // 3*(2/3n+1)
+    uint32_t *sau;                 // 3*(2/3n+1)
 
     uint32_t radix_buckets[256];
     uint32_t radix_accsum[256];
@@ -344,11 +348,9 @@ static void skew_rec(
     
     // the +1 here is because we leave space for the sentinel
     if (mapped_alphabet_size != m12 + 1) {
-        uint32_t *u = malloc((m12 + 1) * sizeof(*u));
-        
-        assert(u);
-        uint32_t *sau = malloc((m12 + 1) * sizeof(*sau));
-        assert(sau);
+        uint32_t *u = shared_buffers->u + shared_buffers->current_u;
+        uint32_t *sau = shared_buffers->sau + shared_buffers->current_u;
+        shared_buffers->current_u += m12 + 1;
         
         // Construct the u string and solve the suffix array
         // recursively.
@@ -363,9 +365,6 @@ static void skew_rec(
         for (uint32_t i = 1; i < m12 + 1; ++i) {
             SA12(i - 1) = map_u_s(sau[i], mm);
         }
-        
-        free(u);
-        free(sau);
     }
     
     construct_sa3(m12, m3, n, s, alph_size, shared_buffers);
@@ -388,6 +387,13 @@ static void skew(
         return;
     }
     
+    // During the algorithm we can have letters larger than
+    // those in the input, so we map the string to one
+    // over a larger alphabet. In uint32_t we can contain
+    // triplets of uint8_t so this alphabet size is
+    // large enough for the strings we create
+    // in the algorithm.
+    
     // We are not including the termination sentinel in this algorithm
     // but we explicitly set it at index zero in sa. We reserve
     // the sentinel for center points in u strings.
@@ -401,18 +407,27 @@ static void skew(
     uint32_t m3 = (n - 1) / 3 + 1;
     uint32_t m12 = n - m3;
     struct skew_buffers shared_buffers;
+    
+    shared_buffers.sa12 = malloc(m12 * sizeof(uint32_t));
+    shared_buffers.sa3 = malloc(m3 * sizeof(uint32_t));
+    
+    shared_buffers.current_u = 0;
+    shared_buffers.u = malloc(3 * (m12 + 1) * sizeof(uint32_t));
+    shared_buffers.sau = malloc(3 * (m12 + 1) * sizeof(uint32_t));
+
     shared_buffers.helper_buffer0 = malloc(2 * m12 * sizeof(uint32_t));
     shared_buffers.helper_buffer1 = shared_buffers.helper_buffer0 + m12;
     shared_buffers.helper_buffers[0] = shared_buffers.helper_buffer0;
     shared_buffers.helper_buffers[1] = shared_buffers.helper_buffer1;
-    shared_buffers.sa12 = malloc(m12 * sizeof(uint32_t));
-    shared_buffers.sa3 = malloc(m3 * sizeof(uint32_t));
-
+    
+    
     skew_rec(s, n, 256, sa + 1, &shared_buffers); // do not include index zero
     sa[0] = n; // but set it to the sentinel here
     
     free(shared_buffers.sa12);
     free(shared_buffers.sa3);
+    free(shared_buffers.u);
+    free(shared_buffers.sau);
     free(shared_buffers.helper_buffer0);
     free(s);
 }
