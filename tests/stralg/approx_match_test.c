@@ -182,6 +182,28 @@ static void st_match(
     dealloc_st_approx_iter(&iter);
 }
 
+static void east_match(
+    struct ea_suffix_tree *st,
+    const uint8_t *pattern,
+    const uint8_t *string,
+    int edits,
+    struct string_vector *st_results
+) {
+    uint8_t path_buffer[st->length + 1];
+    
+    struct ea_st_approx_match_iter iter;
+    struct ea_st_approx_match match;
+    init_ea_st_approx_iter(&iter, st, pattern, edits);
+    while (next_ea_st_approx_match(&iter, &match)) {
+        get_ea_path_string(st, match.root, path_buffer);
+        path_buffer[match.match_depth] = '\0';
+        uint8_t *m = match_string(match.match_label, path_buffer, match.cigar);
+        string_vector_append(st_results, m);
+    }
+    
+    dealloc_ea_st_approx_iter(&iter);
+}
+
 static void bwt_match(
     struct suffix_array *sa,
     // the pattern and string are remapped
@@ -295,6 +317,32 @@ static void test_exact(
     free_strings(&st_results);
     dealloc_string_vector(&st_results);
     free_suffix_tree(st);
+    printf("OK\n");
+    printf("----------------------------------------------------\n");
+
+
+    printf("EA Naive suffix tree\t");
+    struct ea_suffix_tree *east = naive_ea_suffix_tree(256, string);
+    struct string_vector east_results;
+    init_string_vector(&east_results, 10);
+    east_match(east, pattern, string, 0, &east_results);
+    sort_string_vector(&east_results);
+    assert(string_vector_equal(&exact_results, &east_results));
+    free_strings(&east_results);
+    dealloc_string_vector(&east_results);
+    free_ea_suffix_tree(east);
+    printf("OK\n");
+    printf("----------------------------------------------------\n");
+
+    printf("McCreight suffix tree\t");
+    east = mccreight_ea_suffix_tree(256, string);
+    init_string_vector(&east_results, 10);
+    east_match(east, pattern, string, 0, &east_results);
+    sort_string_vector(&east_results);
+    assert(string_vector_equal(&exact_results, &east_results));
+    free_strings(&east_results);
+    dealloc_string_vector(&east_results);
+    free_ea_suffix_tree(east);
     printf("OK\n");
     printf("----------------------------------------------------\n");
 
