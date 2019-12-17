@@ -1,6 +1,7 @@
 #include <stralg.h>
 #include <vectors.h>
 #include <bwt.h>
+#include <edge_array_suffix_tree.h>
 
 #include <stdlib.h>
 #include <assert.h>
@@ -229,6 +230,52 @@ static void test_suffix_tree_match(
     free_index_vector(st_matches);
 }
 
+static void test_ea_suffix_tree_match(
+    struct index_vector *naive_matches,
+    const uint8_t *pattern,
+    struct ea_suffix_tree *st,
+    const uint8_t *string
+) {
+    struct ea_st_leaf_iter st_iter;
+    struct ea_st_leaf_iter_result res;
+    struct index_vector *st_matches = alloc_index_vector(100);
+    
+    struct ea_suffix_tree_node *match_root = ea_st_search(st, pattern);
+    init_ea_st_leaf_iter(&st_iter, st, match_root);
+    while (next_ea_st_leaf(&st_iter, &res)) {
+        index_vector_append(st_matches, res.leaf->leaf_label);
+    }
+    dealloc_ea_st_leaf_iter(&st_iter);
+    sort_index_vector(st_matches);
+    
+    print_index_vector(naive_matches);
+    print_index_vector(st_matches);
+    
+    assert(index_vector_equal(naive_matches, st_matches));
+    
+    free_index_vector(st_matches);
+    
+    st_matches = alloc_index_vector(100);
+    
+    struct ea_st_search_iter search_iter;
+    struct ea_st_search_match search_match;
+    
+    init_ea_st_search_iter(&search_iter, st, pattern);
+    while (next_ea_st_match(&search_iter, &search_match)) {
+        index_vector_append(st_matches, search_match.pos);
+    }
+    dealloc_ea_st_search_iter(&search_iter);
+
+    sort_index_vector(st_matches);
+    print_index_vector(naive_matches);
+    print_index_vector(st_matches);
+    
+    assert(index_vector_equal(naive_matches, st_matches));
+    
+    free_index_vector(st_matches);
+}
+
+
 static void simple_exact_matchers(struct index_vector *naive,
                                   const uint8_t *pattern,
                                   const uint8_t *string)
@@ -373,6 +420,19 @@ static void general_suffix_test(struct index_vector *naive,
     st = lcp_suffix_tree(string, sorted_suffixes, lcp);
     test_suffix_tree_match(naive, pattern, st, string);
     free_suffix_tree(st);
+
+    struct ea_suffix_tree *east = naive_ea_suffix_tree(256, string);
+    //st_print_dot_name(st, st->root, "tree.dot");
+    test_ea_suffix_tree_match(naive, pattern, east, string);
+    free_ea_suffix_tree(east);
+    
+    east = mccreight_ea_suffix_tree(256, string);
+    //st_print_dot_name(st, st->root, "tree.dot");
+    test_ea_suffix_tree_match(naive, pattern, east, string);
+    
+    east = lcp_ea_suffix_tree(256, string, sorted_suffixes, lcp);
+    test_ea_suffix_tree_match(naive, pattern, east, string);
+    free_ea_suffix_tree(east);
 
 
     // ---------- suffix arrays ---------------------
