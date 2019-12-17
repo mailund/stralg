@@ -217,9 +217,6 @@ void init_bmh_match_iter(
 static inline uint32_t MAX(uint32_t a, uint32_t b) {
     return (((a) > (b)) ? (a) : (b));
 }
-static inline uint32_t MIN(uint32_t a, uint32_t b) {
-    return (((a) < (b)) ? (a) : (b));
-}
 #define BMH_JUMP() \
     MAX(i - find_rightmost(iter->rightmost_table[x[j + i]], i), \
         (int32_t)m - iter->rightmost[x[j + m - 1]] - 1)

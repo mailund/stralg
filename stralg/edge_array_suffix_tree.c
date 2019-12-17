@@ -369,7 +369,7 @@ static void set_suffix_links(
     }
 }
 
-void annotate_ae_suffix_links(
+void annotate_ea_suffix_links(
     struct ea_suffix_tree *st
 ) {
     set_suffix_links(st, st->root);
