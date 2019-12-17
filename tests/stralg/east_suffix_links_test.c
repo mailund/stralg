@@ -34,6 +34,7 @@ static void compare_suffix_path_labels(
     
     for (uint32_t i = 0; i < st->alphabet_size; ++i) {
         struct ea_suffix_tree_node *child = v->children[i];
+        if (!child) continue;
         compare_suffix_path_labels(st, child);
     }
     
