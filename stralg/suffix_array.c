@@ -483,7 +483,7 @@ void compute_lcp(struct suffix_array *sa)
 
 static uint32_t binary_search(
     const uint8_t *key,
-                              uint32_t key_len,
+    uint32_t key_len,
     struct suffix_array *sa
 ) {
     uint32_t low = 0;
@@ -491,8 +491,11 @@ static uint32_t binary_search(
 
     while (low < high) {
         uint32_t mid = low + (high-low) / 2;
-        int cmp = strncmp((char *)key,
-                          (char *)(sa->string + sa->array[mid]), key_len);
+        int cmp = strncmp(
+            (char *)key,
+            (char *)(sa->string + sa->array[mid]),
+            key_len
+        );
         if (cmp < 0) {
             high = mid - 1;
         } else if (cmp > 0) {
@@ -522,8 +525,11 @@ uint32_t lower_bound_search(
         return mid; // we hit the end.
     
     // if we are not at the end, we need to find the lower bound.
-    int cmp = strncmp((char *)(sa->string + sa->array[mid]), (char *)key, key_len);
-    while (mid > 0 && strncmp((char *)(sa->string + sa->array[mid]), (char *)key, key_len) >= 0) {
+    int cmp = strncmp((char *)(sa->string + sa->array[mid]),
+                      (char *)key, key_len);
+    while (mid > 0 &&
+           strncmp((char *)(sa->string + sa->array[mid]),
+                   (char *)key, key_len) >= 0) {
         mid--;
     }
     return (cmp == 0) ? mid + 1: mid;
