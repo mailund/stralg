@@ -99,18 +99,14 @@ void compute_z_array(
         // Case 1:
         if (k >= r) {
             Z[k] = match(x, x + k);
-            if (Z[k] > 0) {
-                l = k;
-                r = k + Z[k];
-            }
+            if (Z[k] > 0) { l = k; r = k + Z[k]; }
 
         } else {
             // Case 2:
             uint32_t kk = k - l;
-            if (Z[kk] < r - k) {
-                Z[k] = Z[kk];
+            if (Z[kk] < r - k) { Z[k] = Z[kk]; }
             
-            } else {
+            else {
                 // Case 3
                 Z[k] = r - k + match(x + r - k, x + r);
                 l = k;

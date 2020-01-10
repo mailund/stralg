@@ -87,23 +87,22 @@ struct skew_buffers {
     uint32_t radix_accsum[256];
     uint32_t *helper_buffer0;      // 2/3n +
     uint32_t *helper_buffer1;      // 2/3n = 4/3 n
-    uint32_t *helper_buffers[2];
+    uint32_t *lex_remapped;          // alias for helper 0
 };
 
 // All these macros work as long as the skew_buffers structure
 // is pointed to from a variable called shared_buffers.
 #define B(i)    (shared_buffers->radix_buckets[(i)])
 #define AS(i)   (shared_buffers->radix_accsum[(i)])
-#define ISA(i)  (shared_buffers->helper_buffer0[(i)])
 #define SA12(i) (shared_buffers->sa12[(i)])
 #define SA3(i)  (shared_buffers->sa3[(i)])
 
 // This macro maps an index in sa12 to its suffix index in s,
 // then it maps that suffix index into s12 and uses that
 // index to access the lex3 numbers array.
-// I reuse the radix_values0 buffer. I never use that
+// I reuse the helper_buffer0 buffer. I never use that
 // between radix sort and using the lex order.
-#define LEX3(i) (shared_buffers->helper_buffer0[map_s_s12(shared_buffers->sa12[(i)])])
+#define LEX3(i) (shared_buffers->lex_remapped[map_s_s12(SA12(i))])
 
 
 static void radix_sort(
@@ -118,6 +117,10 @@ static void radix_sort(
     uint32_t *input, *output;
     
     memcpy(shared_buffers->helper_buffer0, sa, m * sizeof(uint32_t));
+    uint32_t *helper_buffers[] = {
+        shared_buffers->helper_buffer0,
+        shared_buffers->helper_buffer1
+    };
     
 #define RAWKEY(i) ((input[(i)] + offset >= n) ? 0 : s[input[(i)] + offset])
 #define KEY(i)    ((RAWKEY((i)) >> shift) & mask)
@@ -129,8 +132,8 @@ static void radix_sort(
         memset(shared_buffers->radix_buckets, 0,
                256 * sizeof(uint32_t));
         
-        input = shared_buffers->helper_buffers[radix_index];
-        output = shared_buffers->helper_buffers[!radix_index];
+        input = helper_buffers[radix_index];
+        output = helper_buffers[!radix_index];
         radix_index = !radix_index;
         
         for (uint32_t i = 0; i < m; i++) {
@@ -140,7 +143,7 @@ static void radix_sort(
         uint32_t sum = 0;
         for (uint32_t i = 0; i < 256; i++) {
             // get the accumulated sum for offsets
-            shared_buffers->radix_accsum[i] = sum;
+            AS(i) = sum;
             sum += B(i);
         }
         assert(sum == m);
@@ -177,7 +180,7 @@ inline static bool equal3(
 }
 
 
-static int32_t lex3sort(
+static int32_t remap_lex3(
     uint32_t *s, uint32_t n, uint32_t m12,
     uint32_t alph_size,
     struct skew_buffers *shared_buffers
@@ -192,7 +195,7 @@ static int32_t lex3sort(
         }
     }
     
-    // sort s12
+    // Sort s12.
     radix_sort_3(s, n, m12, alph_size, shared_buffers);
     
     uint32_t no = 1; // reserve 0 for sentinel
@@ -210,26 +213,31 @@ static int32_t lex3sort(
 
 
 static void construct_u(
-    uint32_t *lex_nos,
+    uint32_t *lex_remapped,
     uint32_t m12,
     uint32_t *u
 ) {
     uint32_t j = 0;
     // First put those mod 3 == 2 so the first "half"
-    // is always (m12 + 1) / 2 (the expression rounds down).
+    // is always m12 / 2 (the expression rounds down).
     for (uint32_t i = 1; i < m12; i += 2) {
-        u[j++] = lex_nos[i];
+        u[j++] = lex_remapped[i];
     }
     assert(j == m12 / 2);
+
     u[j++] = 0; // Add centre sentinel
+
+    // Insert mod 3 == 1
     for (uint32_t i = 0; i < m12; i += 2) {
-        u[j++] = lex_nos[i];
+        u[j++] = lex_remapped[i];
     }
     assert(j == m12 + 1);
 }
 
 static void construct_sa3(
-    uint32_t m12, uint32_t m3, uint32_t n,
+    uint32_t m12,
+    uint32_t m3,
+    uint32_t n,
     uint32_t *s,
     uint32_t alph_size,
     struct skew_buffers *shared_buffers
@@ -256,27 +264,28 @@ static void construct_sa3(
 
 
 // Check order of characters at index i and j
-// (with special case for the sentinel)
-#define CHECK_INDEX(i,j) {          \
-if ((i) >= n) return true;          \
-if ((j) >= n) return false;         \
-if (s[(i)] < s[(j)]) return true;   \
-if (s[(i)] > s[(j)]) return false;  \
+// (with special cases for the end of strings)
+#define CHECK_INDEX(ii,jj) {          \
+if ((ii) >= n) return true;          \
+if ((jj) >= n) return false;         \
+if (s[(ii)] < s[(jj)]) return true;   \
+if (s[(ii)] > s[(jj)]) return false;  \
 }
-#define CHECK_ISA(i,j) \
-    (((j) >= n) ? false : ((i) >= n) || ISA((i)) < ISA((j)))
+#define ISA(ii)  (shared_buffers->helper_buffer0[(ii)])
+#define CHECK_ISA(ii,jj) \
+    (((jj) >= n) ? false : ((ii) >= n) || ISA((ii)) < ISA((jj)))
 
 inline static bool less(
-    uint32_t i, uint32_t j,
+    uint32_t ii, uint32_t jj,
     uint32_t *s, uint32_t n,
     struct skew_buffers *shared_buffers
 ) {
-    CHECK_INDEX(i, j);
-    if (i % 3 == 1) {
-        return CHECK_ISA(i + 1, j + 1);
+    CHECK_INDEX(ii, jj);
+    if (ii % 3 == 1) {
+        return CHECK_ISA(ii + 1, jj + 1);
     } else {
-        CHECK_INDEX(i + 1, j + 1);
-        return CHECK_ISA(i + 2, j + 2);
+        CHECK_INDEX(ii + 1, jj + 1);
+        return CHECK_ISA(ii + 2, jj + 2);
     }
 }
 
@@ -344,7 +353,7 @@ static void skew_rec(
     assert(m12 > 0); // size n >= 2 it should never by zero.
     
     uint32_t mapped_alphabet_size =
-        lex3sort(s, n, m12, alph_size, shared_buffers);
+        remap_lex3(s, n, m12, alph_size, shared_buffers);
     
     // the +1 here is because we leave space for the sentinel
     if (mapped_alphabet_size != m12 + 1) {
@@ -354,7 +363,7 @@ static void skew_rec(
         
         // Construct the u string and solve the suffix array
         // recursively.
-        construct_u(shared_buffers->helper_buffer0, m12, u);
+        construct_u(shared_buffers->lex_remapped, m12, u);
         skew_rec(u, m12 + 1, mapped_alphabet_size, sau, shared_buffers);
         
         int32_t mm = m12 / 2;
@@ -389,9 +398,9 @@ static void skew(
     
     // During the algorithm we can have letters larger than
     // those in the input, so we map the string to one
-    // over a larger alphabet. In uint32_t we can contain
-    // triplets of uint8_t so this alphabet size is large
-    // enough for all the strings we create in the algorithm.
+    // over a larger alphabet. We assume that we can hold
+    // the largest letter in uint32_t so we do not need to
+    // handle integers of arbitrary sizes.
     
     // We are not including the termination sentinel in this algorithm
     // but we explicitly set it at index zero in sa. We reserve
@@ -416,9 +425,10 @@ static void skew(
 
     shared_buffers.helper_buffer0 = malloc(2 * m12 * sizeof(uint32_t));
     shared_buffers.helper_buffer1 = shared_buffers.helper_buffer0 + m12;
-    shared_buffers.helper_buffers[0] = shared_buffers.helper_buffer0;
-    shared_buffers.helper_buffers[1] = shared_buffers.helper_buffer1;
     
+    // We never use helper_buffer0 between creating and using the
+    // lexicographical mapping buffer.
+    shared_buffers.lex_remapped = shared_buffers.helper_buffer0;
     
     skew_rec(s, n, 256, sa + 1, &shared_buffers); // do not include index zero
     sa[0] = n; // but set it to the sentinel here
@@ -465,15 +475,15 @@ void compute_lcp(struct suffix_array *sa)
     sa->lcp[0] = 0;
     uint32_t l = 0;
     for (uint32_t i = 0; i < sa->length; ++i) {
-        uint32_t j = sa->inverse[i];
+        uint32_t jj = sa->inverse[i];
         
         // Don't handle index 0; lcp[0] is always zero.
-        if (j == 0) continue;
+        if (jj == 0) continue;
         
-        uint32_t k = sa->array[j - 1];
+        uint32_t k = sa->array[jj - 1];
         while (sa->string[k + l] == sa->string[i + l])
             ++l;
-        sa->lcp[j] = l;
+        sa->lcp[jj] = l;
         l = l > 0 ? l - 1 : 0;
     }
 }
