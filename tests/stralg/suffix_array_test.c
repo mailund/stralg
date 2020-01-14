@@ -70,6 +70,58 @@ static void test_search(struct suffix_array *sa)
     assert(idx == 1);
     idx = upper_bound_search(sa, (uint8_t *)"0");
     assert(idx == 1);
+    
+    uint32_t idx1 = lower_bound_k(sa, 0, 'a', 0, sa->length);
+    assert(idx1 == 1);
+    uint32_t idx2 = upper_bound_k(sa, 0, 'a', 0, sa->length);
+    assert(idx2 == 6);
+
+    idx1 = lower_bound_k(sa, 1, 'b', 1, 6);
+    assert(idx1 == 1);
+    idx2 = upper_bound_k(sa, 1, 'b', 1, 6);
+    assert(idx2 == 4);
+
+    idx1 = lower_bound_k(sa, 2, 'a', 1, 4);
+    assert(idx1 == 1);
+    idx2 = upper_bound_k(sa, 2, 'a', 1, 4);
+    assert(idx2 == 4);
+
+    idx1 = lower_bound_k(sa, 2, 'b', 1, 4);
+    assert(idx1 == 4);
+    idx2 = upper_bound_k(sa, 2, 'b', 1, 4);
+    assert(idx2 == 4);
+
+    idx1 = lower_bound_k(sa, 3, 'b', 1, 4);
+    assert(idx1 == 1);
+    idx2 = upper_bound_k(sa, 3, 'b', 1, 4);
+    assert(idx2 == 2);
+
+    
+    idx1 = lower_bound_k(sa, 0, 'b', 0, sa->length);
+    assert(idx1 == 6);
+    idx2 = upper_bound_k(sa, 0, 'b', 0, sa->length);
+    assert(idx2 == 9);
+
+    idx1 = lower_bound_k(sa, 2, 'c', 6, 9);
+    assert(idx1 == 7);
+    idx2 = upper_bound_k(sa, 2, 'c', 6, 9);
+    assert(idx2 == 9);
+
+    idx1 = lower_bound_k(sa, 0, 'c', 0, sa->length);
+    assert(idx1 == 9);
+    idx2 = upper_bound_k(sa, 0, 'c', 0, sa->length);
+    assert(idx2 == 11);
+    
+    idx1 = lower_bound_k(sa, 2, 'b', 6, 9);
+    assert(idx1 == 6);
+    idx2 = upper_bound_k(sa, 2, 'b', 6, 9);
+    assert(idx2 == 7);
+
+    idx1 = lower_bound_k(sa, 1, 'a', 9, 11);
+    assert(idx1 == 10);
+    
+    idx1 = lower_bound_k(sa, 1, 'b', 0, 4);
+    assert(idx1 == 1);
 }
 
 

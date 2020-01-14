@@ -490,37 +490,62 @@ void compute_lcp(struct suffix_array *sa)
 
 /// MARK: Searching
 
-
-static uint32_t binary_search(
+uint32_t lower_bound_k(
     struct suffix_array *sa,
-    const uint8_t *key,
-    uint32_t key_len,
-    uint32_t *L, uint32_t *R
+    uint32_t k, uint8_t a,
+    uint32_t L, uint32_t R
 ) {
-    uint32_t low = 0;
-    uint32_t high = sa->length;
-
-    while (low < high) {
-        uint32_t mid = low + (high-low) / 2;
-        int cmp = strncmp(
-            (char *)key,
-            (char *)(sa->string + sa->array[mid]),
-            key_len
-        );
-        if (cmp < 0) {
-            high = mid - 1;
-        } else if (cmp > 0) {
-            low = mid + 1;
-        } else {
-            // if cmp is 0 we have a match
-            *L = low; *R = high;
-            return mid;
+    while (L < R) {
+        uint32_t mid = L + (R - L) / 2;
+        uint32_t b_idx = sa->array[mid] + k;
+        if (b_idx >= sa->length) {
+            // b is less if it is past the end
+            L = mid + 1;
+            continue;
         }
+        uint8_t b = *(sa->string + b_idx);
+        if (b < a) {
+            L = mid + 1;
+        } else {
+            R = mid;
+        }
+        
     }
+    return (L <= R) ? L : R;
+}
+
+uint32_t upper_bound_k(
+    struct suffix_array *sa,
+    uint32_t k, uint8_t a,
+    uint32_t L, uint32_t R
+) {
+    uint32_t orig_R = R;
+    while (L < R) {
+        uint32_t mid = L + (R - L) / 2;
+        uint32_t b_idx = sa->array[mid] + k;
+        if (b_idx >= sa->length) {
+            // b is less if it is past the end
+            L = mid + 1;
+            continue;
+        }
+        uint8_t b = *(sa->string + b_idx);
+        printf("L %u R %u mid %u a '%c' b '%c'\n",
+               L, R, mid, a, b);
+        if (a < b) {
+            R = mid - 1;
+        } else {
+            L = mid + 1;
+        }
+
+    }
+    R = (R > L) ? R : L;
+    if (R == orig_R) return R;
     
-    *L = low; *R = high;
-    return low; // this must be the lowest point where
-    // a hit could be if we didn't catch it above.
+    uint8_t b = *(sa->string + sa->array[R] + k);
+    printf("L %u R %u a '%c' b '%c'\n",
+           L, R, a, b);
+
+    return (a >= b) ? R + 1 : R;
 }
 
 uint32_t lower_bound_search(

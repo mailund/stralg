@@ -48,6 +48,17 @@ uint32_t upper_bound_search(
     const uint8_t *key
 );
 
+uint32_t lower_bound_k(
+    struct suffix_array *sa,
+    uint32_t k, uint8_t a,
+    uint32_t L, uint32_t R
+);
+uint32_t upper_bound_k(
+    struct suffix_array *sa,
+    uint32_t k, uint8_t a,
+    uint32_t L, uint32_t R
+);
+
 struct sa_match_iter {
     struct suffix_array *sa;
     uint32_t L;
