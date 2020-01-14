@@ -34,7 +34,7 @@ void init_bwt_table(
     uint32_t char_counts[remap_table->alphabet_size];
     memset(char_counts, 0, remap_table->alphabet_size * sizeof(uint32_t));
     for (uint32_t i = 0; i < sa->length; ++i) {
-        char_counts[(unsigned char)sa->string[i]]++;
+        char_counts[sa->string[i]]++;
     }
     
     bwt_table->c_table = calloc(remap_table->alphabet_size, sizeof(*bwt_table->c_table));
@@ -48,10 +48,10 @@ void init_bwt_table(
     uint32_t o_size = remap_table->alphabet_size * (sa->length + 1) *
                         sizeof(*bwt_table->o_table);
     bwt_table->o_table = malloc(o_size);
-    for (unsigned char a = 0; a < remap_table->alphabet_size; ++a) {
+    for (uint8_t a = 0; a < remap_table->alphabet_size; ++a) {
         O(a, 0) = 0;
     }
-    for (unsigned char a = 0; a < remap_table->alphabet_size; ++a) {
+    for (uint8_t a = 0; a < remap_table->alphabet_size; ++a) {
         for (uint32_t i = 1; i <= sa->length; ++i) {
             O(a, i) = O(a, i - 1) + (bwt(sa, i - 1) == a);
         }
@@ -60,11 +60,11 @@ void init_bwt_table(
     if (rsa) {
         
         bwt_table->ro_table = malloc(o_size);
-        for (unsigned char a = 0; a < remap_table->alphabet_size; ++a) {
+        for (uint8_t a = 0; a < remap_table->alphabet_size; ++a) {
             RO(a, 0) = 0;
         }
         
-        for (unsigned char a = 0; a < remap_table->alphabet_size; ++a) {
+        for (uint8_t a = 0; a < remap_table->alphabet_size; ++a) {
             for (uint32_t i = 1; i <= rsa->length; ++i) {
                 RO(a, i) = RO(a, i - 1) + (bwt(rsa, i - 1) == a);
             }
@@ -170,7 +170,7 @@ void init_bwt_exact_match_iter(
     int64_t i = m - 1;
     
     while (i >= 0 && L < R) {
-        unsigned char a = remapped_pattern[i];
+        uint8_t a = remapped_pattern[i];
         assert(a > 0); // only the sentinel is null
         assert(a < bwt_table->remap_table->alphabet_size);
         
