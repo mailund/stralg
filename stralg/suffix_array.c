@@ -492,9 +492,10 @@ void compute_lcp(struct suffix_array *sa)
 
 
 static uint32_t binary_search(
+    struct suffix_array *sa,
     const uint8_t *key,
     uint32_t key_len,
-    struct suffix_array *sa
+    uint32_t *L, uint32_t *R
 ) {
     uint32_t low = 0;
     uint32_t high = sa->length;
@@ -512,37 +513,69 @@ static uint32_t binary_search(
             low = mid + 1;
         } else {
             // if cmp is 0 we have a match
+            *L = low; *R = high;
             return mid;
         }
     }
     
+    *L = low; *R = high;
     return low; // this must be the lowest point where
     // a hit could be if we didn't catch it above.
 }
 
-// when searching, we cannot simply use bsearch because we want
-// to get a lower bound if the key isn't in the array -- bsearch
-// would give us NULL in that case.
 uint32_t lower_bound_search(
     struct suffix_array *sa,
     const uint8_t *key
 ) {
-    uint32_t key_len = (uint32_t)strlen((char *)key);
-    assert(key_len > 0); // I cannot handle empty strings!
-    uint32_t mid = binary_search(key, key_len, sa);
-    
-    if (mid == sa->length)
-        return mid; // we hit the end.
-    
-    // if we are not at the end, we need to find the lower bound.
-    int cmp = strncmp((char *)(sa->string + sa->array[mid]),
-                      (char *)key, key_len);
-    while (mid > 0 &&
-           strncmp((char *)(sa->string + sa->array[mid]),
-                   (char *)key, key_len) >= 0) {
-        mid--;
+    uint32_t L = 0, R = sa->length;
+    uint32_t key_len = strlen((char*)key);
+    uint32_t mid;
+    while (L < R) {
+        mid = L + (R - L) / 2;
+        int cmp = strncmp(
+            (char *)key,
+            (char *)(sa->string + sa->array[mid]),
+            key_len
+        );
+        if (cmp <= 0) {
+            R = mid;
+        } else if (cmp > 0) {
+            L = mid + 1;
+        }
+        
     }
-    return (cmp == 0) ? mid + 1: mid;
+    return (L <= R) ? L : R;
+}
+
+uint32_t upper_bound_search(
+    struct suffix_array *sa,
+    const uint8_t *key
+) {
+    uint32_t L = 0, R = sa->length;
+    uint32_t key_len = strlen((char*)key);
+    uint32_t mid;
+    while (L < R) {
+        mid = L + (R - L) / 2;
+        int cmp = strncmp(
+            (char *)key,
+            (char *)(sa->string + sa->array[mid]),
+            key_len
+        );
+        if (cmp < 0) {
+            R = mid - 1;
+        } else if (cmp >= 0) {
+            L = mid + 1;
+        }
+    }
+    R = (R > L) ? R : L;
+    if (R == sa->length) return R;
+    
+    int cmp = strncmp(
+        (char *)key,
+        (char *)(sa->string + sa->array[R]),
+        key_len
+    );
+    return (cmp >= 0) ? R + 1 : R;
 }
 
 void init_sa_match_iter(
@@ -551,40 +584,19 @@ void init_sa_match_iter(
     struct suffix_array *sa
 ) {
     iter->sa = sa;
-    
-    uint32_t key_len = (uint32_t)strlen((char *)key);
-    assert(key_len > 0); // I cannot handle empty strings!
-    uint32_t mid = binary_search(key, key_len, sa);
-    
-    if (mid == sa->length ||
-        strncmp((char *)(sa->string + sa->array[mid]),
-                (char *)key, key_len)
-               != 0) {
-        // this is a special case where the lower bound is
-        // the end of the array. Here we cannot check
-        // the strcmp to figure out the interval
-        // (or whether we have a hit at all)
-        // but we know that the key is not in the
-        // string.
+
+    // find lower and upper bound
+    uint32_t lower = lower_bound_search(sa, key);
+    uint32_t upper = upper_bound_search(sa, key);
+    assert(upper >= lower);
+
+    // no match
+    if (lower == upper) {
         iter->L = iter->R = 0;
         iter->i = 1;
-        return;
     }
-    
-    // find lower and upper bound
-    uint32_t lower = mid;
-    while (lower > 0 &&
-           strncmp((char *)(sa->string + sa->array[lower]),
-                   (char *)key, key_len) >= 0) {
-        lower--;
-    }
-    iter->i = iter->L = lower + 1;
-    uint32_t upper = mid;
-    while (upper < sa->length &&
-           strncmp((char *)(sa->string + sa->array[upper]),
-                   (char *)key, key_len) == 0) {
-        upper++;
-    }
+
+    iter->i = iter->L = lower;
     iter->R = upper - 1;
 }
 

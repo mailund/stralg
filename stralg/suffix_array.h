@@ -38,7 +38,12 @@ void free_complete_suffix_array(
     struct suffix_array *sa
 );
 
+// only use this when you know that the key is in sa
 uint32_t lower_bound_search(
+    struct suffix_array *sa,
+    const uint8_t *key
+);
+uint32_t upper_bound_search(
     struct suffix_array *sa,
     const uint8_t *key
 );

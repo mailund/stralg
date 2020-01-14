@@ -33,20 +33,43 @@ static void test_search(struct suffix_array *sa)
 {
     int idx = lower_bound_search(sa, (uint8_t *)"ab");
     assert(idx == 1);
+    idx = upper_bound_search(sa, (uint8_t *)"ab");
+    assert(idx == 4);
+    
     idx = lower_bound_search(sa, (uint8_t *)"ac");
     assert(idx == 4);
+    idx = upper_bound_search(sa, (uint8_t *)"ac");
+    assert(idx == 6);
+    
     idx = lower_bound_search(sa, (uint8_t *)"aa");
-    assert(idx == 0);
+    assert(idx == 1);
+    idx = upper_bound_search(sa, (uint8_t *)"aa");
+    assert(idx == 1);
+    
     idx = lower_bound_search(sa, (uint8_t *)"ad");
-    assert(idx == 5);
+    assert(idx == 6);
+    idx = upper_bound_search(sa, (uint8_t *)"ad");
+    assert(idx == 6);
+
     idx = lower_bound_search(sa, (uint8_t *)"x");
     assert(idx == 11);
+    idx = upper_bound_search(sa, (uint8_t *)"x");
+    assert(idx == 11);
+
     idx = lower_bound_search(sa, (uint8_t *)"b");
     assert(idx == 6);
+    idx = upper_bound_search(sa, (uint8_t *)"b");
+    assert(idx == 9);
+    
     idx = lower_bound_search(sa,(uint8_t *) "c");
     assert(idx == 9);
+    idx = upper_bound_search(sa,(uint8_t *) "c");
+    assert(idx == 11);
+    
     idx = lower_bound_search(sa, (uint8_t *)"0");
-    assert(idx == 0);
+    assert(idx == 1);
+    idx = upper_bound_search(sa, (uint8_t *)"0");
+    assert(idx == 1);
 }
 
 
