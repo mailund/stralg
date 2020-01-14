@@ -490,63 +490,6 @@ void compute_lcp(struct suffix_array *sa)
 
 /// MARK: Searching
 
-uint32_t lower_bound_k(
-    struct suffix_array *sa,
-    uint32_t k, uint8_t a,
-    uint32_t L, uint32_t R
-) {
-    while (L < R) {
-        uint32_t mid = L + (R - L) / 2;
-        uint32_t b_idx = sa->array[mid] + k;
-        if (b_idx >= sa->length) {
-            // b is less if it is past the end
-            L = mid + 1;
-            continue;
-        }
-        uint8_t b = *(sa->string + b_idx);
-        if (b < a) {
-            L = mid + 1;
-        } else {
-            R = mid;
-        }
-        
-    }
-    return (L <= R) ? L : R;
-}
-
-uint32_t upper_bound_k(
-    struct suffix_array *sa,
-    uint32_t k, uint8_t a,
-    uint32_t L, uint32_t R
-) {
-    uint32_t orig_R = R;
-    while (L < R) {
-        uint32_t mid = L + (R - L) / 2;
-        uint32_t b_idx = sa->array[mid] + k;
-        if (b_idx >= sa->length) {
-            // b is less if it is past the end
-            L = mid + 1;
-            continue;
-        }
-        uint8_t b = *(sa->string + b_idx);
-        printf("L %u R %u mid %u a '%c' b '%c'\n",
-               L, R, mid, a, b);
-        if (a < b) {
-            R = mid - 1;
-        } else {
-            L = mid + 1;
-        }
-
-    }
-    R = (R > L) ? R : L;
-    if (R == orig_R) return R;
-    
-    uint8_t b = *(sa->string + sa->array[R] + k);
-    printf("L %u R %u a '%c' b '%c'\n",
-           L, R, a, b);
-
-    return (a >= b) ? R + 1 : R;
-}
 
 uint32_t lower_bound_search(
     struct suffix_array *sa,
@@ -603,6 +546,59 @@ uint32_t upper_bound_search(
     return (cmp >= 0) ? R + 1 : R;
 }
 
+uint32_t lower_bound_k(
+    struct suffix_array *sa,
+    uint32_t k, uint8_t a,
+    uint32_t L, uint32_t R
+) {
+    while (L < R) {
+        uint32_t mid = L + (R - L) / 2;
+        uint32_t b_idx = sa->array[mid] + k;
+        if (b_idx >= sa->length) {
+            // b is less if it is past the end
+            L = mid + 1;
+            continue;
+        }
+        uint8_t b = *(sa->string + b_idx);
+        if (b < a) {
+            L = mid + 1;
+        } else {
+            R = mid;
+        }
+        
+    }
+    return (L <= R) ? L : R;
+}
+
+uint32_t upper_bound_k(
+    struct suffix_array *sa,
+    uint32_t k, uint8_t a,
+    uint32_t L, uint32_t R
+) {
+    uint32_t orig_R = R;
+    while (L < R) {
+        uint32_t mid = L + (R - L) / 2;
+        uint32_t b_idx = sa->array[mid] + k;
+        if (b_idx >= sa->length) {
+            // b is less if it is past the end
+            L = mid + 1;
+            continue;
+        }
+        uint8_t b = *(sa->string + b_idx);
+        if (a < b) {
+            R = mid - 1;
+        } else {
+            L = mid + 1;
+        }
+
+    }
+    R = (R > L) ? R : L;
+    if (R == orig_R) return R;
+    
+    uint8_t b = *(sa->string + sa->array[R] + k);
+    return (a >= b) ? R + 1 : R;
+}
+
 void init_sa_match_iter(
     struct sa_match_iter *iter,
     const uint8_t *key,
@@ -610,19 +606,21 @@ void init_sa_match_iter(
 ) {
     iter->sa = sa;
 
-    // find lower and upper bound
-    uint32_t lower = lower_bound_search(sa, key);
-    uint32_t upper = upper_bound_search(sa, key);
-    assert(upper >= lower);
-
-    // no match
-    if (lower == upper) {
+    uint32_t key_len = strlen((char*)key);
+    uint32_t L = 0, R = sa->length;
+    
+    for (uint32_t i = 0; i < key_len; i++) {
+        L = lower_bound_k(sa, i, key[i], L, R);
+        R = upper_bound_k(sa, i, key[i], L, R);
+        if (L >= R) break;
+    }
+    if (L == R) {
         iter->L = iter->R = 0;
         iter->i = 1;
     }
-
-    iter->i = iter->L = lower;
-    iter->R = upper - 1;
+    iter->L = L;
+    iter->R = R - 1;
+    iter->i = L;
 }
 
 bool next_sa_match(struct sa_match_iter *iter,
