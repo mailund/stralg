@@ -78,7 +78,7 @@ static void search_edge(
     if (*p == '\0') {
         // We have a match.
         *cigar = '\0';
-        correct_cigar(data->cigar_buf, data->full_cigar_buf);
+        edits_to_cigar(data->cigar_buf, data->full_cigar_buf);
 
         struct st_leaf_iter leaf_iter;
         init_st_leaf_iter(&leaf_iter, data->st, v);
@@ -172,7 +172,7 @@ static void ld_search_edge(struct search_data *data,
     if (*p == '\0') {
         // We have a match.
         *cigar = '\0';
-        correct_cigar(data->cigar_buf, data->full_cigar_buf);
+        edits_to_cigar(data->cigar_buf, data->full_cigar_buf);
         
         struct st_leaf_iter leaf_iter;
         init_st_leaf_iter(&leaf_iter, data->st, v);

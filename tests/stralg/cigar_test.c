@@ -13,11 +13,11 @@ int main(int argc, char **argv)
     enum error_codes err;
     uint8_t *null;
 
-    correct_cigar(cigar_buf, "IIMDDMM");
+    edits_to_cigar(cigar_buf, "IIMDDMM");
     printf("%s\n", cigar_buf);
     assert(strcmp(cigar_buf, "2I1M2D2M") == 0);
 
-    correct_cigar(cigar_buf, "IMMDMM");
+    edits_to_cigar(cigar_buf, "IMMDMM");
     printf("%s\n", cigar_buf);
     assert(strcmp(cigar_buf, "1I2M1D2M") == 0);
 

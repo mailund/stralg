@@ -10,14 +10,14 @@
 
 enum edit_op {
     EXECUTE,
-    DELETION,
     INSERTION,
+    DELETION,
     MATCH
 };
-struct deletion_info {
+struct insertion_info {
     // No extra info
 };
-struct insertion_info {
+struct deletion_info {
     char a;
 };
 struct match_info {
@@ -27,13 +27,14 @@ struct match_info {
 struct edit_iter_frame {
     enum edit_op op;
     union {
-        struct deletion_info  d;
         struct insertion_info i;
+        struct deletion_info  d;
         struct match_info     m;
     } op_data;
 
+    bool at_beginning;
     const uint8_t *pattern_front;
-    uint8_t *buffer_front;
+    uint8_t *string_front;
     char *cigar_front;
     int max_dist;
     struct edit_iter_frame *next;
@@ -46,8 +47,9 @@ struct edit_iter_frame {
 static struct edit_iter_frame *
 push_edit_iter_frame(
     enum edit_op op,
+    bool at_beginning,
     const uint8_t *pattern_front,
-    uint8_t *buffer_front,
+    uint8_t *string_front,
     char *cigar_front,
     int max_dist,
     struct edit_iter_frame *next
@@ -55,8 +57,9 @@ push_edit_iter_frame(
     struct edit_iter_frame *frame =
         malloc(sizeof(struct edit_iter_frame));
     frame->op = op;
+    frame->at_beginning = at_beginning;
     frame->pattern_front = pattern_front;
-    frame->buffer_front = buffer_front;
+    frame->string_front = string_front;
     frame->cigar_front = cigar_front;
     frame->max_dist = max_dist;
     frame->next = next;
@@ -74,103 +77,23 @@ void init_edit_iter(
     iter->pattern = pattern;
     iter->alphabet = alphabet;
 
-    iter->buffer = malloc(n); iter->buffer[n - 1] = '\0';
-    iter->cigar = malloc(n);  iter->cigar[n - 1] = '\0';
-    iter->simplify_cigar_buffer = malloc(n);
+    iter->string = malloc(n); iter->string[n - 1] = '\0';
+    iter->edits = malloc(n);  iter->edits[n - 1] = '\0';
+    iter->cigar = malloc(n);
 
     iter->frames = push_edit_iter_frame(
         EXECUTE,
+        true,
         iter->pattern,
-        iter->buffer,
-        iter->cigar,
+        iter->string,
+        iter->edits,
         max_edit_distance,
         0
     );
 }
 
-/*
-static void recursive_generator(const char *pattern, char *buffer, char *cigar,
-                                int max_edit_distance,
-                                struct recursive_constant_data *data,
-                                edits_callback_func callback,
-                                void *callback_data,
-                                struct options *options)
-{
-    if (*pattern == '\0') {
-        // no more pattern to match ...
-        
-        // with no more edits: terminate the buffer and call back
-        *buffer = '\0';
-        *cigar = '\0';
-        simplify_cigar(data->cigar_front, data->simplify_cigar_buffer);
-        callback(data->buffer_front, data->simplify_cigar_buffer, callback_data);
-        
-        // if we have more edits left, we add some deletions
-        if (max_edit_distance > 0) {
-            for (const char *a = data->alphabet; *a; a++) {
-                *buffer = *a;
-                *cigar = 'D';
-                recursive_generator(pattern, buffer + 1, cigar + 1,
-                                    max_edit_distance - 1, data,
-                                    callback, callback_data, options);
-            }
-        }
-        
-        
-    } else if (max_edit_distance == 0) {
-        // we can't edit any more, so just move pattern to buffer and call back
-        uint32_t rest = strlen(pattern);
-        for (uint32_t i = 0; i < rest; ++i) {
-            buffer[i] = pattern[i];
-            if (options->extended_cigars)
-                cigar[i] = '=';
-            else
-                cigar[i] = 'M';
-        }
-        buffer[rest] = cigar[rest] = '\0';
-        simplify_cigar( data->simplify_cigar_buffer, data->cigar_front);
-        callback(data->buffer_front, data->simplify_cigar_buffer, callback_data);
-        
-    } else {
-        // --- time to recurse --------------------------------------
-        // deletion
-        *cigar = 'I';
-        recursive_generator(pattern + 1, buffer, cigar + 1,
-                            max_edit_distance - 1, data,
-                            callback, callback_data, options);
-        // insertion
-        for (const char *a = data->alphabet; *a; a++) {
-            *buffer = *a;
-            *cigar = 'D';
-            recursive_generator(pattern, buffer + 1, cigar + 1,
-                                max_edit_distance - 1, data,
-                                callback, callback_data, options);
-        }
-        // match / substitution
-        for (const char *a = data->alphabet; *a; a++) {
-            if (*a == *pattern) {
-                *buffer = *a;
-                if (options->extended_cigars)
-                    *cigar = '=';
-                else
-                    *cigar = 'M';
-                recursive_generator(pattern + 1, buffer + 1, cigar + 1,
-                                    max_edit_distance, data,
-                                    callback, callback_data, options);
-            } else {
-                *buffer = *a;
-                if (options->extended_cigars)
-                    *cigar = 'X';
-                else
-                    *cigar = 'M';
-                recursive_generator(pattern + 1, buffer + 1, cigar + 1,
-                                    max_edit_distance - 1, data,
-                                    callback, callback_data, options);
-            }
-        }
-    }
-}
-*/
+
+
 
 bool next_edit_pattern(
     struct edit_iter *iter,
@@ -186,16 +109,16 @@ bool next_edit_pattern(
     iter->frames = frame->next;
 
     const uint8_t *pattern = frame->pattern_front;
-    uint8_t *buffer = frame->buffer_front;
+    uint8_t *buffer = frame->string_front;
     char *cigar = frame->cigar_front;
 
     if (*pattern == '\0') {
         // no more pattern to match ... terminate the buffer and call back
         *buffer = '\0';
         *cigar = '\0';
-        correct_cigar(iter->simplify_cigar_buffer, iter->cigar);
-        result->pattern = iter->buffer;
-        result->cigar = iter->simplify_cigar_buffer;
+        edits_to_cigar(iter->cigar, iter->edits);
+        result->pattern = iter->string;
+        result->cigar = iter->cigar;
         free(frame);
         return true;
 
@@ -207,9 +130,9 @@ bool next_edit_pattern(
               cigar[i] = 'M';
         }
         buffer[rest] = cigar[rest] = '\0';
-        correct_cigar(iter->simplify_cigar_buffer, iter->cigar);
-        result->pattern = iter->buffer;
-        result->cigar = iter->simplify_cigar_buffer;
+        edits_to_cigar(iter->cigar, iter->edits);
+        result->pattern = iter->string;
+        result->cigar = iter->cigar;
         free(frame);
         return true;
     }
@@ -217,19 +140,23 @@ bool next_edit_pattern(
     switch (frame->op) {
         case EXECUTE:
             for (const char *a = iter->alphabet; *a; a++) {
-                iter->frames = push_edit_iter_frame(
-                    INSERTION,
-                    frame->pattern_front,
-                    frame->buffer_front,
-                    frame->cigar_front,
-                    frame->max_dist,
-                    iter->frames
-                );
-                iter->frames->op_data.i.a = *a;
+                if (!frame->at_beginning) {
+                    iter->frames = push_edit_iter_frame(
+                        DELETION,
+                        false,
+                        frame->pattern_front,
+                        frame->string_front,
+                        frame->cigar_front,
+                        frame->max_dist,
+                        iter->frames
+                    );
+                    iter->frames->op_data.d.a = *a;
+                }
                 iter->frames = push_edit_iter_frame(
                     MATCH,
+                    false,
                     frame->pattern_front,
-                    frame->buffer_front,
+                    frame->string_front,
                     frame->cigar_front,
                     frame->max_dist,
                     iter->frames
@@ -237,34 +164,38 @@ bool next_edit_pattern(
                 iter->frames->op_data.m.a = *a;
             }
             iter->frames = push_edit_iter_frame(
-                DELETION,
+                INSERTION,
+                false,
                 frame->pattern_front,
-                frame->buffer_front,
+                frame->string_front,
                 frame->cigar_front,
                 frame->max_dist,
                 iter->frames
             );
             break;
 
-        case DELETION:
+        case INSERTION:
             *cigar = 'I';
             iter->frames = push_edit_iter_frame(
                 EXECUTE,
+                false,
                 frame->pattern_front + 1,
-                frame->buffer_front,
+                frame->string_front,
                 frame->cigar_front + 1,
                 frame->max_dist - 1,
                 iter->frames
             );
             break;
 
-        case INSERTION:
-            *buffer = frame->op_data.i.a;
+        case DELETION:
+            if (frame->at_beginning) break;
+            *buffer = frame->op_data.d.a;
             *cigar = 'D';
             iter->frames = push_edit_iter_frame(
                 EXECUTE,
+                false,
                 frame->pattern_front,
-                frame->buffer_front + 1,
+                frame->string_front + 1,
                 frame->cigar_front + 1,
                 frame->max_dist - 1,
                 iter->frames
@@ -277,8 +208,9 @@ bool next_edit_pattern(
                 *cigar = 'M';
                 iter->frames = push_edit_iter_frame(
                     EXECUTE,
+                    false,
                     frame->pattern_front + 1,
-                    frame->buffer_front + 1,
+                    frame->string_front + 1,
                     frame->cigar_front + 1,
                     frame->max_dist,
                     iter->frames
@@ -288,8 +220,9 @@ bool next_edit_pattern(
                 *cigar = 'M';
                 iter->frames = push_edit_iter_frame(
                     EXECUTE,
+                    false,
                     frame->pattern_front + 1,
-                    frame->buffer_front + 1,
+                    frame->string_front + 1,
                     frame->cigar_front + 1,
                     frame->max_dist - 1,
                     iter->frames
@@ -307,7 +240,114 @@ bool next_edit_pattern(
 
 void dealloc_edit_iter(struct edit_iter *iter)
 {
-    free(iter->buffer);
+    free(iter->string);
+    free(iter->edits);
     free(iter->cigar);
-    free(iter->simplify_cigar_buffer);
 }
+
+
+
+
+
+
+
+
+
+void report(uint8_t *x, char *y) {
+    // nop
+}
+
+void recursive_generator(
+    const uint8_t *pattern_front,
+    const uint8_t *alphabet,
+    // To avoid initial deletions
+    bool at_beginning,
+    // Write the edited string here
+    uint8_t *string_front,
+    // Holds the beginning of full buffer
+    // so we can report the string
+    uint8_t *string,
+    // We write the output cigar here
+    char *cigar,
+    // We build the edit string here
+    char *edits_front,
+    // and use the beggining of the edits buffer
+    // when we report
+    char *edits,
+    int max_edit_distance)
+{
+    if (*pattern_front == '\0') {
+        // No more pattern to match ...
+        // Terminate the buffer and report
+        *string_front = '\0';
+        *edits_front = '\0';
+        edits_to_cigar(cigar, edits);
+        report(string, cigar);
+        
+    } else if (max_edit_distance == 0) {
+        // We can't edit any more, so just move the
+        // pattern to buffer and report
+        uint32_t rest = strlen((char *)pattern_front);
+        for (uint32_t i = 0; i < rest; ++i) {
+            string_front[i] = pattern_front[i];
+            edits_front[i] = 'M';
+        }
+        string_front[rest] = cigar[rest] = '\0';
+        edits_to_cigar(cigar, edits);
+        report(string, cigar);
+        
+    } else {
+        // RECURSION
+        // Insertion
+        *edits_front = 'I';
+        recursive_generator(pattern_front + 1,
+                            alphabet,
+                            false,
+                            string_front, string,
+                            cigar,
+                            edits_front + 1, edits,
+                            max_edit_distance - 1);
+        // Deletion
+        if (!at_beginning) {
+            for (const uint8_t *a = alphabet; *a; a++) {
+                *string_front = *a;
+                *edits_front = 'D';
+                recursive_generator(pattern_front,
+                                    alphabet,
+                                    at_beginning,
+                                    string_front + 1,
+                                    string,
+                                    cigar,
+                                    edits_front + 1, edits,
+                                    max_edit_distance - 1);
+            }
+        }
+        // Match / substitution
+        for (const uint8_t *a = alphabet; *a; a++) {
+            if (*a == *pattern_front) {
+                *string_front = *a;
+                *edits_front = 'M';
+                recursive_generator(pattern_front + 1,
+                                    alphabet,
+                                    false,
+                                    string_front + 1,
+                                    string,
+                                    cigar,
+                                    edits_front + 1, edits,
+                                    max_edit_distance);
+            } else {
+                *string_front = *a;
+                *edits_front = 'M';
+                recursive_generator(pattern_front + 1,
+                                    alphabet,
+                                    false,
+                                    string_front + 1,
+                                    string,
+                                    cigar,
+                                    edits_front + 1, edits,
+                                    max_edit_distance - 1);
+            }
+        }
+    }
+}
+

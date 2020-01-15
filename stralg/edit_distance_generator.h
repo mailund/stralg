@@ -18,9 +18,9 @@ struct edit_iter {
     const uint8_t *pattern;
     const char *alphabet;
 
-    uint8_t *buffer;
+    uint8_t *string;
+    char *edits;
     char *cigar;
-    char *simplify_cigar_buffer;
 
     struct edit_iter_frame *frames;
 };

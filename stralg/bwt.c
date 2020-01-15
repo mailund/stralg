@@ -241,7 +241,7 @@ static void rec_approx_matching(
         str_inplace_rev((uint8_t*)my_cigar);
         
         char *real_cigar = malloc(iter->m + 4 * iter->edits + 1);
-        correct_cigar(real_cigar, my_cigar);
+        edits_to_cigar(real_cigar, my_cigar);
         
         free(my_cigar);
         

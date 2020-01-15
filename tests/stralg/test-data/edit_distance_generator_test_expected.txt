@@ -1,10 +1,7 @@
 cca 1I3M
 tcca 4M
-tacca 1D4M
 gcca 4M
-gacca 1D4M
 ccca 4M
-cacca 1D4M
 aca 1M1I2M
 atca 4M
 atcca 1M1D3M
@@ -30,4 +27,3 @@ acaca 2M1D2M
 accca 1M1D3M
 aaca 4M
 aacca 1M1D3M
-aacca 1D4M

@@ -20,7 +20,7 @@
  for allocating a buffer long enough.
  @param from A string that contations edit operations.
  */
-void correct_cigar(char *to, const char *from);
+void edits_to_cigar(char *to, const char *from);
 
 /**
  Build an alignment from a key and a text.

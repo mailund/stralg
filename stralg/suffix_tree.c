@@ -806,7 +806,7 @@ bool next_internal_st_approx_match(
         }
         if (*p == '\0') {
             *cigar = '\0';
-            correct_cigar(iter->cigar_buf, iter->full_cigar_buf);
+            edits_to_cigar(iter->cigar_buf, iter->full_cigar_buf);
             match->cigar = iter->cigar_buf;
             match->match_root = v;
             match->match_depth = match_depth;

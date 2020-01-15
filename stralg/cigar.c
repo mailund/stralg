@@ -5,22 +5,28 @@
 #include <stdio.h>
 #include <assert.h>
 
-static const char *scan(const char *cigar)
-{
-    const char *p = cigar;
-    while (*p == *cigar)
+static const char *scan(
+    const char *edits
+) {
+    const char *p = edits;
+    while (*p == *edits)
         ++p;
     return p;
 }
 
-void correct_cigar(char *buffer, const char *cigar)
-{
-    while (*cigar) {
-        const char *next = scan(cigar);
-        buffer = buffer + sprintf(buffer, "%d%c", (int)(next - cigar), *cigar);
-        cigar = next;
+void edits_to_cigar(
+    char *cigar_buffer,
+    const char *edits
+) {
+    while (*edits) {
+        const char *next = scan(edits);
+        cigar_buffer = cigar_buffer + sprintf(
+            cigar_buffer, "%d%c",
+            (int)(next - edits), *edits
+        );
+        edits = next;
     }
-    *buffer = '\0';
+    *cigar_buffer = '\0';
 }
 
 static uint8_t *cigar_alignment_internal(
