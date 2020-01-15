@@ -9,13 +9,10 @@
 
 
 enum edit_op {
-    EXECUTE,
+    RECURSE,
     INSERTION,
     DELETION,
     MATCH
-};
-struct insertion_info {
-    // No extra info
 };
 struct deletion_info {
     char a;
@@ -26,17 +23,21 @@ struct match_info {
 
 struct edit_iter_frame {
     enum edit_op op;
-    union {
-        struct insertion_info i;
-        struct deletion_info  d;
-        struct match_info     m;
-    } op_data;
 
+    // The character we should delete or match
+    uint8_t a;
+    // Have we inserted or matched yet?
     bool at_beginning;
+    
+    // Fronts of buffers
     const uint8_t *pattern_front;
     uint8_t *string_front;
     char *cigar_front;
+    
+    // Number of edits left
     int max_dist;
+    
+    // The rest of the stack
     struct edit_iter_frame *next;
 };
 
@@ -72,7 +73,7 @@ void init_edit_iter(
     const char *alphabet,
     int max_edit_distance
 ) {
-    uint32_t n = (uint32_t)strlen((char *)pattern) + max_edit_distance + 10;
+    uint32_t n = 2 * (uint32_t)strlen((char *)pattern);
 
     iter->pattern = pattern;
     iter->alphabet = alphabet;
@@ -82,7 +83,7 @@ void init_edit_iter(
     iter->cigar = malloc(n);
 
     iter->frames = push_edit_iter_frame(
-        EXECUTE,
+        RECURSE,
         true,
         iter->pattern,
         iter->string,
@@ -113,7 +114,8 @@ bool next_edit_pattern(
     char *cigar = frame->cigar_front;
 
     if (*pattern == '\0') {
-        // no more pattern to match ... terminate the buffer and call back
+        // No more pattern to match ...
+        // terminate the buffer report
         *buffer = '\0';
         *cigar = '\0';
         edits_to_cigar(iter->cigar, iter->edits);
@@ -123,7 +125,8 @@ bool next_edit_pattern(
         return true;
 
     } else if (frame->max_dist == 0) {
-        // we can't edit any more, so just move pattern to buffer and call back
+        // We can't edit any more, so just move
+        // pattern to the string and call back
         uint32_t rest = (uint32_t)strlen((char *)pattern);
         for (uint32_t i = 0; i < rest; ++i) {
               buffer[i] = pattern[i];
@@ -138,7 +141,7 @@ bool next_edit_pattern(
     }
 
     switch (frame->op) {
-        case EXECUTE:
+        case RECURSE:
             for (const char *a = iter->alphabet; *a; a++) {
                 if (!frame->at_beginning) {
                     iter->frames = push_edit_iter_frame(
@@ -150,7 +153,7 @@ bool next_edit_pattern(
                         frame->max_dist,
                         iter->frames
                     );
-                    iter->frames->op_data.d.a = *a;
+                    iter->frames->a = *a;
                 }
                 iter->frames = push_edit_iter_frame(
                     MATCH,
@@ -161,7 +164,7 @@ bool next_edit_pattern(
                     frame->max_dist,
                     iter->frames
                 );
-                iter->frames->op_data.m.a = *a;
+                iter->frames->a = *a;
             }
             iter->frames = push_edit_iter_frame(
                 INSERTION,
@@ -177,7 +180,7 @@ bool next_edit_pattern(
         case INSERTION:
             *cigar = 'I';
             iter->frames = push_edit_iter_frame(
-                EXECUTE,
+                RECURSE,
                 false,
                 frame->pattern_front + 1,
                 frame->string_front,
@@ -189,10 +192,10 @@ bool next_edit_pattern(
 
         case DELETION:
             if (frame->at_beginning) break;
-            *buffer = frame->op_data.d.a;
+            *buffer = frame->a;
             *cigar = 'D';
             iter->frames = push_edit_iter_frame(
-                EXECUTE,
+                RECURSE,
                 false,
                 frame->pattern_front,
                 frame->string_front + 1,
@@ -203,11 +206,11 @@ bool next_edit_pattern(
 
             break;
         case MATCH:
-            if (frame->op_data.m.a == *pattern) {
-                *buffer = frame->op_data.m.a;
+            if (frame->a == *pattern) {
+                *buffer = frame->a;
                 *cigar = 'M';
                 iter->frames = push_edit_iter_frame(
-                    EXECUTE,
+                    RECURSE,
                     false,
                     frame->pattern_front + 1,
                     frame->string_front + 1,
@@ -216,10 +219,10 @@ bool next_edit_pattern(
                     iter->frames
                 );
             } else {
-                *buffer = frame->op_data.m.a;
+                *buffer = frame->a;
                 *cigar = 'M';
                 iter->frames = push_edit_iter_frame(
-                    EXECUTE,
+                    RECURSE,
                     false,
                     frame->pattern_front + 1,
                     frame->string_front + 1,
@@ -240,6 +243,13 @@ bool next_edit_pattern(
 
 void dealloc_edit_iter(struct edit_iter *iter)
 {
+    struct edit_iter_frame *frame = iter->frames;
+    while (frame) {
+        struct edit_iter_frame *next = frame->next;
+        free(frame);
+        frame = next;
+    }
+    
     free(iter->string);
     free(iter->edits);
     free(iter->cigar);
