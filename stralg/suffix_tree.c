@@ -681,7 +681,7 @@ static void push_frame(
 ) {
     struct st_approx_frame *frame = malloc(sizeof(struct st_approx_frame));
     frame->v = v;
-    frame->leading = leading;
+    frame->at_beginning = leading;
     frame->x = x;
     frame->end = end;
     frame->match_depth = match_depth;
@@ -707,7 +707,7 @@ static void pop_frame(
     struct st_approx_frame *frame = sentinel->next;
     sentinel->next = frame->next;
     *v = frame->v;
-    *leading = frame->leading;
+    *leading = frame->at_beginning;
     *x = frame->x;
     *end = frame->end;
     *match_depth = frame->match_depth;
@@ -910,6 +910,9 @@ void dealloc_st_approx_iter(
     }
     free(iter->leaf_iter);
 }
+
+
+
 
 
 // Build suffix array and LCP

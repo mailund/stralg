@@ -125,7 +125,7 @@ void dealloc_st_search_iter(
 struct st_approx_frame {
     struct st_approx_frame *next;
     struct suffix_tree_node *v;
-    bool leading; // for avoiding leading deletions
+    bool at_beginning; // for avoiding leading deletions
     const uint8_t *x;
     const uint8_t *end;
     uint32_t match_depth;
