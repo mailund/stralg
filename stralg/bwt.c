@@ -309,7 +309,7 @@ void init_bwt_approx_iter(
         int min_edits = 0;
         uint32_t L = 0, R = bwt_table->sa->length;
         for (uint32_t i = 0; i < m; ++i) {
-            unsigned char a = remapped_pattern[i];
+            uint8_t a = remapped_pattern[i];
             L = C(a) + RO(a, L);
             R = C(a) + RO(a, R);
             if (L >= R) {

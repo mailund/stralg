@@ -20,14 +20,17 @@ refcmd="./exact_readmapper/exact_readmapper -d $edits $reference $reads"
 # Preprocessing commands.
 declare -a names=(
 	Exact
+    Aho-Corasick
 	BWT
 )
 declare -a preprocess_cmds=(
 	true
+    true
 	"$bwt -p $reference"
 )
 declare -a map_cmds=(
 	"$exact -d $edits $reference $reads"
+    "$ac -d $edits $reference $reads"
 	"$bwt -d $edits $reference $reads"
 )
 
@@ -80,7 +83,7 @@ for i in ${!names[@]}; do
 	logfile="logs/$name.preprocess.log"
 
 	printf "   • Preprocessing: $(tput setaf 4)$(tput bold)${name}$(tput sgr0) "
-	"$cmd" &> "$logfile"
+	${cmd} &> "$logfile"
 	if [ $? -eq 0 ]; then
 		success
 	else

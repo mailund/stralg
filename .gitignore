@@ -151,3 +151,9 @@ performance/m dependency linear algorithms.pdf
 performance/m dependency quadratic algorithms.pdf
 performance/Match search dependency on m.pdf
 performance/Match search overall.pdf
+tools/readmappers/logs/Aho-Corasick.map.log
+tools/readmappers/logs/Aho-Corasick.preprocess.log
+tools/readmappers/logs/Aho-Corasick.sam
+tools/readmappers/logs/reference.log
+tools/readmappers/scripts/logs/BWT.preprocess.log
+tools/readmappers/scripts/logs/Exact.preprocess.log

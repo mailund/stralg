@@ -565,7 +565,6 @@ uint32_t lower_bound_k(
         } else {
             R = mid;
         }
-        
     }
     return (L <= R) ? L : R;
 }

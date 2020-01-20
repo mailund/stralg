@@ -7,7 +7,7 @@
 export PATH=../mappers_src:$PATH
 
 # The mapper we use as the goal to hit
-ref_mapper=ac_readmapper
+ref_mapper=exact_readmapper
 
 # list of read-mappers to evaluate
 mappers="bw_readmapper"

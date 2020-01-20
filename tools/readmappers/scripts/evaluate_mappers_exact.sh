@@ -86,7 +86,7 @@ for mapper in $mappers; do
 	### Preprocessing --------------------------------------------------------------------------------
 	if [ -x "${mapper}.preprocess" ]; then
 		printf "   • Preprocessing $(tput setaf 4)$(tput bold)evaluation/${mapper}.preprocess$(tput sgr0) "
-		"./${mapper}.preprocess  ${reference}" >> "$log_file" 2>&1
+		./${mapper}.preprocess  ${reference} >> "$log_file" 2>&1
 		if [ $? -eq 0 ]; then
     		success
 		else
