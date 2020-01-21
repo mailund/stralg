@@ -125,49 +125,8 @@ void dealloc_st_search_iter(
 
 
 
-struct st_approx_frame {
-    struct st_approx_frame *next;
-    struct suffix_tree_node *v;
-    bool at_beginning; // for avoiding leading deletions
-    const uint8_t *x;
-    const uint8_t *end;
-    uint32_t match_depth;
-    const uint8_t *p;
-    char cigar_op;
-    char *cigar;
-    int edit;
-};
-
-struct internal_st_approx_iter {
-    struct suffix_tree *st;
-    struct st_approx_frame sentinel;
-    char *full_cigar_buf;
-    char *cigar_buf;
-};
-struct internal_st_approx_match {
-    const char *cigar;
-    struct suffix_tree_node *match_root;
-    uint32_t match_depth;
-};
-
-
-void init_internal_st_approx_iter(
-    struct internal_st_approx_iter *iter,
-    struct suffix_tree *st,
-    const uint8_t *p,
-    int edits
-);
-bool next_internal_st_approx_match(
-    struct internal_st_approx_iter *iter,
-    struct internal_st_approx_match *match
-);
-void dealloc_internal_st_approx_iter(
-    struct internal_st_approx_iter *iter
-);
-
 struct st_approx_match_iter {
     struct suffix_tree *st;
-    struct internal_st_approx_iter *approx_iter;
     
     struct st_leaf_iter leaf_iter;
     struct pointer_vector nodes;
@@ -176,9 +135,6 @@ struct st_approx_match_iter {
     
     bool processing_tree;
     uint32_t current_tree_index;
-
-    bool outer;
-    bool has_inner;
 };
 struct st_approx_match {
     struct suffix_tree_node *root;

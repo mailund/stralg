@@ -669,183 +669,6 @@ void dealloc_st_search_iter(
 
 #pragma mark Approximative
 /// ----------------------Aproximative matching ---------------------------------------------------------
-static void push_frame(
-    struct st_approx_frame *sentinel,
-    struct suffix_tree_node *v,
-    bool leading,
-    const uint8_t *x, const uint8_t *end,
-    uint32_t match_depth,
-    const uint8_t *p,
-    char cigar_op, char *cigar,
-    int edit
-) {
-    struct st_approx_frame *frame = malloc(sizeof(struct st_approx_frame));
-    frame->v = v;
-    frame->at_beginning = leading;
-    frame->x = x;
-    frame->end = end;
-    frame->match_depth = match_depth;
-    frame->p = p;
-    frame->cigar_op = cigar_op;
-    frame->cigar = cigar;
-    frame->edit = edit;
-    frame->next = sentinel->next;
-    sentinel->next = frame;
-}
-
-static void pop_frame(
-    struct st_approx_frame *sentinel,
-    struct suffix_tree_node **v,
-    bool *leading,
-    const uint8_t **x, const uint8_t **end,
-    uint32_t *match_depth,
-    const uint8_t **p,
-    char *cigar_op,
-    char **cigar,
-    int *edit
-) {
-    struct st_approx_frame *frame = sentinel->next;
-    sentinel->next = frame->next;
-    *v = frame->v;
-    *leading = frame->at_beginning;
-    *x = frame->x;
-    *end = frame->end;
-    *match_depth = frame->match_depth;
-    *p = frame->p;
-    *cigar_op = frame->cigar_op;
-    *cigar = frame->cigar;
-    *edit = frame->edit;
-
-    free(frame);
-}
-
-
-static void push_children(
-    struct internal_st_approx_iter *iter,
-    struct suffix_tree *st,
-    struct suffix_tree_node *v,
-    bool leading,
-    uint32_t match_depth,
-    char *cigar,
-    const uint8_t *p,
-    int edits
-) {
-    struct suffix_tree_node *child = v->child;
-    while (child) {
-        const uint8_t *x = child->range.from;
-        const uint8_t *end = child->range.to;
-        push_frame(&iter->sentinel, child,
-                   leading,
-                   x, end, match_depth,
-                   p, '\0', cigar, edits);
-        
-        child = child->sibling;
-    }
-}
-
-void init_internal_st_approx_iter(
-    struct internal_st_approx_iter *iter,
-    struct suffix_tree *st,
-    const uint8_t *p,
-    int edits
-) {
-    // one edit can max cost four characters
-    uint32_t m = (uint32_t)(strlen((char *)p) + 4*edits + 1);
-    iter->st = st;
-    iter->sentinel.next = 0;
-    iter->full_cigar_buf = malloc(m + 1);
-    iter->full_cigar_buf[0] = '\0';
-    iter->cigar_buf = malloc(m + 1);
-    iter->cigar_buf[0] = '\0';
-    
-    // push the root's children
-    push_children(iter, st, st->root, true,
-                  0, iter->full_cigar_buf, p, edits);
-}
-void dealloc_internal_st_approx_iter(
-    struct internal_st_approx_iter *iter
-) {
-    free(iter->full_cigar_buf);
-    free(iter->cigar_buf);
-}
-
-
-
-bool next_internal_st_approx_match(
-    struct internal_st_approx_iter *iter,
-    struct internal_st_approx_match *match
-) {
-    struct suffix_tree_node *v;
-    bool at_beginning;
-    const uint8_t *x; const uint8_t *end;
-    const uint8_t *p;
-    char *edits;
-    int edits_left;
-    uint32_t match_depth;
-    char cigar_op;
-    
-    // we need to know this one so we never move past the end
-    // of the string (and access memory we shouldn't)
-    const uint8_t *string_end = iter->st->string + iter->st->length;
-    
-    while (iter->sentinel.next) {
-        pop_frame(&iter->sentinel, &v,
-                  &at_beginning,
-                  &x, &end,
-                  &match_depth, &p, &cigar_op, &edits, &edits_left);
-        
-        if (x == string_end)
-            continue; // do not move past the end of the buffer (overflow)
-        
-        if (cigar_op) // remember the step we took to get here
-            edits[-1] = cigar_op;
-        
-        if (edits_left < 0) {
-            // we have already made too many edits
-            continue;
-        }
-        if (*p == '\0') {
-            *edits = '\0';
-            edits_to_cigar(iter->cigar_buf, iter->full_cigar_buf);
-            match->cigar = iter->cigar_buf;
-            match->match_root = v;
-            match->match_depth = match_depth;
-            return true;
-        }
-        
-        if (x == end) {
-            // we ran out of edge
-            push_children(iter, iter->st, v, at_beginning, match_depth, edits, p, edits_left);
-            continue;
-        }
-        if (edits_left == 0 && *x != *p) {
-            // we cannot do any more edits and
-            // we need at least a substitution
-            continue;
-        }
-        
-        // recursion
-        int match_cost = *p != *x;
-        push_frame(&iter->sentinel, v,
-                   false,
-                   x + 1, end,
-                   match_depth + 1, p + 1, 'M', edits + 1,
-                   edits_left - match_cost);
-        if (!at_beginning) {
-            push_frame(&iter->sentinel, v,
-                       false,
-                       x + 1, end,
-                       match_depth + 1, p, 'D', edits + 1,
-                       edits_left - 1);
-        }
-        push_frame(&iter->sentinel, v,
-                   false,
-                   x, end,
-                   match_depth, p + 1, 'I', edits + 1,
-                   edits_left - 1);
-    }
-    return false;
-}
 
 struct collect_nodes_data {
     struct st_approx_match_iter *iter;
@@ -864,7 +687,6 @@ static void collect_approx_hits(
     int edits_left,
     uint32_t match_depth
 );
-
 
 
 static void recurse_children(
@@ -909,7 +731,7 @@ static void collect_approx_hits(
         return;
     }
     if (*p == '\0') {
-        // A hit
+        // A hit. Save the data in the iterator
         *edits = '\0';
         edits_to_cigar(data->cigar_buffer, data->edits_start);
         string_vector_append(&data->iter->cigars,
@@ -918,7 +740,7 @@ static void collect_approx_hits(
         index_vector_append(&data->iter->match_depths, match_depth);
         return;
     }
-        
+       
     if (x == end) {
         // we ran out of edge: recurse on children
         recurse_children(data, v, at_beginning, match_depth, edits, p, edits_left);
@@ -933,28 +755,34 @@ static void collect_approx_hits(
     // recursion
     int match_cost = *p != *x;
     *edits = 'M';
-    collect_approx_hits(data, v,
-                false,
-                x + 1, end,
-                        p + 1,
-                        edits + 1,
-                edits_left - match_cost,
-                  match_depth + 1      );
+    collect_approx_hits(
+        data, v,
+        false,
+        x + 1, end,
+        p + 1,
+        edits + 1,
+        edits_left - match_cost,
+        match_depth + 1
+    );
     if (!at_beginning) {
         *edits = 'D';
-        collect_approx_hits(data, v,
-                    false,
-                    x + 1, end,
-                     p, edits + 1,
-                    edits_left - 1,
-                            match_depth + 1);
+        collect_approx_hits(
+            data, v,
+            false,
+            x + 1, end,
+            p, edits + 1,
+            edits_left - 1,
+            match_depth + 1
+        );
     }
     *edits = 'I';
-    collect_approx_hits(data, v,
-                false,
-                x, end,
-                p + 1, edits + 1,
-                edits_left - 1, match_depth);
+    collect_approx_hits(
+        data, v,
+        false,
+        x, end,
+        p + 1, edits + 1,
+        edits_left - 1, match_depth
+    );
 }
 
 
@@ -991,18 +819,11 @@ void init_st_approx_iter(
     
     iter->processing_tree = false;
     iter->current_tree_index = 0;
-    
-    iter->approx_iter = malloc(sizeof(struct internal_st_approx_iter));
-    init_internal_st_approx_iter(iter->approx_iter, st, pattern, edits);
-    
-    iter->outer = true;
-    iter->has_inner = false;
 }
 
 bool next_st_approx_match(struct st_approx_match_iter *iter,
                           struct st_approx_match *match)
 {
-#if 0
     if (!iter->processing_tree) {
         if (iter->current_tree_index == iter->nodes.used) {
             return false;
@@ -1018,54 +839,17 @@ bool next_st_approx_match(struct st_approx_match_iter *iter,
         bool more_leaves = next_st_leaf(&iter->leaf_iter, &res);
         if (!more_leaves) {
             iter->processing_tree = false;
+            iter->current_tree_index++;
             return next_st_approx_match(iter, match);
         } else {
             uint32_t i = iter->current_tree_index;
             match->root = iter->nodes.data[i];
             match->match_depth = iter->match_depths.data[i];
             match->match_label = res.leaf->leaf_label;
-            
-        }
-    }
-    
-    // We never get here but this silence
-    // compiler warnings
-    return false;
-#endif
-#if 1 // FIXME
-    struct internal_st_approx_match outer_match;
-    struct st_leaf_iter_result inner_match;
-    
-    if (iter->outer) {
-        if (iter->has_inner) {
-            dealloc_st_leaf_iter(&iter->leaf_iter);
-            iter->has_inner = false;
-        }
-        if (next_internal_st_approx_match(iter->approx_iter, &outer_match)) {
-            match->cigar = outer_match.cigar;
-            match->match_depth = outer_match.match_depth;
-            match->root = outer_match.match_root;
-            
-            init_st_leaf_iter(&iter->leaf_iter, iter->st,
-                              outer_match.match_root);
-            iter->has_inner = true;
-            
-            iter->outer = false;
-            return next_st_approx_match(iter, match);
-        } else {
-            return false;
-        }
-    } else {
-        if (next_st_leaf(&iter->leaf_iter, &inner_match)) {
-            match->match_label = inner_match.leaf->leaf_label;
+            match->cigar = (const char *)iter->cigars.data[i];
             return true;
-        } else {
-            iter->outer = true;
-            return next_st_approx_match(iter, match);
         }
     }
-    return false;
-#endif
 }
 
 
@@ -1078,15 +862,7 @@ void dealloc_st_approx_iter(
     }
     dealloc_string_vector(&iter->cigars);
     dealloc_index_vector(&iter->match_depths);
-    
     dealloc_st_leaf_iter(&iter->leaf_iter);
-    
-    
-    dealloc_internal_st_approx_iter(iter->approx_iter);
-    free(iter->approx_iter);
-    if (iter->has_inner) {
-        dealloc_st_leaf_iter(&iter->leaf_iter);
-    }
 }
 
 

@@ -288,6 +288,11 @@ static void test_exact(
     init_string_vector(&st_results, 10);
     st_match(st, pattern, string, 0, &st_results);
     sort_string_vector(&st_results);
+    printf("\nExact vector\n");
+    print_string_vector(&exact_results);
+    printf("\nST vector\n");
+    print_string_vector(&st_results);
+           
     assert(string_vector_equal(&exact_results, &st_results));
     free_strings(&st_results);
     dealloc_string_vector(&st_results);
@@ -402,6 +407,12 @@ static void test_approx(
     st_match(st, pattern, string, edits, &st_results);
     sort_string_vector(&st_results);
     free_suffix_tree(st);
+    
+    printf("\nAC vector\n");
+    print_string_vector(&ac_results);
+    printf("\nST vector\n");
+    print_string_vector(&st_results);
+
     
     assert(string_vector_equal(&ac_results, &st_results));
     free_strings(&st_results);
