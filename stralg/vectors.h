@@ -92,6 +92,62 @@ void print_index_vector(
     struct index_vector *vec
 );
 
+/// MARK: Pointer vector
+struct pointer_vector {
+    void **data;
+    uint32_t size;
+    uint32_t used;
+};
+
+static inline void init_pointer_vector(
+    struct pointer_vector *vec,
+    uint32_t init_size
+) {
+    vector_init(vec, init_size);
+}
+static inline void dealloc_pointer_vector(
+    struct pointer_vector *vec
+) {
+    dealloc_vector(vec);
+}
+
+static inline struct pointer_vector *
+alloc_pointer_vector(
+    uint32_t init_size
+) {
+    struct pointer_vector *vec =
+        malloc(sizeof(struct pointer_vector));
+    init_pointer_vector(vec, init_size);
+    return vec;
+}
+static inline void free_pointer_vector(
+    struct pointer_vector *vec
+) {
+    dealloc_pointer_vector(vec);
+    free(vec);
+}
+
+static inline void *pointer_vector_get(
+    struct pointer_vector *vec,
+    uint32_t idx
+) {
+    return vector_get(vec, idx);
+}
+static inline void pointer_vector_set(
+    struct pointer_vector *vec,
+    uint32_t idx,
+    void *pointer
+) {
+    vector_set(vec, idx, pointer);
+}
+static inline void pointer_vector_append(
+    struct pointer_vector *vec,
+    uint8_t *pointer
+) {
+    vector_append(vec, pointer);
+}
+
+
 /// MARK: String vectors
 
 struct string_vector {

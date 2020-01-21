@@ -498,7 +498,7 @@ int main(int argc, char **argv)
 {
     const char *alphabet = "acgt";
     
-    bool exact = true; // run exact tests by default
+    bool exact = false;
     if (argc == 2 && strcmp(argv[1], "approx") == 0)
         exact = false;
     

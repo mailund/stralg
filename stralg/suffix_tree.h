@@ -2,6 +2,9 @@
 #ifndef SUFFIX_TREE
 #define SUFFIX_TREE
 
+#include <vectors.h>
+#include <string_utils.h>
+
 #include <stdlib.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -165,14 +168,23 @@ void dealloc_internal_st_approx_iter(
 struct st_approx_match_iter {
     struct suffix_tree *st;
     struct internal_st_approx_iter *approx_iter;
-    struct st_leaf_iter *leaf_iter;
+    
+    struct st_leaf_iter leaf_iter;
+    struct pointer_vector nodes;
+    struct string_vector cigars;
+    struct index_vector match_depths;
+    
+    bool processing_tree;
+    uint32_t current_tree_index;
+
     bool outer;
     bool has_inner;
 };
 struct st_approx_match {
     struct suffix_tree_node *root;
-    uint32_t match_length;
     uint32_t match_depth;
+    uint32_t match_length;
+    
     uint32_t match_label;
     const char *cigar;
 };
