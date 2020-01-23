@@ -389,7 +389,7 @@ struct suffix_array *
 skew_sa_construction(
     uint8_t *string
 ) {
-    struct suffix_array *sa = allocate_sa(string);
+    struct suffix_array *sa = allocate_sa_(string);
     skew(string, sa->array);
     return sa;
 }

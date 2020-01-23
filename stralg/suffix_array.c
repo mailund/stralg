@@ -31,7 +31,7 @@ int construction_cmpfunc(const void *a, const void *b)
 
 struct suffix_array *qsort_sa_construction(uint8_t *string)
 {
-    struct suffix_array *sa = allocate_sa(string);
+    struct suffix_array *sa = allocate_sa_(string);
     
     uint8_t **suffixes = malloc(sa->length * sizeof(uint8_t *));
     for (int i = 0; i < sa->length; ++i)
@@ -251,7 +251,7 @@ struct suffix_array *read_suffix_array(
     FILE *f,
     uint8_t *string
 ) {
-    struct suffix_array *sa = allocate_sa(string);
+    struct suffix_array *sa = allocate_sa_(string);
     fread(sa->array, sizeof(*sa->array), sa->length, f);
     return sa;
 }
