@@ -7,5 +7,6 @@
 struct suffix_array *allocate_sa_(uint8_t *x);
 
 void classify_SL_(const uint8_t *x, bool *s_index, uint32_t n);
+bool is_LMS_index_(bool *s_index, uint32_t i);
 
 #endif
