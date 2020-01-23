@@ -270,9 +270,8 @@ struct bwt_approx_iter {
     struct string_vector cigars;
     struct index_vector  match_lengths;
     
-    int edits;
     uint32_t m;
-    char *cigar_buf;
+    char *edits_buf;
     int *D_table;
 };
 

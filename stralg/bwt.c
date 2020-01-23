@@ -212,40 +212,35 @@ static void rec_approx_matching(
     struct bwt_approx_iter *iter,
     uint32_t L, uint32_t R, int i,
     uint32_t match_length,
-    int edits,
-    char *cigar
+    int edits_left,
+    char *edits
 ) {
     struct bwt_table *bwt_table = iter->bwt_table;
     struct remap_table *remap_table = bwt_table->remap_table;
     
     int lower_limit = (i >= 0 && iter->D_table) ? iter->D_table[i] : 0;
-    if (edits  < lower_limit) {
+    if (edits_left  < lower_limit) {
          return; // we can never get a match from here
     }
 
     assert(L < R);
     
-    if (i < 0) {
-        // we have a match here
+    if (i < 0) { // We have a match
         index_vector_append(&iter->Ls, L);
         index_vector_append(&iter->Rs, R);
         index_vector_append(&iter->match_lengths, match_length);
 
-        // there is a lot of copying overhead with these strings.
-        // I cannot reuse a buffer because of the iterator implementation.
-        // I could before but having all the traversal as an iterator
-        // is very slow.
+        // Extract the edits and reverse them.
+        *edits = '\0';
+        char *rev_edits = (char *)str_copy((uint8_t *)iter->edits_buf);
+        str_inplace_rev((uint8_t*)rev_edits);
+        // Build the cigar from the edits
+        char *cigar = malloc(2 * iter->m);
+        edits_to_cigar(cigar, rev_edits);
+        // Free the reversed edits; we do not need them now
+        free(rev_edits);
         
-        uint32_t cig_len = (uint32_t)(cigar - iter->cigar_buf);
-        char *my_cigar = (char *)str_copy_n((uint8_t *)iter->cigar_buf, cig_len);
-        str_inplace_rev((uint8_t*)my_cigar);
-        
-        char *real_cigar = malloc(iter->m + 4 * iter->edits + 1);
-        edits_to_cigar(real_cigar, my_cigar);
-        
-        free(my_cigar);
-        
-        string_vector_append(&iter->cigars, (uint8_t *)real_cigar);
+        string_vector_append(&iter->cigars, (uint8_t *)cigar);
         
         return; // done down this path of matching...
     }
@@ -263,28 +258,28 @@ static void rec_approx_matching(
         
         
         int edit_cost = (a == match_a) ? 0 : 1;
-        if (edits - edit_cost < 0) continue;
+        if (edits_left - edit_cost < 0) continue;
         if (new_L >= new_R) continue;
         
-        *cigar = 'M';
+        *edits = 'M';
         rec_approx_matching(iter, new_L, new_R, i - 1,
-                            match_length + 1, edits - edit_cost,
-                            cigar + 1);
+                            match_length + 1, edits_left - edit_cost,
+                            edits + 1);
     }
     
     // I-operation
-    *cigar = 'I';
-    rec_approx_matching(iter, L, R, i - 1, match_length, edits - 1, cigar + 1);
+    *edits = 'I';
+    rec_approx_matching(iter, L, R, i - 1, match_length, edits_left - 1, edits + 1);
     
     // D-operation
-    *cigar = 'D';
+    *edits = 'D';
     for (unsigned char a = 1; a < remap_table->alphabet_size; ++a) {
         new_L = C(a) + O(a, L);
         new_R = C(a) + O(a, R);
         if (new_L >= new_R) continue;
         
         rec_approx_matching(iter, new_L, new_R, i, match_length + 1,
-                            edits - 1, cigar + 1);
+                            edits_left - 1, edits + 1);
     }
 }
 
@@ -293,8 +288,9 @@ void init_bwt_approx_iter(
     struct bwt_approx_iter *iter,
     struct bwt_table       *bwt_table,
     const uint8_t          *remapped_pattern,
-    int                     edits)
+    int                     max_edits)
 {
+    // Initialise resources for the recursive search
     iter->bwt_table = bwt_table;
     iter->remapped_pattern = remapped_pattern;
     init_index_vector(&iter->Ls, 10);
@@ -303,6 +299,7 @@ void init_bwt_approx_iter(
     init_index_vector(&iter->match_lengths, 10);
     
     if (bwt_table->ro_table) {
+        // Build D table
         uint32_t m = (uint32_t)strlen((char *)remapped_pattern);
         iter->D_table = malloc(m * sizeof(int));
         
@@ -323,22 +320,20 @@ void init_bwt_approx_iter(
         iter->D_table = 0;
     }
     
+    // Set up the edits buffer
     assert(remapped_pattern);
     uint32_t m = (uint32_t)strlen((char *)remapped_pattern);
     assert(m > 0);
-    // one edit can max cost four characters
-    uint32_t buf_size = m + 4 * edits + 1;
+    uint32_t buf_size = 2 * m + 1;
     iter->m = m;
-    
-    iter->cigar_buf = malloc(buf_size + 1);
-    iter->cigar_buf[0] = '\0';
-    iter->edits = edits;
+    iter->edits_buf = malloc(buf_size + 1);
+    iter->edits_buf[0] = '\0';
     
     // Start searching
     uint32_t L = 0, R = bwt_table->sa->length; int i = m - 1;
     
     struct remap_table *remap_table = bwt_table->remap_table;
-    char *cigar = iter->cigar_buf;
+    char *edits = iter->edits_buf;
     
     // M-operations
     unsigned char match_a = remapped_pattern[i];
@@ -349,20 +344,20 @@ void init_bwt_approx_iter(
         uint32_t new_R = C(a) + O(a, R);
         
         int edit_cost = (a == match_a) ? 0 : 1;
-        if (edits - edit_cost < 0) continue;
+        if (max_edits - edit_cost < 0) continue;
         if (new_L >= new_R) continue;
 
-        *cigar = 'M';
+        *edits = 'M';
         rec_approx_matching(iter, new_L, new_R, i - 1,
-                            1, edits - edit_cost,
-                            cigar + 1);
+                            1, max_edits - edit_cost,
+                            edits + 1);
         
     }
     
 
     // I-operation
-    *cigar = 'I';
-    rec_approx_matching(iter, L, R, i - 1, 0, edits - 1, cigar + 1);
+    *edits = 'I';
+    rec_approx_matching(iter, L, R, i - 1, 0, max_edits - 1, edits + 1);
     
     // make sure we start at the first interval
     iter->L = m; iter->R = 0;
@@ -405,7 +400,7 @@ void dealloc_bwt_approx_iter(
     free_strings(&iter->cigars);
     dealloc_string_vector(&iter->cigars);
     dealloc_index_vector(&iter->match_lengths);
-    free(iter->cigar_buf);
+    free(iter->edits_buf);
     if (iter->D_table) free(iter->D_table);
 }
 

@@ -20,7 +20,12 @@ add_library(stralg SHARED
 	remap.h remap.c
 	serialise.h serialise.c
 	string_utils.h string_utils.c
+
 	suffix_array.h suffix_array.c
+	suffix_array_internal.h suffix_array_internal.c
+	skew.c
+
+
 	suffix_tree.h suffix_tree.c
 	edge_array_suffix_tree.h edge_array_suffix_tree.c
 	trie.h trie.c

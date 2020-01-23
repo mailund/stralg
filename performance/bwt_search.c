@@ -1,6 +1,7 @@
 
 #include <bwt.h>
 #include <string_utils.h>
+#include <suffix_tree.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -131,6 +132,41 @@ static unsigned long get_performance(struct bwt_table *bwt_table,
     
 }
 
+static void perform_st_search(struct suffix_tree *st, const uint8_t *p, int edits)
+{
+    struct st_approx_match_iter iter;
+    struct st_approx_match match;
+    
+    init_st_approx_iter(&iter, st, p, edits);
+    while (next_st_approx_match(&iter, &match)) {
+        // do nothing
+    }
+    dealloc_st_approx_iter(&iter);
+}
+
+static unsigned long get_st_performance(struct suffix_tree *st,
+                                        struct bwt_table *bwt_table,
+                                        uint32_t m, float err, int edits)
+{
+    assert(m > 0);
+    
+    clock_t search_begin, search_end;
+
+    search_begin = clock();
+    for (uint32_t j = 0; j < 10; ++j) {
+        uint8_t *p = sample_string(st->string,
+                                   st->length,
+                                   m);
+        edit_string(p, bwt_table, m, err);
+        perform_st_search(st, p, edits);
+        free(p);
+    }
+    search_end = clock();
+    
+    return search_end - search_begin;
+    
+}
+
 int main(int argc, const char **argv)
 {
     srand(time(NULL));
@@ -159,7 +195,7 @@ int main(int argc, const char **argv)
     rsa = qsort_sa_construction(revrs);
     init_bwt_table(&bwt_table_D, sa, rsa, &remap_table);
     
-    
+    struct suffix_tree *st = mccreight_suffix_tree(rs);
     
 #if 1 // for comparison
     for (uint32_t m = 50; m < 200; m += 50) {
@@ -168,14 +204,17 @@ int main(int argc, const char **argv)
             while (p < 0.5) {
                 for (uint32_t rep = 0; rep < 5; ++rep) {
                     time = get_performance(&bwt_table, m, p, edits);
-                    printf("BWT-without-D %u %f %d %lu\n", m, p, edits, time);
+                    printf("BWT-without-D %u %f %d %f\n", m, p, edits, (float)time / CLOCKS_PER_SEC);
                     time = get_performance(&bwt_table_D, m, p, edits);
-                    printf("BWT-with-D %u %f %d %lu\n", m, p, edits, time);
+                    printf("BWT-with-D %u %f %d %f\n", m, p, edits, (float)time / CLOCKS_PER_SEC);
+                    time = get_st_performance(st, &bwt_table_D, m, p, edits);
+                    printf("ST %u %f %d %f\n", m, p, edits, (float)time / CLOCKS_PER_SEC);
                 }
                 p += 0.05;
             }
         }
     }
+    free_suffix_tree(st);
     
 #else // for profiling
     

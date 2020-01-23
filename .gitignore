@@ -157,3 +157,5 @@ tools/readmappers/logs/Aho-Corasick.sam
 tools/readmappers/logs/reference.log
 tools/readmappers/scripts/logs/BWT.preprocess.log
 tools/readmappers/scripts/logs/Exact.preprocess.log
+performance/Approx matching comparison.pdf
+performance/BWT construction time comparison.pdf

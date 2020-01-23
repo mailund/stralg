@@ -15,6 +15,7 @@ performance %>%
     #geom_jitter() +
     geom_smooth(se = FALSE) +
     scale_color_grey() +
+    ylab("Time [seconds]") +
     theme_minimal()
 ggsave("Match search overall.pdf", width = 7, height = 7)
 
@@ -28,6 +29,7 @@ performance %>%
     geom_smooth(se = FALSE) +
     scale_color_grey() +
     theme_minimal()+
+    ylab("Time [seconds]") +
     theme(axis.text.x = element_text(angle = 90, hjust = 1))
 ggsave("Match search dependency on m.pdf", width = 7, height = 7)
 
@@ -39,6 +41,7 @@ performance %>%
     #geom_jitter() +
     geom_smooth(se = FALSE) +
     scale_color_grey() +
+    ylab("Time [seconds]") +
     theme_minimal()+
     theme(axis.text.x = element_text(angle = 90, hjust = 1))
 ggsave("m dependency linear algorithms.pdf", width = 7, height = 7)
@@ -52,6 +55,7 @@ performance %>%
     #geom_jitter() +
     geom_smooth(se = FALSE) +
     scale_color_grey() +
+    ylab("Time [seconds]") +
     theme_minimal()+
     theme(axis.text.x = element_text(angle = 90, hjust = 1))
 ggsave("m dependency quadratic algorithms.pdf", width = 7, height = 7)

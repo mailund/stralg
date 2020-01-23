@@ -63,7 +63,7 @@ inline static char out_letter(struct suffix_tree_node *v)
     return *(v->range.from);
 }
 
-#pragma mark naive suffix tree construction
+#pragma mark Naive suffix tree construction
 
 static struct suffix_tree_node *
 find_outgoing_edge(
@@ -240,6 +240,8 @@ struct suffix_tree *naive_suffix_tree(
     return st;
 }
 
+#pragma mark LCP suffix tree construction
+
 static void append_child(
     struct suffix_tree_node *v,
     struct suffix_tree_node *w
@@ -312,6 +314,8 @@ lcp_suffix_tree(
 
     return st;
 }
+
+#pragma mark McCreight's algorithm
 
 static struct suffix_tree_node *
 fast_scan(
@@ -453,7 +457,6 @@ mccreight_suffix_tree(
 }
 
 
-
 #pragma mark free
 
 void free_suffix_tree(
@@ -520,7 +523,7 @@ void get_path_string(
     }
 }
 
-// Iteration
+/// Iteration
 
 struct st_leaf_iter_frame {
     struct st_leaf_iter_frame *next;
@@ -668,7 +671,6 @@ void dealloc_st_search_iter(
 
 
 #pragma mark Approximative
-/// ----------------------Aproximative matching ---------------------------------------------------------
 
 struct collect_nodes_data {
     struct st_approx_match_iter *iter;
@@ -869,7 +871,7 @@ void dealloc_st_approx_iter(
 
 
 
-// Build suffix array and LCP
+/// Build suffix array and LCP
 struct sa_lcp_frame {
     struct suffix_tree_node *v;
     uint32_t left_depth;
@@ -952,6 +954,12 @@ void st_compute_sa_and_lcp(
 ) {
     lcp_traverse(st, sa, lcp);
 }
+
+
+
+
+
+
 #pragma mark IO
 
 static void print_out_edges(

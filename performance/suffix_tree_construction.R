@@ -31,6 +31,7 @@ performance %>%
     facet_grid(String ~ ., scales = "free_y") +
     geom_jitter() +
     geom_smooth(se = FALSE) +
+    ylab("Time [seconds]") +
     scale_color_grey() +
     theme_minimal()
 ggsave("All linked lists times.pdf", width = 7, height = 7)
@@ -45,6 +46,7 @@ performance %>%
         aes(x = Size, y = Time, color = Algorithm)) +
     facet_grid(String ~ ., scales = "free_y") +
     geom_jitter() +
+    ylab("Time [seconds]") +
     geom_smooth(se = FALSE) +
     scale_color_grey() +
     theme_minimal()
@@ -61,6 +63,7 @@ performance %>%
     facet_grid(. ~ Algorithm) +
     scale_color_grey() +
     geom_jitter() +
+    ylab("Time [seconds]") +
     ylim(0,0.06) +
     theme_minimal() +
     theme(axis.text.x = element_text(angle = 90, hjust = 1))
@@ -78,6 +81,7 @@ performance %>%
     geom_jitter() +
     geom_smooth(se = FALSE) +
     scale_color_grey() +
+    ylab("Time [seconds]") +
     theme_minimal()
 ggsave("LCP comparisons.pdf", width = 7, height = 7)
 
@@ -91,6 +95,7 @@ performance %>%
         aes(x = Size, y = Time)
     )  +
     facet_grid(String ~ Algorithm, scales = "free_y") +
+    ylab("Time [seconds]") +
     geom_jitter() +
     #geom_smooth(se = FALSE) +
     scale_color_grey() +
