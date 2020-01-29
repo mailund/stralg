@@ -398,6 +398,17 @@ static void simple_exact_matchers(struct index_vector *naive,
     dealloc_index_vector(&bm);
 }
 
+bool suffix_array_equal(struct suffix_array *sa1,
+                        struct suffix_array *sa2)
+{
+    if (sa1->length != sa2->length) return false;
+    for (uint32_t i = 0; i < sa1->length; ++i) {
+        if (sa1->array[i] != sa2->array[i])
+            return false;
+    }
+    return true;
+}
+
 static void general_suffix_test(struct index_vector *naive,
                                 const uint8_t *pattern,
                                 uint8_t *string)
@@ -437,6 +448,7 @@ static void general_suffix_test(struct index_vector *naive,
 
     // ---------- suffix arrays ---------------------
     struct suffix_array *sa = qsort_sa_construction(string);
+    struct suffix_array *test_sa = qsort_sa_construction(string);
     
     struct sa_match_iter sa_iter;
     struct sa_match sa_match;
@@ -464,6 +476,7 @@ static void general_suffix_test(struct index_vector *naive,
 
 
     sa = skew_sa_construction(string);
+    assert(suffix_array_equal(test_sa, sa));
     init_index_vector(&sa_results, 10);
     
     init_sa_match_iter(&sa_iter, pattern, sa);
@@ -476,7 +489,7 @@ static void general_suffix_test(struct index_vector *naive,
     
     printf("naive:\n");
     print_index_vector(naive);
-    printf("sa:\n");
+    printf("skew:\n");
     print_index_vector(&sa_results);
     
     assert(index_vector_equal(naive, &sa_results));
@@ -484,6 +497,31 @@ static void general_suffix_test(struct index_vector *naive,
     dealloc_index_vector(&sa_results);
     
     free_suffix_array(sa);
+
+
+    sa = sa_is_construction(string);
+    assert(suffix_array_equal(test_sa, sa));
+    init_index_vector(&sa_results, 10);
+    
+    init_sa_match_iter(&sa_iter, pattern, sa);
+    while (next_sa_match(&sa_iter, &sa_match)) {
+        index_vector_append(&sa_results, sa_match.position);
+    }
+    dealloc_sa_match_iter(&sa_iter);
+    
+    sort_index_vector(&sa_results);
+    
+    printf("naive:\n");
+    print_index_vector(naive);
+    printf("sa-is:\n");
+    print_index_vector(&sa_results);
+    
+    assert(index_vector_equal(naive, &sa_results));
+    
+    dealloc_index_vector(&sa_results);
+    
+    free_suffix_array(sa);
+    free_suffix_array(test_sa);
 }
 
 static void general_match_test(const uint8_t *pattern,
@@ -590,6 +628,7 @@ static void match_test(const uint8_t *pattern, uint8_t *string)
 
 int main(int argc, char * argv[])
 {
+    argc = 3;
     if (argc == 3) {
         const char *pattern = argv[1];
         const char *fname = argv[2];

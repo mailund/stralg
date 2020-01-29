@@ -38,7 +38,7 @@ void compute_reverse_border_array(
 ) {
     rba[m - 1] = 0;
     for (int32_t i = m - 2; i >= 0; --i) {
-        unsigned long b = rba[i+1];
+        uint32_t b = rba[i+1];
         while (b > 0 && x[i] != x[m - 1 - b])
             b = rba[m - b];
         rba[i] = (x[i] == x[m - 1 - b]) ? b + 1 : 0;

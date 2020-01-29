@@ -210,6 +210,10 @@ int main(int argc, char *argv[])
     test_sa(sa, string);
     free_suffix_array(sa);
 
+    sa = sa_is_construction(string);
+    test_sa(sa, string);
+    free_suffix_array(sa);
+
     string = (uint8_t *)"gacacacag";
     sa = qsort_sa_construction(string);
     printf("\n");

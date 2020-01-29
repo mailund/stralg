@@ -92,7 +92,7 @@ uint32_t lower_bound_search(
     const uint8_t *key
 ) {
     uint32_t L = 0, R = sa->length;
-    uint32_t key_len = strlen((char*)key);
+    uint32_t key_len = (uint32_t)strlen((char*)key);
     uint32_t mid;
     while (L < R) {
         mid = L + (R - L) / 2;
@@ -116,7 +116,7 @@ uint32_t upper_bound_search(
     const uint8_t *key
 ) {
     uint32_t L = 0, R = sa->length;
-    uint32_t key_len = strlen((char*)key);
+    uint32_t key_len = (uint32_t)strlen((char*)key);
     uint32_t mid;
     while (L < R) {
         mid = L + (R - L) / 2;
@@ -201,7 +201,7 @@ void init_sa_match_iter(
 ) {
     iter->sa = sa;
 
-    uint32_t key_len = strlen((char*)key);
+    uint32_t key_len = (uint32_t)strlen((char*)key);
     uint32_t L = 0, R = sa->length;
     
     for (uint32_t i = 0; i < key_len; i++) {
