@@ -75,7 +75,13 @@ static void get_performance(uint32_t size)
     end = clock();
     printf("Skew Equal %u %f\n", size, (double)(end - begin) / CLOCKS_PER_SEC);
     free_suffix_array(sa);
-    
+
+    begin = clock();
+    sa = sa_is_construction(s);
+    end = clock();
+    printf("SA-IS Equal %u %f\n", size, (double)(end - begin) / CLOCKS_PER_SEC);
+    free_suffix_array(sa);
+
     free(s);
     
     s = build_random(size);
@@ -91,6 +97,12 @@ static void get_performance(uint32_t size)
     printf("Skew DNA %u %f\n", size, (double)(end - begin) / CLOCKS_PER_SEC);
     free_suffix_array(sa);
 
+    begin = clock();
+    sa = sa_is_construction(s);
+    end = clock();
+    printf("SA-IS DNA %u %f\n", size, (double)(end - begin) / CLOCKS_PER_SEC);
+    free_suffix_array(sa);
+
     free(s);
     
     s = build_random_large(size);
@@ -104,6 +116,12 @@ static void get_performance(uint32_t size)
     sa = skew_sa_construction(s);
     end = clock();
     printf("Skew ASCII %u %f\n", size, (double)(end - begin) / CLOCKS_PER_SEC);
+    free_suffix_array(sa);
+
+    begin = clock();
+    sa = sa_is_construction(s);
+    end = clock();
+    printf("SA-IS ASCII %u %f\n", size, (double)(end - begin) / CLOCKS_PER_SEC);
     free_suffix_array(sa);
 
     free(s);

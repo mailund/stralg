@@ -52,7 +52,8 @@ static void place_LMS(
     uint32_t alphabet_size,
     uint32_t *SA,
     bool *s_index,
-    uint32_t *buckets
+    uint32_t *buckets,
+    uint32_t *bucket_ends
 );
 
 static void induce_L(
@@ -61,7 +62,8 @@ static void induce_L(
     uint32_t alphabet_size,
     uint32_t *SA,
     bool *s_index,
-    uint32_t *buckets
+    uint32_t *buckets,
+    uint32_t *bucket_ends
 );
 
 static void induce_S(
@@ -70,7 +72,8 @@ static void induce_S(
     uint32_t alphabet_size,
     uint32_t *SA,
     bool *s_index,
-    uint32_t *buckets
+    uint32_t *buckets,
+    uint32_t *bucket_starts
 );
 
 static bool equal_LMS(
@@ -85,6 +88,7 @@ static void reduce_SA(
     uint32_t *x,
     uint32_t n,
     uint32_t *SA,
+    uint32_t *names_buf,
     bool *s_index,
     uint32_t *new_alphabet_size,
     uint32_t *summary_string,
@@ -96,6 +100,7 @@ static void remap_LMS(
     uint32_t *x,
     uint32_t n,
     uint32_t *buckets,
+    uint32_t *buckets_ends,
     uint32_t alphabet_size,
     bool *s_index,
     uint32_t *reduced_string,
@@ -109,6 +114,12 @@ static void sort_SA(
     uint32_t *x,
     uint32_t n,
     uint32_t *SA,
+    uint32_t *names_buf,
+    uint32_t *summary_string,
+    uint32_t *summary_offsets,
+    uint32_t *buckets,
+    uint32_t *bucket_endpoints,
+    bool *s_index,
     uint32_t alphabet_size
 );
 
@@ -196,11 +207,11 @@ void place_LMS(
     uint32_t alphabet_size,
     uint32_t *SA,
     bool *s_index,
-    uint32_t *buckets
+    uint32_t *buckets,
+    uint32_t *bucket_ends
 ) {
     // Special case when we only have the sentinel -- then
     // the test for is_LMS_index is different
-    uint32_t bucket_ends[alphabet_size]; // FIXME: allocate shared buffer
     find_buckets_ends(x, n, alphabet_size, buckets, bucket_ends);
     for (uint32_t i = 0; i < n + 1; ++i) {
         if (is_LMS_index(s_index, n, i)) {
@@ -215,9 +226,9 @@ static void induce_L(
     uint32_t alphabet_size,
     uint32_t *SA,
     bool *s_index,
-    uint32_t *buckets
+    uint32_t *buckets,
+    uint32_t *bucket_starts
 ) {
-    uint32_t bucket_starts[alphabet_size]; // FIXME: allocate shared buffer
     find_buckets_beginnings(x, n, alphabet_size, buckets, bucket_starts);
     for (uint32_t i = 0; i < n + 1; ++i) {
         if (SA[i] == MAX_INDEX) continue; // Not initialised yet
@@ -241,9 +252,9 @@ static void induce_S(
     uint32_t alphabet_size,
     uint32_t *SA,
     bool *s_index,
-    uint32_t *buckets
+    uint32_t *buckets,
+    uint32_t *bucket_ends
 ) {
-    uint32_t bucket_ends[alphabet_size]; // FIXME: allocate shared buffer
     find_buckets_ends(x, n, alphabet_size, buckets, bucket_ends);
     for (uint32_t i = n + 1; i > 0; --i) {
         // We do not have a string to the left of the first
@@ -289,19 +300,19 @@ static void reduce_SA(
     uint32_t *x,
     uint32_t n,
     uint32_t *SA,
+    uint32_t *names_buf,
     bool *s_index,
     uint32_t *new_alphabet_size,
     uint32_t *summary_string,
     uint32_t *summary_offsets,
     uint32_t *new_string_length
 ) {
-    uint32_t *names = malloc((n + 1) * sizeof(uint32_t));
-    memset(names, MAX_INDEX, (n + 1) * sizeof(uint32_t));
+    memset(names_buf, MAX_INDEX, (n + 1) * sizeof(uint32_t));
 
     // Start names at one so we save zero for sentinel
     uint32_t name = 0;
     
-    names[SA[0]] = name;
+    names_buf[SA[0]] = name;
     uint32_t last_suffix = SA[0];
     
     for (uint32_t i = 1; i < n + 1; i++) {
@@ -311,7 +322,7 @@ static void reduce_SA(
             name++;
         }
         last_suffix = j;
-        names[j] = name;
+        names_buf[j] = name;
     }
     
     // One larger than the largest name used
@@ -319,15 +330,13 @@ static void reduce_SA(
     
     uint32_t j = 0;
     for (uint32_t i = 0; i < n + 1; i++) {
-        name = names[i];
+        name = names_buf[i];
         if (name == MAX_INDEX) continue;
         summary_offsets[j] = i;
         summary_string[j] = name;
         j++;
     }
     *new_string_length = j - 1; // we don't include sentinel in the length
-    
-    free(names);
 }
 
 
@@ -336,42 +345,61 @@ static void induced_sorting(
     uint32_t *x,
     uint32_t n,
     uint32_t *SA,
+    uint32_t *names_buf,
+    bool * s_index,
+    uint32_t *buckets,
+    uint32_t *bucket_endpoints,
+    uint32_t *summary_string,
+    uint32_t *summary_offsets,
     uint32_t alphabet_size
 ) {
-    // FIXME: heap allocate
-    bool s_index[n + 1];
-    uint32_t buckets[alphabet_size];
-    
     classify_SL(x, s_index, n);
     compute_buckets(x, n, alphabet_size, buckets);
 
     memset(SA, MAX_INDEX, (n + 1) * sizeof(uint32_t));
-    place_LMS(x, n, alphabet_size, SA, s_index, buckets);
-    induce_L(x, n, alphabet_size, SA, s_index, buckets);
-    induce_S(x, n, alphabet_size, SA, s_index, buckets);
+    place_LMS(x, n, alphabet_size, SA, s_index, buckets, bucket_endpoints);
+    induce_L(x, n, alphabet_size, SA, s_index, buckets, bucket_endpoints);
+    induce_S(x, n, alphabet_size, SA, s_index, buckets, bucket_endpoints);
     
-    // /FIXME: heap allocate
-    uint32_t summary_string[n + 1];
-    uint32_t summary_offsets[n + 1];
     uint32_t new_alphabet_size;
     uint32_t new_string_length;
-    reduce_SA(x, n, SA, s_index,
+    reduce_SA(x, n, SA,
+              names_buf,
+              s_index,
               &new_alphabet_size,
               summary_string,
               summary_offsets,
               &new_string_length);
     
-    uint32_t new_SA[new_string_length + 1];
-    sort_SA(summary_string, new_string_length, new_SA, new_alphabet_size);
+    // Move to next position in the buffers
+    uint32_t *new_SA = SA + n + 1;
+    uint32_t *new_names_buf = names_buf + n + 1;
+    bool *new_s_index = s_index + n + 1;
+    uint32_t *new_summary_string = summary_string + n + 1;
+    uint32_t *new_summary_offsets = summary_offsets + n + 1;
+    uint32_t *new_buckets = buckets + alphabet_size;
+    uint32_t *new_bucket_endpoints = bucket_endpoints + alphabet_size;
+   
+    sort_SA(summary_string, new_string_length,
+            new_SA,
+            new_names_buf,
+            new_summary_string,
+            new_summary_offsets,
+            new_buckets,
+            new_bucket_endpoints,
+            new_s_index,
+            new_alphabet_size);
 
     memset(SA, MAX_INDEX, (n + 1) * sizeof(uint32_t));
-    remap_LMS(x, n, buckets, alphabet_size,
+    remap_LMS(x, n,
+              buckets, bucket_endpoints,
+              alphabet_size,
               s_index,
               summary_string,
               new_string_length, new_SA, summary_offsets,
               SA);
-    induce_L(x, n, alphabet_size, SA, s_index, buckets);
-    induce_S(x, n, alphabet_size, SA, s_index, buckets);
+    induce_L(x, n, alphabet_size, SA, s_index, buckets, bucket_endpoints);
+    induce_S(x, n, alphabet_size, SA, s_index, buckets, bucket_endpoints);
      
 }
 
@@ -379,6 +407,12 @@ void sort_SA(
     uint32_t *x,
     uint32_t n,
     uint32_t *SA,
+    uint32_t *names_buf,
+    uint32_t *summary_string,
+    uint32_t *summary_offsets,
+    uint32_t *buckets,
+    uint32_t *bucket_endpoints,
+    bool *s_index,
     uint32_t alphabet_size
 ) {
     if (n == 0) {
@@ -394,7 +428,14 @@ void sort_SA(
             SA[j] = i;
         }
     } else {
-        induced_sorting(x, n, SA, alphabet_size);
+        induced_sorting(x, n, SA,
+                        names_buf,
+                        s_index,
+                        buckets,
+                        bucket_endpoints,
+                        summary_string,
+                        summary_offsets,
+                        alphabet_size);
     }
 }
 
@@ -402,6 +443,7 @@ void remap_LMS(
     uint32_t *x,
     uint32_t n,
     uint32_t *buckets,
+    uint32_t *bucket_ends,
     uint32_t alphabet_size,
     bool *s_index,
     uint32_t *reduced_string,
@@ -410,7 +452,6 @@ void remap_LMS(
     uint32_t *reduced_offsets,
     uint32_t *SA
 ) {
-    uint32_t bucket_ends[alphabet_size]; // FIXME: alloc
     find_buckets_ends(x, n, alphabet_size, buckets, bucket_ends);
 
     for (uint32_t i = reduced_length + 1; i > 0; --i) {
@@ -430,14 +471,36 @@ sa_is_construction(
     struct suffix_array *sa = allocate_sa_(string);
     uint32_t n = sa->length - 1;
     
+    // Create string of integers instead of bytes
     uint32_t *s = malloc((n + 1) * sizeof(uint32_t));
     for (uint32_t i = 0; i < n; ++i) {
         s[i] = string[i];
     }
     s[n] = 0;
     
-    sort_SA(s, n, sa->array, 256);
+    // Allocate all buffers
+    uint32_t *SA = malloc(2 * (n + 1) * sizeof(uint32_t));
+    uint32_t *names_buf = malloc(2 * (n + 1) * sizeof(uint32_t));
+    uint32_t *summary_string = malloc(2 * (n + 1) * sizeof(uint32_t));
+    uint32_t *summary_offsets = malloc(2 * (n + 1) * sizeof(uint32_t));
+    bool *s_index = malloc(2 * (n + 1) * sizeof(bool));
+    uint32_t max_alphabet_size = (256 > n) ? 256 : n + 1;
+    uint32_t *buckets = malloc(2 * max_alphabet_size * sizeof(uint32_t));
+    uint32_t *bucket_endpoints = malloc(2 * max_alphabet_size * sizeof(uint32_t));
     
+    // Sort in buffer and then move the result to the suffix array
+    sort_SA(s, n, SA, names_buf,
+            summary_string, summary_offsets,
+            buckets, bucket_endpoints, s_index, 256);
+    memcpy(sa->array, SA, (n + 1) * sizeof(uint32_t));
+    
+    // Free all buffers
+    free(bucket_endpoints);
+    free(buckets);
+    free(s_index);
+    free(summary_offsets);
+    free(summary_string);
+    free(SA);
     free(s);
     
     return sa;
