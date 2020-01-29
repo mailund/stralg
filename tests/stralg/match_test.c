@@ -628,7 +628,6 @@ static void match_test(const uint8_t *pattern, uint8_t *string)
 
 int main(int argc, char * argv[])
 {
-    argc = 3;
     if (argc == 3) {
         const char *pattern = argv[1];
         const char *fname = argv[2];
