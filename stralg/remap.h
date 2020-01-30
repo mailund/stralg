@@ -76,6 +76,15 @@ uint8_t *rev_remap_between0(
     struct remap_table *table
 );
 
+// Builds a remap table, remap into output,
+// and return the alphabet size. This is a
+// convenience function for when we don't want
+// to use the table afterwards.
+uint32_t remap_string(
+    uint8_t *output,
+    uint8_t *input
+);
+
 // Serialisation -- FIXME: error handling!
 void write_remap_table(
     FILE *f,
