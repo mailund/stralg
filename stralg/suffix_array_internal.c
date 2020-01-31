@@ -4,7 +4,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-struct suffix_array *allocate_sa(uint8_t *string)
+struct suffix_array *allocate_sa_(uint8_t *string)
 {
     struct suffix_array *sa =
         malloc(sizeof(struct suffix_array));

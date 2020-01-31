@@ -1,6 +1,7 @@
 
 #include <suffix_array.h>
 #include <vectors.h>
+#include <remap.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -35,7 +36,7 @@ static uint8_t *build_random_large(uint32_t size)
 {
     uint8_t *s = malloc(size + 1);
     for (uint32_t i = 0; i < size; ++i) {
-        char random_letter = rand();
+        unsigned char random_letter = rand() % 128;
         if (random_letter == 0) {
             random_letter = 1; // avoid the sentinel
         }
@@ -69,16 +70,25 @@ static void get_performance(uint32_t size)
     clock_t begin, end;
     
     s = build_equal(size);
+    uint8_t remapped_string[strlen((char *)s) + 1];
+    uint32_t alphabet_size = remap_string(remapped_string, s);
     
     begin = clock();
     sa = skew_sa_construction(s);
     end = clock();
     printf("Skew Equal %u %f\n", size, (double)(end - begin) / CLOCKS_PER_SEC);
     free_suffix_array(sa);
-    
+
+    begin = clock();
+    sa = sa_is_construction(remapped_string, alphabet_size);
+    end = clock();
+    printf("SA-IS Equal %u %f\n", size, (double)(end - begin) / CLOCKS_PER_SEC);
+    free_suffix_array(sa);
+
     free(s);
     
     s = build_random(size);
+    alphabet_size = remap_string(remapped_string, s);
     begin = clock();
     sa = qsort_sa_construction(s);
     end = clock();
@@ -91,9 +101,16 @@ static void get_performance(uint32_t size)
     printf("Skew DNA %u %f\n", size, (double)(end - begin) / CLOCKS_PER_SEC);
     free_suffix_array(sa);
 
+    begin = clock();
+    sa = sa_is_construction(remapped_string, alphabet_size);
+    end = clock();
+    printf("SA-IS DNA %u %f\n", size, (double)(end - begin) / CLOCKS_PER_SEC);
+    free_suffix_array(sa);
+
     free(s);
     
     s = build_random_large(size);
+    alphabet_size = remap_string(remapped_string, s);
     begin = clock();
     sa = qsort_sa_construction(s);
     end = clock();
@@ -104,6 +121,12 @@ static void get_performance(uint32_t size)
     sa = skew_sa_construction(s);
     end = clock();
     printf("Skew ASCII %u %f\n", size, (double)(end - begin) / CLOCKS_PER_SEC);
+    free_suffix_array(sa);
+
+    begin = clock();
+    sa = sa_is_construction(remapped_string, alphabet_size);
+    end = clock();
+    printf("SA-IS ASCII %u %f\n", size, (double)(end - begin) / CLOCKS_PER_SEC);
     free_suffix_array(sa);
 
     free(s);

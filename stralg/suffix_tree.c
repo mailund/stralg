@@ -797,7 +797,7 @@ void init_st_approx_iter(
 ) {
     iter->st = st;
     
-    uint32_t n = strlen((char *)pattern);
+    uint32_t n = (uint32_t)strlen((char *)pattern);
     struct collect_nodes_data data;
     data.iter = iter;
     data.edits_start = data.edits = malloc(2*n + 1);

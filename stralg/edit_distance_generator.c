@@ -297,7 +297,7 @@ void recursive_generator(
     } else if (max_edit_distance == 0) {
         // We can't edit any more, so just move the
         // pattern to buffer and report
-        uint32_t rest = strlen((char *)pattern_front);
+        uint32_t rest = (uint32_t)strlen((char *)pattern_front);
         for (uint32_t i = 0; i < rest; ++i) {
             string_front[i] = pattern_front[i];
             edits_front[i] = 'M';

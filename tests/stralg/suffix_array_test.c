@@ -1,5 +1,6 @@
 
 #include <suffix_array.h>
+#include <remap.h>
 
 #include <string.h>
 #include <stdlib.h>
@@ -208,6 +209,19 @@ int main(int argc, char *argv[])
 
     sa = skew_sa_construction(string);
     test_sa(sa, string);
+    free_suffix_array(sa);
+
+    uint8_t remapped_string[strlen((char *)string) + 1];
+    uint32_t alphabet_size = remap_string(remapped_string, string);
+    
+    
+    sa = sa_is_construction(remapped_string, alphabet_size);
+    // don't run the search test here. It requires
+    // remapping which the function doesn't do
+    test_order(sa);
+    test_inverse(sa);
+    test_lcp(sa);
+
     free_suffix_array(sa);
 
     string = (uint8_t *)"gacacacag";

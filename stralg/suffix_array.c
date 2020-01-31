@@ -31,7 +31,7 @@ int construction_cmpfunc(const void *a, const void *b)
 
 struct suffix_array *qsort_sa_construction(uint8_t *string)
 {
-    struct suffix_array *sa = allocate_sa(string);
+    struct suffix_array *sa = allocate_sa_(string);
     
     uint8_t **suffixes = malloc(sa->length * sizeof(uint8_t *));
     for (int i = 0; i < sa->length; ++i)
@@ -92,7 +92,7 @@ uint32_t lower_bound_search(
     const uint8_t *key
 ) {
     uint32_t L = 0, R = sa->length;
-    uint32_t key_len = strlen((char*)key);
+    uint32_t key_len = (uint32_t)strlen((char*)key);
     uint32_t mid;
     while (L < R) {
         mid = L + (R - L) / 2;
@@ -116,7 +116,7 @@ uint32_t upper_bound_search(
     const uint8_t *key
 ) {
     uint32_t L = 0, R = sa->length;
-    uint32_t key_len = strlen((char*)key);
+    uint32_t key_len = (uint32_t)strlen((char*)key);
     uint32_t mid;
     while (L < R) {
         mid = L + (R - L) / 2;
@@ -201,7 +201,7 @@ void init_sa_match_iter(
 ) {
     iter->sa = sa;
 
-    uint32_t key_len = strlen((char*)key);
+    uint32_t key_len = (uint32_t)strlen((char*)key);
     uint32_t L = 0, R = sa->length;
     
     for (uint32_t i = 0; i < key_len; i++) {
@@ -251,7 +251,7 @@ struct suffix_array *read_suffix_array(
     FILE *f,
     uint8_t *string
 ) {
-    struct suffix_array *sa = allocate_sa(string);
+    struct suffix_array *sa = allocate_sa_(string);
     fread(sa->array, sizeof(*sa->array), sa->length, f);
     return sa;
 }

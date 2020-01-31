@@ -28,6 +28,12 @@ skew_sa_construction(
     uint8_t *string
 );
 
+struct suffix_array *
+sa_is_construction(
+    uint8_t *remapped_string,
+    uint32_t alphabet_size
+);
+
 // When you free the suffix array, you will not free the
 // underlying string.
 void free_suffix_array(

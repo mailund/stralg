@@ -40,7 +40,7 @@ uint8_t *str_rev_n(const uint8_t *x, uint32_t n)
 
 uint8_t *str_rev(const uint8_t *x)
 {
-    return str_rev_n(x, strlen((char *)x));
+    return str_rev_n(x, (uint32_t)strlen((char *)x));
 }
 
 

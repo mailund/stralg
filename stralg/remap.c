@@ -151,6 +151,19 @@ uint8_t *rev_remap_between0(
     return x + 1;
 }
 
+uint32_t remap_string(
+    uint8_t *output,
+    uint8_t *input
+) {
+    struct remap_table tbl;
+    init_remap_table(&tbl, input);
+    remap(output, input, &tbl);
+    uint32_t alphabet_size = tbl.alphabet_size;
+    dealloc_remap_table(&tbl);
+    return alphabet_size;
+}
+
+
 void write_remap_table(
     FILE *f,
     const struct remap_table *table
