@@ -157,9 +157,13 @@ static bool is_LMS_index(
     uint32_t n,
     uint32_t i
 ) {
-    // For the empty string it should be true
+    // For the empty string the first suffix should
+    // be LMS (the sentinel always is). Otherwise,
+    // the first index should never be -- there
+    // is no L before it. If we are not looking
+    // at the first index the test is
+    // straightforward.
     if (n == 0) return true;
-    // Otherwise it never is for the first position
     else if (i == 0) return false;
     else return s_index[i] == S && s_index[i - 1] == L;
 }
