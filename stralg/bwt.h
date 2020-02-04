@@ -54,7 +54,7 @@ struct bwt_table {
  @return the number at O[a,i].
  */
 static inline uint32_t o_index(unsigned char a, uint32_t i,
-                             const struct bwt_table *table)
+                               const struct bwt_table *table)
 {
     return a * (table->sa->length + 1) + i;
 }

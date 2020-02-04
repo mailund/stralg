@@ -125,7 +125,7 @@ struct bwt_table *build_complete_table(
     struct remap_table  *remap_table = alloc_remap_table(string);
     remap(remapped_str, string, remap_table);
 
-    struct suffix_array *sa = skew_sa_construction(remapped_str);
+    struct suffix_array *sa = sa_is_construction(remapped_str, remap_table->alphabet_size);
 
     struct suffix_array *rsa = 0;
     if (include_reverse) {
@@ -247,7 +247,7 @@ static void rec_approx_matching(
 
     uint32_t new_L;
     uint32_t new_R;
-    
+
     // M-operations
     unsigned char match_a = iter->remapped_pattern[i];
     // Iterating alphabet from 1 so I don't include the sentinel.
@@ -255,8 +255,7 @@ static void rec_approx_matching(
         
         new_L = C(a) + O(a, L);
         new_R = C(a) + O(a, R);
-        
-        
+                
         int edit_cost = (a == match_a) ? 0 : 1;
         if (edits_left - edit_cost < 0) continue;
         if (new_L >= new_R) continue;
@@ -410,7 +409,7 @@ void write_bwt_table(
     const struct bwt_table *bwt_table
 ) {
     uint32_t c_table_length = bwt_table->remap_table->alphabet_size;
-    uint32_t o_table_length = bwt_table->remap_table->alphabet_size * bwt_table->sa->length;
+    uint32_t o_table_length = bwt_table->remap_table->alphabet_size * (bwt_table->sa->length + 1);
     fwrite(bwt_table->c_table, sizeof(*bwt_table->c_table), c_table_length, f);
     fwrite(bwt_table->o_table, sizeof(*bwt_table->o_table), o_table_length, f);
     bool has_ro_table = bwt_table->ro_table;
@@ -441,7 +440,7 @@ struct bwt_table *read_bwt_table(
     bwt_table->remap_table = remap_table;
     bwt_table->sa = sa;   // shouldn't store these
     uint32_t c_table_length = remap_table->alphabet_size;
-    uint32_t o_table_length = remap_table->alphabet_size * sa->length;
+    uint32_t o_table_length = remap_table->alphabet_size * (sa->length + 1);
     
     bwt_table->c_table = malloc(sizeof(*bwt_table->c_table) * c_table_length);
     bwt_table->o_table = malloc(sizeof(*bwt_table->o_table) * o_table_length);

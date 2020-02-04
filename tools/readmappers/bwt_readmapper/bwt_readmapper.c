@@ -11,9 +11,6 @@
 #include <stdbool.h>
 #include <getopt.h>
 
-//#define BUILD_TABLES
-
-
 static const char *suffix = "bwttables";
 
 static void preprocess(const char *fasta_fname)
@@ -86,33 +83,7 @@ static struct string_table *new_string_table(const char *name,
     return res;
 }
 
-#if BUILD_TABLES
-static struct string_table *build_string_tables(struct fasta_records *fasta_records)
-{
-    struct string_table *tables = 0;
-    
-    struct fasta_iter iter;
-    struct fasta_record rec;
-    
-    init_fasta_iter(&iter, fasta_records);
-    while (next_fasta_record(&iter, &rec)) {
-        const char *name = rec.name;
-        
-        struct remap_table *remap_table = alloc_remap_table(rec.seq);
-        
-        char *remapped_seq = malloc(rec.seq_len + 1);
-        remap(remapped_seq, rec.seq, remap_table);
-        struct suffix_array *sa = qsort_sa_construction(remapped_seq);
-        
-        struct bwt_table *bwt_table = alloc_bwt_table(sa, remap_table);
-        
-        tables = new_string_table(name, bwt_table, tables);
-    }
-    dealloc_fasta_iter(&iter);
-    
-    return tables;
-}
-#endif
+
 
 static struct string_table *read_string_tables(const char *fasta_fname)
 {
@@ -159,7 +130,7 @@ void map_read(struct fastq_record *fastq_rec,
               int d,
               FILE *samfile)
 {
-    uint8_t remap_buf[1000];
+    uint8_t remap_buf[10000];
     
     while (records) {
         const uint8_t *remapped = remap(remap_buf,
@@ -260,35 +231,7 @@ int main(int argc, char **argv)
         fasta_fname = argv[0];
         fastq_fname = argv[1];
         
-#ifdef BUILD_TABLES
-        // CURRENT ATTEMPT
-        enum error_codes err;
-        struct fasta_records *fasta_records =
-            load_fasta_records(fasta_fname, &err);
-        switch (err) {
-            case NO_ERROR:
-                break;
-                
-            case CANNOT_OPEN_FILE:
-                printf("Cannot open fasta file: %s\n", fasta_fname);
-                perror("Error");
-                exit(EXIT_FAILURE);
-                
-            case MALFORMED_FILE:
-                printf("The fasta file is malformed: %s\n", fasta_fname);
-                exit(EXIT_FAILURE);
-                
-            default:
-                assert(false); // this is not an error the function should return
-        }
-        
-#warning building instead of reading preprocessed...
-        struct string_table *tables = build_string_tables(fasta_records);
-
-#else
-
         struct string_table *tables = read_string_tables(fasta_fname);
-#endif
         
         FILE *samfile = stdout; // FIXME: option for writing to a file?
         FILE *fastq_file = fopen(fastq_fname, "r");
@@ -307,10 +250,6 @@ int main(int argc, char **argv)
         dealloc_fastq_iter(&fastq_iter);
         free_string_tables(tables);
 
-#ifdef BUILD_TABLES
-        free_fasta_records(fasta_records);
-#endif
-        
     }
     
     return EXIT_SUCCESS;

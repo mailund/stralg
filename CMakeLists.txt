@@ -9,6 +9,13 @@ set(CMAKE_MODULE_PATH
 )
 include(CTest)
 
+message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
+
+set(CMAKE_CXX_FLAGS "-O3 -Wall -Wextra")
+set(CMAKE_CXX_FLAGS_DEBUG "-g -Wall -Wextra")
+
+
+
 # I stole this one from https://tinyurl.com/yxfkjh7j
 # It lets me organise files in folders in Xcode.
 MACRO(SOURCE_GROUP_BY_FOLDER target)
