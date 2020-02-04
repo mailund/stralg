@@ -32,14 +32,14 @@ declare -a references=(
 )
 
 # Reference genomes
-declare -a reads=(
+declare -a read_files=(
     reads/reads-100-10-0.fq
     reads/reads-100-10-1.fq
     reads/reads-100-100-1.fq
     reads/reads-100-100-2.fq
-#    reads/reads-1000-100-1.fq
-#    reads/reads-1000-100-2.fq
-#    reads/reads-1000-200-1.fq
+    reads/reads-1000-100-1.fq
+    reads/reads-1000-100-2.fq
+    reads/reads-1000-200-1.fq
 )
 
 
@@ -88,7 +88,7 @@ for i in ${!references[@]}; do
         mapper=`eval echo ${preprocess_commands[$j]}`
         printf "   • Mapper $(tput setaf 2)${name}$(tput sgr0) "
         echo "${mapper}" >> ${log_file}
-        ${mapper} 1&>2 2>> $log_file
+        ${mapper} >> $log_file 2>> $log_file
         if [ $? -ne 0 ]; then
             failure_tick "Preprocessing failed. Check $(tput setaf 4)$(tput bold)`basename ${log_file}`$(tput sgr0) for further information."
         fi
@@ -102,8 +102,8 @@ printf "\n$(tput bold)MAPPING$(tput sgr0)\n\n"
 for i in ${!references[@]}; do
     ref=${references[$i]}
     printf "$(tput bold)Reference $(tput setaf 4)${ref}$(tput sgr0)\n"
-    for k in ${!reads[@]}; do
-        reads=${reads[$k]}
+    for k in ${!read_files[@]}; do
+        reads=${read_files[$k]}
         printf "   • Reads $(tput setaf 3)${reads}$(tput sgr0)\n"
         for j in ${!mappers[@]}; do
             name=${mappers[$j]}
@@ -113,7 +113,7 @@ for i in ${!references[@]}; do
 
             for ((i = 0; i < $N; i++)); do
                 #{ time -p "${mapper}" 1&>2 2> /dev/null ; } 2> _time.txt
-                { time -p ${mapper} > /dev/null; } 2> _time.txt
+                { time -p ${mapper} > /dev/null 2> /dev/null; } 2> _time.txt
                 if [ $? -ne 0 ]; then
                     failure_tick "Mapping failed. Check $(tput setaf 4)$(tput bold)`basename ${log_file}`$(tput sgr0) for further information."
                 fi

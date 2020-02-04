@@ -56,7 +56,8 @@ struct bwt_table {
 static inline uint32_t o_index(unsigned char a, uint32_t i,
                                const struct bwt_table *table)
 {
-    return a * (table->sa->length + 1) + i;
+    return i * table->remap_table->alphabet_size + a;
+    //a * (table->sa->length + 1) + i;
 }
 
 // these macros just make the notation nices, but they do require

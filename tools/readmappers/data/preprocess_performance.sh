@@ -6,7 +6,7 @@
 # Mappers
 declare -a mappers=(
     BWA
-    BWT
+    BWTv2
 )
 declare -a mapper_commands=(
     "bwa index"
@@ -71,7 +71,7 @@ for i in ${!references[@]}; do
         for ((i = 0; i < $N; i++)); do
             
             echo "${mapper} ${ref}" >> ${log_file}
-            { time -p ${mapper} ${ref} 1&>2 2>> $log_file ; } 2> _time.txt
+            { time -p ${mapper} ${ref} ${mapper} 2>&1 2>> $log_file ; } 2> _time.txt
             
             if [ $? -ne 0 ]; then
                 rm _time.txt
