@@ -159,3 +159,29 @@ tools/readmappers/scripts/logs/BWT.preprocess.log
 tools/readmappers/scripts/logs/Exact.preprocess.log
 performance/Approx matching comparison.pdf
 performance/BWT construction time comparison.pdf
+tools/readmappers/data/1
+tools/readmappers/data/2
+tools/readmappers/data/preprocessing-report.txt
+tools/readmappers/data/preprocessing.log
+tools/readmappers/data/readmapping-report.txt
+tools/readmappers/data/readmapping.log
+tools/readmappers/data/time.txt
+tools/readmappers/data/genomes/hg38-1000.fa.amb
+tools/readmappers/data/genomes/hg38-1000.fa.ann
+tools/readmappers/data/genomes/hg38-1000.fa.bwt
+tools/readmappers/data/genomes/hg38-1000.fa.pac
+tools/readmappers/data/genomes/hg38-1000.fa.sa
+tools/readmappers/data/genomes/hg38-10000.fa.amb
+tools/readmappers/data/genomes/hg38-10000.fa.ann
+tools/readmappers/data/genomes/hg38-10000.fa.bwt
+tools/readmappers/data/genomes/hg38-10000.fa.pac
+tools/readmappers/data/genomes/hg38-10000.fa.sa
+tools/readmappers/data/genomes/hg38-100000.fa.amb
+tools/readmappers/data/genomes/hg38-100000.fa.ann
+tools/readmappers/data/genomes/hg38-100000.fa.bwt
+tools/readmappers/data/genomes/hg38-100000.fa.pac
+tools/readmappers/data/genomes/hg38-100000.fa.sa
+tools/readmappers/data/genomes/hg38-1000000.fa.amb
+tools/readmappers/data/genomes/hg38-1000000.fa.ann
+tools/readmappers/data/genomes/hg38-1000000.fa.bwt
+tools/readmappers/data/genomes/hg38-1000000.fa.pac
