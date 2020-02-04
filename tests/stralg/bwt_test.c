@@ -11,7 +11,7 @@
 static void test_expected(const struct bwt_table *bwt_table)
 {
     const struct remap_table *remap_table = bwt_table->remap_table;
-    struct suffix_array *sa = bwt_table->sa;
+    //struct suffix_array *sa = bwt_table->sa;
     
     uint32_t expected_c[] = {
         0, 1, 5, 6, 8
