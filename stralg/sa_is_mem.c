@@ -89,7 +89,6 @@ static void reduce_SA(
     uint32_t *names_buf,
     bool *s_index,
     uint32_t *new_alphabet_size,
-    uint32_t *reduced_string,
     uint32_t *reduced_offsets,
     uint32_t *new_string_length
 );
@@ -112,7 +111,6 @@ static void sort_SA(
     uint32_t n,
     uint32_t *SA,
     uint32_t *names_buf,
-    uint32_t *summary_string,
     uint32_t *summary_offsets,
     uint32_t *buckets,
     bool *s_index,
@@ -300,10 +298,11 @@ static void reduce_SA(
     uint32_t *names_buf,
     bool *s_index,
     uint32_t *new_alphabet_size,
-    uint32_t *summary_string,
     uint32_t *summary_offsets,
     uint32_t *new_string_length
 ) {
+    uint32_t *summary_string = SA;
+    
     memset(names_buf, UNDEFINED, (n + 1) * sizeof(uint32_t));
 
     // Start names at one so we save zero for sentinel
@@ -345,7 +344,6 @@ static void recursive_sorting(
     uint32_t *names_buf,
     bool * s_index,
     uint32_t *buckets,
-    uint32_t *reduced_string,
     uint32_t *reduced_offsets,
     uint32_t alphabet_size
 ) {
@@ -363,18 +361,16 @@ static void recursive_sorting(
               names_buf,
               s_index,
               &new_alphabet_size,
-              reduced_string,
               reduced_offsets,
               &new_string_length);
+    uint32_t *reduced_string = SA;
     
     uint32_t *new_SA = malloc(sizeof(uint32_t) * (new_string_length + 1));
-    uint32_t *new_summary_string = malloc(sizeof(uint32_t) * (new_string_length + 1));
     uint32_t *new_summary_offsets = malloc(sizeof(uint32_t) * (new_string_length + 1));
     
-    sort_SA(reduced_string, new_string_length,
+    sort_SA(SA, new_string_length,
             new_SA,
             names_buf,
-            new_summary_string,
             new_summary_offsets,
             buckets,
             s_index,
@@ -395,7 +391,6 @@ static void recursive_sorting(
     induce_S(x, n, alphabet_size, SA, s_index, buckets);
     
     free(new_SA);
-    free(new_summary_string);
     free(new_summary_offsets);
 }
 
@@ -404,7 +399,6 @@ void sort_SA(
     uint32_t n,
     uint32_t *SA,
     uint32_t *names_buf,
-    uint32_t *summary_string,
     uint32_t *summary_offsets,
     uint32_t *buckets,
     bool *s_index,
@@ -432,7 +426,6 @@ void sort_SA(
             names_buf,
             s_index,
             buckets,
-            summary_string,
             summary_offsets,
             alphabet_size
         );
@@ -481,25 +474,22 @@ sa_is_mem_construction(
     // Allocate all buffers
     uint32_t *SA = malloc((n + 1) * sizeof(uint32_t));
     uint32_t *names_buf = malloc((n + 1) * sizeof(uint32_t));
-    uint32_t *summary_string = malloc((n + 1) * sizeof(uint32_t));
     uint32_t *summary_offsets = malloc((n + 1) * sizeof(uint32_t));
+#warning replace bool array with bit vector
     bool *s_index = malloc((n + 1) * sizeof(bool));
     uint32_t max_alphabet_size = (alphabet_size > (n / 2 + 1)) ? alphabet_size : n / 2 + 1;
     uint32_t *buckets = malloc(max_alphabet_size * sizeof(uint32_t));
-    uint32_t *bucket_endpoints = malloc(max_alphabet_size * sizeof(uint32_t));
     
     // Sort in buffer and then move the result to the suffix array
     sort_SA(s, n, SA, names_buf,
-            summary_string, summary_offsets,
+            summary_offsets,
             buckets, s_index, alphabet_size);
     memcpy(sa->array, SA, (n + 1) * sizeof(uint32_t));
     
     // Free all buffers
-    free(bucket_endpoints);
     free(buckets);
     free(s_index);
     free(summary_offsets);
-    free(summary_string);
     free(SA);
     free(s);
     
