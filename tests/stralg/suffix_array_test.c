@@ -224,6 +224,15 @@ int main(int argc, char *argv[])
 
     free_suffix_array(sa);
 
+    sa = sa_is_mem_construction(remapped_string, alphabet_size);
+    // don't run the search test here. It requires
+    // remapping which the function doesn't do
+    test_order(sa);
+    test_inverse(sa);
+    test_lcp(sa);
+
+    free_suffix_array(sa);
+
     string = (uint8_t *)"gacacacag";
     sa = qsort_sa_construction(string);
     printf("\n");

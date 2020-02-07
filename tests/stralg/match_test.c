@@ -527,7 +527,29 @@ static void general_suffix_test(struct index_vector *naive,
     assert(index_vector_equal(naive, &sa_results));
     
     dealloc_index_vector(&sa_results);
+
+    sa = sa_is_mem_construction(remapped_string, tbl.alphabet_size);
+    assert(suffix_array_equal(test_sa, sa));
+    init_index_vector(&sa_results, 10);
     
+    init_sa_match_iter(&sa_iter, remapped_pattern, sa);
+    while (next_sa_match(&sa_iter, &sa_match)) {
+        index_vector_append(&sa_results, sa_match.position);
+    }
+    dealloc_sa_match_iter(&sa_iter);
+    dealloc_remap_table(&tbl);
+    
+    sort_index_vector(&sa_results);
+    
+    printf("naive:\n");
+    print_index_vector(naive);
+    printf("sa-is:\n");
+    print_index_vector(&sa_results);
+    
+    assert(index_vector_equal(naive, &sa_results));
+    
+    dealloc_index_vector(&sa_results);
+
     free_suffix_array(sa);
     free_suffix_array(test_sa);
 }

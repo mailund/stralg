@@ -24,7 +24,7 @@ add_library(stralg SHARED
 	suffix_array.h suffix_array.c
 	suffix_array_internal.h suffix_array_internal.c
 	skew.c
-	sa_is.c
+	sa_is.c sa_is_mem.c
 
 
 	suffix_tree.h suffix_tree.c

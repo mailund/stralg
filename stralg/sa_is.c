@@ -290,7 +290,9 @@ static bool equal_LMS(
         // if one string ends before another or we
         // have different characters the strings are
         // different
-        if (i_LMS != j_LMS || x[i + k] != x[j + k]) {
+        if (i_LMS != j_LMS
+            || x[i + k] != x[j + k]
+            || s_index[i + k] != s_index[j + k]) {
             return false;
         }
         k++;
@@ -403,7 +405,6 @@ static void recursive_sorting(
               SA);
     induce_L(x, n, alphabet_size, SA, s_index, buckets, bucket_endpoints);
     induce_S(x, n, alphabet_size, SA, s_index, buckets, bucket_endpoints);
-     
 }
 
 void sort_SA(
@@ -469,7 +470,6 @@ void remap_LMS(
         SA[--(bucket_ends[bucket_idx])] = idx;
     }
     SA[0] = n;
-    
 }
 
 struct suffix_array *

@@ -34,6 +34,12 @@ sa_is_construction(
     uint32_t alphabet_size
 );
 
+struct suffix_array *
+sa_is_mem_construction(
+    uint8_t *remapped_string,
+    uint32_t alphabet_size
+);
+
 // When you free the suffix array, you will not free the
 // underlying string.
 void free_suffix_array(
