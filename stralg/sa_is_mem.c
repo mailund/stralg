@@ -38,15 +38,13 @@ static void find_buckets_beginnings(
     uint32_t *x,
     uint32_t n,
     uint32_t alphabet_size,
-    uint32_t *buckets,
-    uint32_t *beginnings
+    uint32_t *buckets
 );
 static void find_buckets_ends(
     uint32_t *x,
     uint32_t n,
     uint32_t alphabet_size,
-    uint32_t *buckets,
-    uint32_t *ends
+    uint32_t *buckets
 );
 
 static void place_LMS(
@@ -55,8 +53,7 @@ static void place_LMS(
     uint32_t alphabet_size,
     uint32_t *SA,
     bool *s_index,
-    uint32_t *buckets,
-    uint32_t *bucket_ends
+    uint32_t *buckets
 );
 
 static void induce_L(
@@ -65,8 +62,7 @@ static void induce_L(
     uint32_t alphabet_size,
     uint32_t *SA,
     bool *s_index,
-    uint32_t *buckets,
-    uint32_t *bucket_ends
+    uint32_t *buckets
 );
 
 static void induce_S(
@@ -75,8 +71,7 @@ static void induce_S(
     uint32_t alphabet_size,
     uint32_t *SA,
     bool *s_index,
-    uint32_t *buckets,
-    uint32_t *bucket_starts
+    uint32_t *buckets
 );
 
 static bool equal_LMS(
@@ -103,7 +98,6 @@ static void remap_LMS(
     uint32_t *x,
     uint32_t n,
     uint32_t *buckets,
-    uint32_t *buckets_ends,
     uint32_t alphabet_size,
     bool *s_index,
     uint32_t *reduced_string,
@@ -121,7 +115,6 @@ static void sort_SA(
     uint32_t *summary_string,
     uint32_t *summary_offsets,
     uint32_t *buckets,
-    uint32_t *bucket_endpoints,
     bool *s_index,
     uint32_t alphabet_size
 );
@@ -184,26 +177,27 @@ static void find_buckets_beginnings(
     uint32_t *x,
     uint32_t n,
     uint32_t alphabet_size,
-    uint32_t *buckets,
-    uint32_t *beginnings
+    uint32_t *buckets
 ) {
-    beginnings[0] = 0;
-    for (uint32_t i = 1; i < alphabet_size; ++i) {
-        beginnings[i] = beginnings[i - 1] + buckets[i - 1];
+    compute_buckets(x, n, alphabet_size, buckets);
+    uint32_t sum = 0;
+    for (uint32_t i = 0; i < alphabet_size; ++i) {
+        sum += buckets[i];
+        buckets[i] = sum - buckets[i];
     }
-
 }
 
 static void find_buckets_ends(
     uint32_t *x,
     uint32_t n,
     uint32_t alphabet_size,
-    uint32_t *buckets,
-    uint32_t *ends
+    uint32_t *buckets
 ) {
-    ends[0] = buckets[0];
-    for (uint32_t i = 1; i < alphabet_size; ++i) {
-        ends[i] = ends[i - 1] + buckets[i];
+    compute_buckets(x, n, alphabet_size, buckets);
+    uint32_t sum = 0;
+    for (uint32_t i = 0; i < alphabet_size; ++i) {
+        sum += buckets[i];
+        buckets[i] = sum;
     }
 }
 
@@ -213,13 +207,12 @@ void place_LMS(
     uint32_t alphabet_size,
     uint32_t *SA,
     bool *s_index,
-    uint32_t *buckets,
-    uint32_t *bucket_ends
+    uint32_t *buckets
 ) {
-    find_buckets_ends(x, n, alphabet_size, buckets, bucket_ends);
+    find_buckets_ends(x, n, alphabet_size, buckets);
     for (uint32_t i = 0; i < n + 1; ++i) {
         if (is_LMS_index(s_index, n, i)) {
-            SA[--(bucket_ends[x[i]])] = i;
+            SA[--(buckets[x[i]])] = i;
         }
     }
 }
@@ -230,10 +223,10 @@ static void induce_L(
     uint32_t alphabet_size,
     uint32_t *SA,
     bool *s_index,
-    uint32_t *buckets,
-    uint32_t *bucket_starts
+    uint32_t *buckets
 ) {
-    find_buckets_beginnings(x, n, alphabet_size, buckets, bucket_starts);
+    find_buckets_beginnings(x, n, alphabet_size, buckets);
+    
     for (uint32_t i = 0; i < n + 1; ++i) {
         if (SA[i] == UNDEFINED) continue; // Not initialised yet
         
@@ -243,7 +236,7 @@ static void induce_L(
         
         uint32_t j = SA[i] - 1;
         if (s_index[j] == L) {
-            SA[(bucket_starts[x[j]])++] = j;
+            SA[(buckets[x[j]])++] = j;
         }
     }
 }
@@ -255,16 +248,15 @@ static void induce_S(
     uint32_t alphabet_size,
     uint32_t *SA,
     bool *s_index,
-    uint32_t *buckets,
-    uint32_t *bucket_ends
+    uint32_t *buckets
 ) {
-    find_buckets_ends(x, n, alphabet_size, buckets, bucket_ends);
+    find_buckets_ends(x, n, alphabet_size, buckets);
     for (uint32_t i = n + 1; i > 0; --i) {
         // We do not have a string to the left of the first
         if (SA[i - 1] == 0) continue;
         uint32_t j = SA[i - 1] - 1;
         if (s_index[j] == S) {
-            SA[--(bucket_ends[x[j]])] = j;
+            SA[--(buckets[x[j]])] = j;
         }
     }
 }
@@ -353,7 +345,6 @@ static void recursive_sorting(
     uint32_t *names_buf,
     bool * s_index,
     uint32_t *buckets,
-    uint32_t *bucket_endpoints,
     uint32_t *reduced_string,
     uint32_t *reduced_offsets,
     uint32_t alphabet_size
@@ -362,9 +353,9 @@ static void recursive_sorting(
     compute_buckets(x, n, alphabet_size, buckets);
 
     memset(SA, UNDEFINED, (n + 1) * sizeof(uint32_t));
-    place_LMS(x, n, alphabet_size, SA, s_index, buckets, bucket_endpoints);
-    induce_L(x, n, alphabet_size, SA, s_index, buckets, bucket_endpoints);
-    induce_S(x, n, alphabet_size, SA, s_index, buckets, bucket_endpoints);
+    place_LMS(x, n, alphabet_size, SA, s_index, buckets);
+    induce_L(x, n, alphabet_size, SA, s_index, buckets);
+    induce_S(x, n, alphabet_size, SA, s_index, buckets);
     
     uint32_t new_alphabet_size;
     uint32_t new_string_length;
@@ -386,7 +377,6 @@ static void recursive_sorting(
             new_summary_string,
             new_summary_offsets,
             buckets,
-            bucket_endpoints,
             s_index,
             new_alphabet_size);
     classify_SL(x, s_index, n);
@@ -395,14 +385,14 @@ static void recursive_sorting(
 
     memset(SA, UNDEFINED, (n + 1) * sizeof(uint32_t));
     remap_LMS(x, n,
-              buckets, bucket_endpoints,
+              buckets,
               alphabet_size,
               s_index,
               reduced_string,
               new_string_length, new_SA, reduced_offsets,
               SA);
-    induce_L(x, n, alphabet_size, SA, s_index, buckets, bucket_endpoints);
-    induce_S(x, n, alphabet_size, SA, s_index, buckets, bucket_endpoints);
+    induce_L(x, n, alphabet_size, SA, s_index, buckets);
+    induce_S(x, n, alphabet_size, SA, s_index, buckets);
     
     free(new_SA);
     free(new_summary_string);
@@ -417,7 +407,6 @@ void sort_SA(
     uint32_t *summary_string,
     uint32_t *summary_offsets,
     uint32_t *buckets,
-    uint32_t *bucket_endpoints,
     bool *s_index,
     uint32_t alphabet_size
 ) {
@@ -443,7 +432,6 @@ void sort_SA(
             names_buf,
             s_index,
             buckets,
-            bucket_endpoints,
             summary_string,
             summary_offsets,
             alphabet_size
@@ -455,7 +443,6 @@ void remap_LMS(
     uint32_t *x,
     uint32_t n,
     uint32_t *buckets,
-    uint32_t *bucket_ends,
     uint32_t alphabet_size,
     bool *s_index,
     uint32_t *reduced_string,
@@ -464,12 +451,12 @@ void remap_LMS(
     uint32_t *reduced_offsets,
     uint32_t *SA
 ) {
-    find_buckets_ends(x, n, alphabet_size, buckets, bucket_ends);
+    find_buckets_ends(x, n, alphabet_size, buckets);
 
     for (uint32_t i = reduced_length + 1; i > 0; --i) {
         uint32_t idx = reduced_offsets[reduced_SA[i - 1]];
         uint32_t bucket_idx = x[idx];
-        SA[--(bucket_ends[bucket_idx])] = idx;
+        SA[--(buckets[bucket_idx])] = idx;
     }
     SA[0] = n;
 }
@@ -497,14 +484,14 @@ sa_is_mem_construction(
     uint32_t *summary_string = malloc((n + 1) * sizeof(uint32_t));
     uint32_t *summary_offsets = malloc((n + 1) * sizeof(uint32_t));
     bool *s_index = malloc((n + 1) * sizeof(bool));
-    uint32_t max_alphabet_size = (alphabet_size > (n / 2 + 1)) ? alphabet_size : n + 1;
+    uint32_t max_alphabet_size = (alphabet_size > (n / 2 + 1)) ? alphabet_size : n / 2 + 1;
     uint32_t *buckets = malloc(max_alphabet_size * sizeof(uint32_t));
     uint32_t *bucket_endpoints = malloc(max_alphabet_size * sizeof(uint32_t));
     
     // Sort in buffer and then move the result to the suffix array
     sort_SA(s, n, SA, names_buf,
             summary_string, summary_offsets,
-            buckets, bucket_endpoints, s_index, alphabet_size);
+            buckets, s_index, alphabet_size);
     memcpy(sa->array, SA, (n + 1) * sizeof(uint32_t));
     
     // Free all buffers
