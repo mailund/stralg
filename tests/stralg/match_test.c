@@ -504,7 +504,12 @@ static void general_suffix_test(struct index_vector *naive,
     uint8_t remapped_string[strlen((char *)string) + 1];
     remap(remapped_string, string, &tbl);
     uint8_t remapped_pattern[strlen((char *)pattern) + 1];
-    remap(remapped_pattern, pattern, &tbl);
+    uint8_t *x = remap(remapped_pattern, pattern, &tbl);
+    if (!x) {
+        // we couldn't map this pattern because it has
+        // characters not in the string
+        return;
+    }
     
     sa = sa_is_construction(remapped_string, tbl.alphabet_size);
     assert(suffix_array_equal(test_sa, sa));
@@ -676,8 +681,8 @@ int main(int argc, char * argv[])
             "acacacg",
             "gacacacag",
             "acacacag",
-            "acacaca",
-            "acataca",
+            "acagcaca",
+            "acatgaca",
             "acgc",
             "ccgc",
             "aaaaaaaaa"

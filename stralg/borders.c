@@ -91,6 +91,7 @@ void compute_z_array(
     uint32_t *Z
 ) {
     Z[0] = 0;
+    if (n == 1) return; // a special case
     Z[1] = match(x, x + 1);
     uint32_t l = 1;
     uint32_t r = l + Z[1];

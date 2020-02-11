@@ -1,5 +1,6 @@
 #include "remap.h"
 #include <string.h>
+#include <assert.h>
 
 // this remap could be a lot easier if I didn't preserve
 // the input order, but I prefer to do so for debugging
