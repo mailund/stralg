@@ -299,16 +299,62 @@ static void reduce_SA(
     uint32_t *summary_offsets,
     uint32_t *new_string_length
 ) {
+    // FIXME???
     uint32_t *summary_string = SA;
+    
+    // Pack the LMS strings into the first half of the
+    // SA buffer. After that we are free to use the
+    // second half of the array
+#warning use SA
+    uint32_t *large_buffer = malloc(sizeof(uint32_t) * (n + 1));
+    uint32_t *compacted = large_buffer; // SA;
+    uint32_t n1 = 0;
+    for (uint32_t i = 0; i < n + 1; ++i) {
+        if (is_LMS_index(s_index, n, SA[i])) {
+            compacted[n1++] = SA[i];
+        }
+    }
+
+    // Now collect the names in the upper half of the array
+#define half_pos(pos) (pos % 2 == 0) ? pos / 2 : (pos - 1) / 2
+#warning use SA
+    uint32_t *names = large_buffer + n1;
+    memset(names, UNDEFINED, sizeof(uint32_t) * (n + 1 - n1));
+    uint32_t name = 0;
+    names[half_pos(compacted[0])] = name;
+    uint32_t last_suffix = compacted[0];
+
+    for (uint32_t i = 1; i < n1; i++) {
+        uint32_t j = compacted[i];
+        if (!equal_LMS(x, n, s_index, last_suffix, j)) {
+            name++;
+        }
+        last_suffix = j;
+        names[half_pos(j)] = name;
+    }
+    
+    // Finally, construct the reduced string
+    // by shifting the names down. They are in order
+    // now so we really only need the right number of
+    // copies and we get them this way.
+    uint32_t *reduced = large_buffer + n1;
+    uint32_t j = 0;
+    for (uint32_t i = 0; i < n + 1 - n1; ++i) {
+        if (names[i] != UNDEFINED) {
+            reduced[j++] = names[i];
+        }
+    }
+   
     
     memset(names_buf, UNDEFINED, (n + 1) * sizeof(uint32_t));
 
     // Start names at one so we save zero for sentinel
-    uint32_t name = 0;
+    name = 0;
+    
     
     names_buf[SA[0]] = name;
-    uint32_t last_suffix = SA[0];
-    
+    printf("names buf[%u] = %u\n", SA[0], name);
+    /*uint32_t*/ last_suffix = SA[0];
     for (uint32_t i = 1; i < n + 1; i++) {
         uint32_t j = SA[i];
         if (!is_LMS_index(s_index, n, j)) continue;
@@ -317,12 +363,22 @@ static void reduce_SA(
         }
         last_suffix = j;
         names_buf[j] = name;
+        printf("names buf[%u] = %u\n", j, name);
     }
+    
+    for (uint32_t i = 0; i < n + 1 - n1; ++i) {
+        printf("names[%u] = %u\n", i, names[i]);
+    }
+    
+    /*
+    for (uint32_t i = 0; i < n + 1; ++i) {
+        printf("names buf[%u] = %u\n", i, names_buf[i]);
+    }*/
     
     // One larger than the largest name used
     *new_alphabet_size = name + 1;
     
-    uint32_t j = 0;
+    j = 0;
     for (uint32_t i = 0; i < n + 1; i++) {
         name = names_buf[i];
         if (name == UNDEFINED) continue;
@@ -331,6 +387,17 @@ static void reduce_SA(
         j++;
     }
     *new_string_length = j - 1; // we don't include sentinel in the length
+    
+    assert(n1 == *new_string_length + 1);
+    for (uint32_t i = 0; i < *new_string_length + 1; ++i) {
+        printf("summary[%u] == %u\n", i, summary_string[i]);
+    }
+    for (uint32_t i = 0; i < n1; ++i) {
+        printf("reduced[%u] == %u\n", i, reduced[i]);
+    }
+    for (uint32_t i = 0; i < n1; ++i) {
+        assert(summary_string[i] == reduced[i]);
+    }
 }
 
 
