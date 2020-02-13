@@ -384,19 +384,20 @@ static void recursive_sorting(
         }
     }
     
+    // don't use space on this for the recursive call
     free(s_index);
     
     uint32_t *new_SA = malloc(sizeof(uint32_t) * (new_string_length + 1));
-    uint32_t *new_summary_offsets = malloc(sizeof(uint32_t) * (new_string_length + 1));
     
     sort_SA(SA, // FIXME: the reduced string is at SA + new_string_length
             new_string_length,
             new_SA, // We should be able to use SA here
             new_alphabet_size);
-    
+
+    // get arrays back
     s_index = malloc((n + 1) * sizeof(bool));
+    classify_SL(x, s_index, n);
     buckets = malloc(alphabet_size * sizeof(uint32_t));
-    classify_SL(x, s_index, n); // FIXME: this isn't changed in any calls, is it?
     compute_buckets(x, n, alphabet_size, buckets);
 
     remap_LMS(x, n,
@@ -407,11 +408,12 @@ static void recursive_sorting(
               new_SA, // FIXME: use SA here
               offsets,
               SA);
+
+    free(new_SA);
+
     induce_L(x, n, alphabet_size, SA, s_index, buckets);
     induce_S(x, n, alphabet_size, SA, s_index, buckets);
     
-    free(new_SA);
-    free(new_summary_offsets);
     
     free(buckets);
     free(s_index);
