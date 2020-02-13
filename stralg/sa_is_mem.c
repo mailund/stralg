@@ -340,28 +340,7 @@ static void reduce_SA(
             reduced[j++] = names[i];
         }
     }
-   
-    
-    memset(names_buf, UNDEFINED, (n + 1) * sizeof(uint32_t));
-
-    // Start names at one so we save zero for sentinel
-    name = 0;
-    
-    
-    names_buf[SA[0]] = name;
-    printf("names buf[%u] = %u\n", SA[0], name);
-    /*uint32_t*/ last_suffix = SA[0];
-    for (uint32_t i = 1; i < n + 1; i++) {
-        uint32_t j = SA[i];
-        if (!is_LMS_index(s_index, n, j)) continue;
-        if (!equal_LMS(x, n, s_index, last_suffix, j)) {
-            name++;
-        }
-        last_suffix = j;
-        names_buf[j] = name;
-        printf("names buf[%u] = %u\n", j, name);
-    }
-    
+ 
     // One larger than the largest name used
     *new_alphabet_size = name + 1;
     *new_string_length = n1 - 1; // we don't include sentinel in the length
@@ -379,6 +358,7 @@ static void recursive_sorting(
     uint32_t alphabet_size
 ) {
 #warning bit array
+#warning should s_index be allocated here or reused? or reallocated after recursive call?
     bool *s_index = malloc((n + 1) * sizeof(bool));
     uint32_t *buckets = malloc(alphabet_size * sizeof(uint32_t));
     classify_SL(x, s_index, n);
@@ -397,7 +377,7 @@ static void recursive_sorting(
               s_index,
               &new_alphabet_size,
               &new_string_length);
-    uint32_t *reduced_string = SA;
+    uint32_t *reduced_string = SA + new_string_length;
     
     // Compute the offsets we need to map
     // the reduced string to the original
@@ -412,23 +392,23 @@ static void recursive_sorting(
     uint32_t *new_SA = malloc(sizeof(uint32_t) * (new_string_length + 1));
     uint32_t *new_summary_offsets = malloc(sizeof(uint32_t) * (new_string_length + 1));
     
-    sort_SA(SA, new_string_length,
-            new_SA,
-            names_buf,
+    sort_SA(SA, // FIXME: the reduced string is at SA + new_string_length
+            new_string_length,
+            new_SA, // We should be able to use SA here
+            names_buf, // we can get rid of this guy
             new_alphabet_size);
     
     
     buckets = malloc(alphabet_size * sizeof(uint32_t));
-    classify_SL(x, s_index, n);
+    classify_SL(x, s_index, n); // FIXME: this isn't changed in any calls, is it?
     compute_buckets(x, n, alphabet_size, buckets);
 
-    memset(SA, UNDEFINED, (n + 1) * sizeof(uint32_t));
     remap_LMS(x, n,
               buckets,
               alphabet_size,
               s_index,
               new_string_length,
-              new_SA,
+              new_SA, // FIXME: use SA here
               offsets,
               SA);
     induce_L(x, n, alphabet_size, SA, s_index, buckets);
@@ -485,7 +465,7 @@ void remap_LMS(
     uint32_t *SA
 ) {
     find_buckets_ends(x, n, alphabet_size, buckets);
-
+    memset(SA, UNDEFINED, sizeof(uint32_t) * (n + 1));
     for (uint32_t i = reduced_length + 1; i > 0; --i) {
         uint32_t idx = reduced_offsets[reduced_SA[i - 1]];
         uint32_t bucket_idx = x[idx];
