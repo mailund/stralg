@@ -86,7 +86,6 @@ static void reduce_SA(
     uint32_t *x,
     uint32_t n,
     uint32_t *SA,
-    uint32_t *names_buf,
     bool *s_index,
     uint32_t *new_alphabet_size,
     uint32_t *new_string_length
@@ -108,7 +107,6 @@ static void sort_SA(
     uint32_t *x,
     uint32_t n,
     uint32_t *SA,
-    uint32_t *names_buf,
     uint32_t alphabet_size
 );
 
@@ -290,12 +288,11 @@ static void reduce_SA(
     uint32_t *x,
     uint32_t n,
     uint32_t *SA,
-    uint32_t *names_buf,
     bool *s_index,
     uint32_t *new_alphabet_size,
     uint32_t *new_string_length
 ) {
-    // FIXME???
+#warning FIXME
     uint32_t *summary_string = SA;
     
     // Pack the LMS strings into the first half of the
@@ -354,7 +351,6 @@ static void recursive_sorting(
     uint32_t *x,
     uint32_t n,
     uint32_t *SA,
-    uint32_t *names_buf,
     uint32_t alphabet_size
 ) {
 #warning bit array
@@ -373,7 +369,6 @@ static void recursive_sorting(
     uint32_t new_alphabet_size;
     uint32_t new_string_length;
     reduce_SA(x, n, SA,
-              names_buf,
               s_index,
               &new_alphabet_size,
               &new_string_length);
@@ -395,7 +390,6 @@ static void recursive_sorting(
     sort_SA(SA, // FIXME: the reduced string is at SA + new_string_length
             new_string_length,
             new_SA, // We should be able to use SA here
-            names_buf, // we can get rid of this guy
             new_alphabet_size);
     
     
@@ -425,7 +419,6 @@ void sort_SA(
     uint32_t *x,
     uint32_t n,
     uint32_t *SA,
-    uint32_t *names_buf,
     uint32_t alphabet_size
 ) {
     if (n == 0) {
@@ -447,7 +440,6 @@ void sort_SA(
     } else {
         recursive_sorting(
             x, n, SA,
-            names_buf,
             alphabet_size
         );
     }
@@ -493,15 +485,9 @@ sa_is_mem_construction(
     
     uint32_t *SA = sa->array;
     
-    // Allocate all buffers
-    uint32_t *names_buf = malloc((n + 1) * sizeof(uint32_t));
-    
     // Sort in buffer and then move the result to the suffix array
-    sort_SA(s, n, SA, names_buf,
-            alphabet_size);
+    sort_SA(s, n, SA, alphabet_size);
     
-    // Free all buffers
-    free(names_buf);
     free(s);
     
     return sa;
