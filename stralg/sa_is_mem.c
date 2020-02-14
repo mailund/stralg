@@ -292,15 +292,10 @@ static void reduce_SA(
     uint32_t *new_alphabet_size,
     uint32_t *new_string_length
 ) {
-#warning FIXME
-    uint32_t *summary_string = SA;
-    
     // Pack the LMS strings into the first half of the
     // SA buffer. After that we are free to use the
     // second half of the array
-#warning use SA
-    uint32_t *large_buffer = malloc(sizeof(uint32_t) * (n + 1));
-    uint32_t *compacted = large_buffer; // SA;
+    uint32_t *compacted = SA;
     uint32_t n1 = 0;
     for (uint32_t i = 0; i < n + 1; ++i) {
         if (is_LMS_index(s_index, n, SA[i])) {
@@ -310,8 +305,7 @@ static void reduce_SA(
 
     // Now collect the names in the upper half of the array
 #define half_pos(pos) (pos % 2 == 0) ? pos / 2 : (pos - 1) / 2
-#warning use SA
-    uint32_t *names = large_buffer + n1;
+    uint32_t *names = SA + n1;
     memset(names, UNDEFINED, sizeof(uint32_t) * (n + 1 - n1));
     uint32_t name = 0;
     names[half_pos(compacted[0])] = name;
@@ -330,7 +324,7 @@ static void reduce_SA(
     // by shifting the names down. They are in order
     // now so we really only need the right number of
     // copies and we get them this way.
-    uint32_t *reduced = large_buffer + n1;
+    uint32_t *reduced = SA + n1;
     uint32_t j = 0;
     for (uint32_t i = 0; i < n + 1 - n1; ++i) {
         if (names[i] != UNDEFINED) {
@@ -341,8 +335,6 @@ static void reduce_SA(
     // One larger than the largest name used
     *new_alphabet_size = name + 1;
     *new_string_length = n1 - 1; // we don't include sentinel in the length
-    
-    memcpy(summary_string, reduced, sizeof(uint32_t) * n1);
 }
 
 
@@ -354,11 +346,9 @@ static void recursive_sorting(
     uint32_t alphabet_size
 ) {
 #warning bit array
-#warning should s_index be allocated here or reused? or reallocated after recursive call?
     bool *s_index = malloc((n + 1) * sizeof(bool));
     uint32_t *buckets = malloc(alphabet_size * sizeof(uint32_t));
     classify_SL(x, s_index, n);
-    compute_buckets(x, n, alphabet_size, buckets);
 
     memset(SA, UNDEFINED, (n + 1) * sizeof(uint32_t));
     place_LMS(x, n, alphabet_size, SA, s_index, buckets);
@@ -372,11 +362,14 @@ static void recursive_sorting(
               s_index,
               &new_alphabet_size,
               &new_string_length);
-    uint32_t *reduced_string = SA + new_string_length;
+    uint32_t *reduced_string = SA + new_string_length + 1;
+    
     
     // Compute the offsets we need to map
     // the reduced string to the original
-    uint32_t *offsets = malloc(sizeof(uint32_t) * (new_string_length + 1)); // FIXME: place in reduced string
+    // FIXME: place in reduced string
+    // FIXME: how do I do this if I need the string below?
+    uint32_t *offsets = malloc(sizeof(uint32_t) * (new_string_length + 1));
     uint32_t j = 0;
     for (uint32_t i = 1; i < n + 1; ++i) {
         if (is_LMS_index(s_index, n, i)) {
@@ -387,9 +380,10 @@ static void recursive_sorting(
     // don't use space on this for the recursive call
     free(s_index);
     
+#warning get rid of this
     uint32_t *new_SA = malloc(sizeof(uint32_t) * (new_string_length + 1));
     
-    sort_SA(SA, // FIXME: the reduced string is at SA + new_string_length
+    sort_SA(reduced_string, // FIXME: the reduced string is at SA + new_string_length
             new_string_length,
             new_SA, // We should be able to use SA here
             new_alphabet_size);
@@ -398,7 +392,6 @@ static void recursive_sorting(
     s_index = malloc((n + 1) * sizeof(bool));
     classify_SL(x, s_index, n);
     buckets = malloc(alphabet_size * sizeof(uint32_t));
-    compute_buckets(x, n, alphabet_size, buckets);
 
     remap_LMS(x, n,
               buckets,
@@ -487,10 +480,8 @@ sa_is_mem_construction(
     }
     s[n] = 0;
     
-    uint32_t *SA = sa->array;
-    
     // Sort in buffer and then move the result to the suffix array
-    sort_SA(s, n, SA, alphabet_size);
+    sort_SA(s, n, sa->array, alphabet_size);
     
     free(s);
     
