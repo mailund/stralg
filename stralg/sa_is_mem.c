@@ -99,7 +99,6 @@ static void remap_LMS(
     bool *s_index,
     uint32_t reduced_length,
     uint32_t *new_SA,
-    uint32_t *reduced_offsets,
     uint32_t *SA
 );
 
@@ -365,17 +364,6 @@ static void recursive_sorting(
     uint32_t *reduced_string = SA + new_string_length + 1;
     
     
-    // Compute the offsets we need to map
-    // the reduced string to the original
-    // FIXME: place in reduced string
-    // FIXME: how do I do this if I need the string below?
-    uint32_t *offsets = malloc(sizeof(uint32_t) * (new_string_length + 1));
-    uint32_t j = 0;
-    for (uint32_t i = 1; i < n + 1; ++i) {
-        if (is_LMS_index(s_index, n, i)) {
-            offsets[j++] = i;
-        }
-    }
     
     // don't use space on this for the recursive call
     free(s_index);
@@ -383,9 +371,10 @@ static void recursive_sorting(
 #warning get rid of this
     uint32_t *new_SA = malloc(sizeof(uint32_t) * (new_string_length + 1));
     
-    sort_SA(reduced_string, // FIXME: the reduced string is at SA + new_string_length
+    sort_SA(reduced_string,
             new_string_length,
-            new_SA, // We should be able to use SA here
+#warning this should be SA
+            new_SA,
             new_alphabet_size);
 
     // get arrays back
@@ -393,15 +382,16 @@ static void recursive_sorting(
     classify_SL(x, s_index, n);
     buckets = malloc(alphabet_size * sizeof(uint32_t));
 
+
     remap_LMS(x, n,
               buckets,
               alphabet_size,
               s_index,
               new_string_length,
-              new_SA, // FIXME: use SA here
-              offsets,
+              new_SA, // FIXME: use SA here -- I cannot yet because i clear SA before I use new_SA
               SA);
 
+#warning FIXME
     free(new_SA);
 
     induce_L(x, n, alphabet_size, SA, s_index, buckets);
@@ -449,18 +439,41 @@ void remap_LMS(
     uint32_t alphabet_size,
     bool *s_index,
     uint32_t reduced_length,
-    uint32_t *reduced_SA,
-    uint32_t *reduced_offsets,
+    uint32_t *reduced_SA, // FIXME: get rid of this
     uint32_t *SA
 ) {
-    find_buckets_ends(x, n, alphabet_size, buckets);
-    memset(SA, UNDEFINED, sizeof(uint32_t) * (n + 1));
-    for (uint32_t i = reduced_length + 1; i > 0; --i) {
-        uint32_t idx = reduced_offsets[reduced_SA[i - 1]];
-        uint32_t bucket_idx = x[idx];
-        SA[--(buckets[bucket_idx])] = idx;
+    // Compute the offsets we need to map
+    // the reduced string to the original
+    uint32_t *offsets = SA + reduced_length + 1;
+    uint32_t j = 0;
+    for (uint32_t i = 1; i < n + 1; ++i) {
+        if (is_LMS_index(s_index, n, i)) {
+            offsets[j++] = i;
+        }
     }
-    SA[0] = n;
+    
+    // Move the offsets into the first part of SA, sorted
+    // by the SA of the reduced problem, so we have them when we update SA
+    for (uint32_t i = 0; i < reduced_length + 1; ++i) {
+        SA[i] = offsets[reduced_SA[i]]; // FIXME: check when new_SA = SA
+        
+    }
+
+    // Reset the upper part of SA
+    memset(SA + reduced_length + 1,
+           UNDEFINED,
+           sizeof(uint32_t) * (n + 1 - (reduced_length + 1)));
+    
+    // Now we can insert the LMS strings in their buckets.
+    // Scanning right to left this way ensures that we see
+    // an LMS after we have zeroed its position so we don't
+    // risk removing one when we set a position to UNDEFINED
+    find_buckets_ends(x, n, alphabet_size, buckets);
+    for (uint32_t i = reduced_length + 1; i > 0; --i) {
+        uint32_t j = SA[i - 1]; SA[i - 1] = UNDEFINED;
+        SA[--(buckets[x[j]])] = j;
+    }
+
 }
 
 struct suffix_array *
@@ -479,6 +492,11 @@ sa_is_mem_construction(
         s[i] = remapped_string[i];
     }
     s[n] = 0;
+    
+#warning get rid of s
+    // FIXME: we can actually work with uint8_t strings here.
+    // we pack them into SA but we can fit them into integers
+    // and cast
     
     // Sort in buffer and then move the result to the suffix array
     sort_SA(s, n, sa->array, alphabet_size);

@@ -510,6 +510,8 @@ static void general_suffix_test(struct index_vector *naive,
         // characters not in the string
         return;
     }
+    assert(pattern[strlen((char*)pattern)] == 0);
+    assert(remapped_pattern[strlen((char *)pattern)] == 0);
     
     sa = sa_is_construction(remapped_string, tbl.alphabet_size);
     assert(suffix_array_equal(test_sa, sa));
