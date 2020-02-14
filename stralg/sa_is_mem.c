@@ -98,7 +98,6 @@ static void remap_LMS(
     uint32_t alphabet_size,
     bool *s_index,
     uint32_t reduced_length,
-    uint32_t *new_SA,
     uint32_t *SA
 );
 
@@ -368,13 +367,9 @@ static void recursive_sorting(
     // don't use space on this for the recursive call
     free(s_index);
     
-#warning get rid of this
-    uint32_t *new_SA = malloc(sizeof(uint32_t) * (new_string_length + 1));
-    
     sort_SA(reduced_string,
             new_string_length,
-#warning this should be SA
-            new_SA,
+            SA,
             new_alphabet_size);
 
     // get arrays back
@@ -382,18 +377,12 @@ static void recursive_sorting(
     classify_SL(x, s_index, n);
     buckets = malloc(alphabet_size * sizeof(uint32_t));
 
-
     remap_LMS(x, n,
               buckets,
               alphabet_size,
               s_index,
               new_string_length,
-              new_SA, // FIXME: use SA here -- I cannot yet because i clear SA before I use new_SA
               SA);
-
-#warning FIXME
-    free(new_SA);
-
     induce_L(x, n, alphabet_size, SA, s_index, buckets);
     induce_S(x, n, alphabet_size, SA, s_index, buckets);
     
@@ -439,7 +428,6 @@ void remap_LMS(
     uint32_t alphabet_size,
     bool *s_index,
     uint32_t reduced_length,
-    uint32_t *reduced_SA, // FIXME: get rid of this
     uint32_t *SA
 ) {
     // Compute the offsets we need to map
@@ -455,7 +443,7 @@ void remap_LMS(
     // Move the offsets into the first part of SA, sorted
     // by the SA of the reduced problem, so we have them when we update SA
     for (uint32_t i = 0; i < reduced_length + 1; ++i) {
-        SA[i] = offsets[reduced_SA[i]]; // FIXME: check when new_SA = SA
+        SA[i] = offsets[SA[i]]; // FIXME: check when new_SA = SA
         
     }
 
