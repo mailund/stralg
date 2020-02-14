@@ -15,13 +15,25 @@
 // strings that exactly matches uint32_t
 #define UNDEFINED ~0
 
+static uint8_t mask[] = {
+    0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01
+};
+#define sget(i) ((s_idx[(i) / 8] & mask[(i) % 8]) \
+                    ? true : false)
+#define sset(i, b) (                          \
+    s_idx[(i) / 8] =                          \
+    (b) ? (mask[(i) % 8] | s_idx[(i) / 8])    \
+        : ((~mask[(i) % 8]) & s_idx[(i) / 8]) \
+)
+
+
 static inline void classify_SL(
     const uint32_t *x,
-    bool *s_index,
+    uint8_t *s_idx,
     uint32_t n
 );
 static bool is_LMS_index(
-    bool *s_index,
+    uint8_t *s_idx,
     uint32_t n,
     uint32_t i
 );
@@ -52,7 +64,7 @@ static void place_LMS(
     uint32_t n,
     uint32_t alphabet_size,
     uint32_t *SA,
-    bool *s_index,
+    uint8_t *s_idx,
     uint32_t *buckets
 );
 
@@ -61,7 +73,7 @@ static void induce_L(
     uint32_t n,
     uint32_t alphabet_size,
     uint32_t *SA,
-    bool *s_index,
+    uint8_t *s_idx,
     uint32_t *buckets
 );
 
@@ -70,14 +82,14 @@ static void induce_S(
     uint32_t n,
     uint32_t alphabet_size,
     uint32_t *SA,
-    bool *s_index,
+    uint8_t *s_idx,
     uint32_t *buckets
 );
 
 static bool equal_LMS(
     uint32_t *x,
     uint32_t n,
-    bool *s_index,
+    uint8_t *s_idx,
     uint32_t i,
     uint32_t j
 );
@@ -86,7 +98,7 @@ static void reduce_SA(
     uint32_t *x,
     uint32_t n,
     uint32_t *SA,
-    bool *s_index,
+    uint8_t *s_idx,
     uint32_t *new_alphabet_size,
     uint32_t *new_string_length
 );
@@ -96,7 +108,7 @@ static void remap_LMS(
     uint32_t n,
     uint32_t *buckets,
     uint32_t alphabet_size,
-    bool *s_index,
+    uint8_t *s_idx,
     uint32_t reduced_length,
     uint32_t *SA
 );
@@ -115,27 +127,27 @@ static void sort_SA(
 // both large.
 static void classify_SL(
     const uint32_t *x,
-    bool *s_index,
+    uint8_t *s_idx,
     uint32_t n
 ) {
-    s_index[n] = S;
+    sset(n, S);
     if (n == 0) // empty string
         return;
-    s_index[n - 1] = L;
+    sset(n - 1, L);
     
     for (uint32_t i = n; i > 0; --i) {
         if (x[i - 1] > x[i]) {
-            s_index[i - 1] = L;
-        } else if (x[i - 1] == x[i] && s_index[i] == L) {
-            s_index[i - 1] = L;
+            sset(i - 1, L);
+        } else if (x[i - 1] == x[i] && sget(i) == L) {
+            sset(i - 1, L);
         } else {
-            s_index[i - 1] = S;
+            sset(i - 1, S);
         }
     }
 }
 
 static bool is_LMS_index(
-    bool *s_index,
+    uint8_t *s_idx,
     uint32_t n,
     uint32_t i
 ) {
@@ -147,7 +159,7 @@ static bool is_LMS_index(
     // straightforward.
     if (n == 0) return true;
     else if (i == 0) return false;
-    else return s_index[i] == S && s_index[i - 1] == L;
+    else return sget(i) == S && sget(i - 1) == L;
 }
 
 static void compute_buckets(
@@ -195,12 +207,12 @@ void place_LMS(
     uint32_t n,
     uint32_t alphabet_size,
     uint32_t *SA,
-    bool *s_index,
+    uint8_t  *s_idx,
     uint32_t *buckets
 ) {
     find_buckets_ends(x, n, alphabet_size, buckets);
     for (uint32_t i = 0; i < n + 1; ++i) {
-        if (is_LMS_index(s_index, n, i)) {
+        if (is_LMS_index(s_idx, n, i)) {
             SA[--(buckets[x[i]])] = i;
         }
     }
@@ -211,7 +223,7 @@ static void induce_L(
     uint32_t n,
     uint32_t alphabet_size,
     uint32_t *SA,
-    bool *s_index,
+    uint8_t *s_idx,
     uint32_t *buckets
 ) {
     find_buckets_beginnings(x, n, alphabet_size, buckets);
@@ -224,7 +236,7 @@ static void induce_L(
         if (SA[i] == 0) continue;
         
         uint32_t j = SA[i] - 1;
-        if (s_index[j] == L) {
+        if (sget(j) == L) {
             SA[(buckets[x[j]])++] = j;
         }
     }
@@ -236,7 +248,7 @@ static void induce_S(
     uint32_t n,
     uint32_t alphabet_size,
     uint32_t *SA,
-    bool *s_index,
+    uint8_t  *s_idx,
     uint32_t *buckets
 ) {
     find_buckets_ends(x, n, alphabet_size, buckets);
@@ -244,7 +256,7 @@ static void induce_S(
         // We do not have a string to the left of the first
         if (SA[i - 1] == 0) continue;
         uint32_t j = SA[i - 1] - 1;
-        if (s_index[j] == S) {
+        if (sget(j) == S) {
             SA[--(buckets[x[j]])] = j;
         }
     }
@@ -253,7 +265,7 @@ static void induce_S(
 static bool equal_LMS(
     uint32_t *x,
     uint32_t n,
-    bool *s_index,
+    uint8_t *s_idx,
     uint32_t i,
     uint32_t j
 ) {
@@ -262,8 +274,8 @@ static bool equal_LMS(
     if (i == n + 1 || j == n + 1) return false;
     uint32_t k = 0;
     while (true) {
-        bool i_LMS = is_LMS_index(s_index, n, i + k);
-        bool j_LMS = is_LMS_index(s_index, n, j + k);
+        bool i_LMS = is_LMS_index(s_idx, n, i + k);
+        bool j_LMS = is_LMS_index(s_idx, n, j + k);
         if (k > 0 && i_LMS && j_LMS) {
             // we reached the end of the strings
             return true;
@@ -273,7 +285,7 @@ static bool equal_LMS(
         // different
         if (i_LMS != j_LMS
             || x[i + k] != x[j + k]
-            || s_index[i + k] != s_index[j + k]) {
+            || sget(i + k) != sget(j + k)) {
             return false;
         }
         k++;
@@ -286,7 +298,7 @@ static void reduce_SA(
     uint32_t *x,
     uint32_t n,
     uint32_t *SA,
-    bool *s_index,
+    uint8_t *s_idx,
     uint32_t *new_alphabet_size,
     uint32_t *new_string_length
 ) {
@@ -296,7 +308,7 @@ static void reduce_SA(
     uint32_t *compacted = SA;
     uint32_t n1 = 0;
     for (uint32_t i = 0; i < n + 1; ++i) {
-        if (is_LMS_index(s_index, n, SA[i])) {
+        if (is_LMS_index(s_idx, n, SA[i])) {
             compacted[n1++] = SA[i];
         }
     }
@@ -311,7 +323,7 @@ static void reduce_SA(
 
     for (uint32_t i = 1; i < n1; i++) {
         uint32_t j = compacted[i];
-        if (!equal_LMS(x, n, s_index, last_suffix, j)) {
+        if (!equal_LMS(x, n, s_idx, last_suffix, j)) {
             name++;
         }
         last_suffix = j;
@@ -343,21 +355,20 @@ static void recursive_sorting(
     uint32_t *SA,
     uint32_t alphabet_size
 ) {
-#warning bit array
-    bool *s_index = malloc((n + 1) * sizeof(bool));
+    uint8_t *s_idx = malloc(((n + 1)/8 + 1) * sizeof(uint8_t));
     uint32_t *buckets = malloc(alphabet_size * sizeof(uint32_t));
-    classify_SL(x, s_index, n);
+    classify_SL(x, s_idx, n);
 
     memset(SA, UNDEFINED, (n + 1) * sizeof(uint32_t));
-    place_LMS(x, n, alphabet_size, SA, s_index, buckets);
-    induce_L(x, n, alphabet_size, SA, s_index, buckets);
-    induce_S(x, n, alphabet_size, SA, s_index, buckets);
+    place_LMS(x, n, alphabet_size, SA, s_idx, buckets);
+    induce_L(x, n, alphabet_size, SA, s_idx, buckets);
+    induce_S(x, n, alphabet_size, SA, s_idx, buckets);
     free(buckets);
     
     uint32_t new_alphabet_size;
     uint32_t new_string_length;
     reduce_SA(x, n, SA,
-              s_index,
+              s_idx,
               &new_alphabet_size,
               &new_string_length);
     uint32_t *reduced_string = SA + new_string_length + 1;
@@ -365,7 +376,7 @@ static void recursive_sorting(
     
     
     // don't use space on this for the recursive call
-    free(s_index);
+    free(s_idx);
     
     sort_SA(reduced_string,
             new_string_length,
@@ -373,22 +384,22 @@ static void recursive_sorting(
             new_alphabet_size);
 
     // get arrays back
-    s_index = malloc((n + 1) * sizeof(bool));
-    classify_SL(x, s_index, n);
+    s_idx = malloc(((n + 1)/8 + 1) * sizeof(uint8_t));
+    classify_SL(x, s_idx, n);
     buckets = malloc(alphabet_size * sizeof(uint32_t));
 
     remap_LMS(x, n,
               buckets,
               alphabet_size,
-              s_index,
+              s_idx,
               new_string_length,
               SA);
-    induce_L(x, n, alphabet_size, SA, s_index, buckets);
-    induce_S(x, n, alphabet_size, SA, s_index, buckets);
+    induce_L(x, n, alphabet_size, SA, s_idx, buckets);
+    induce_S(x, n, alphabet_size, SA, s_idx, buckets);
     
     
     free(buckets);
-    free(s_index);
+    free(s_idx);
 }
 
 void sort_SA(
@@ -426,7 +437,7 @@ void remap_LMS(
     uint32_t n,
     uint32_t *buckets,
     uint32_t alphabet_size,
-    bool *s_index,
+    uint8_t *s_idx,
     uint32_t reduced_length,
     uint32_t *SA
 ) {
@@ -435,7 +446,7 @@ void remap_LMS(
     uint32_t *offsets = SA + reduced_length + 1;
     uint32_t j = 0;
     for (uint32_t i = 1; i < n + 1; ++i) {
-        if (is_LMS_index(s_index, n, i)) {
+        if (is_LMS_index(s_idx, n, i)) {
             offsets[j++] = i;
         }
     }
@@ -480,11 +491,6 @@ sa_is_mem_construction(
         s[i] = remapped_string[i];
     }
     s[n] = 0;
-    
-#warning get rid of s
-    // FIXME: we can actually work with uint8_t strings here.
-    // we pack them into SA but we can fit them into integers
-    // and cast
     
     // Sort in buffer and then move the result to the suffix array
     sort_SA(s, n, sa->array, alphabet_size);
