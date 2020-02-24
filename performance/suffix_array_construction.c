@@ -64,17 +64,32 @@ static void get_equal_qsort_performance(uint32_t size)
     free(s);
 }
 
+static void get_ascii_mccreight_performance(uint32_t size)
+{
+    uint8_t *s;
+    clock_t begin, end;
+    
+    s = build_random_large(size);
+
+    begin = clock();
+    struct suffix_tree *st = mccreight_suffix_tree(s);
+    end = clock();
+    printf("McCreight ASCII %u %f\n", size, (double)(end - begin) / CLOCKS_PER_SEC);
+    free_suffix_tree(st);
+}
+
 static void get_performance(uint32_t size)
 {
     uint8_t *s;
     struct suffix_array *sa;
-    struct suffix_tree *st;
+    //struct suffix_tree *st;
     clock_t begin, end;
     
     s = build_equal(size);
     uint8_t remapped_string[strlen((char *)s) + 1];
     uint32_t alphabet_size = remap_string(remapped_string, s);
     
+    struct suffix_tree *st;
     begin = clock();
     st = mccreight_suffix_tree(s);
     end = clock();
@@ -93,6 +108,13 @@ static void get_performance(uint32_t size)
     printf("SA-IS Equal %u %f\n", size, (double)(end - begin) / CLOCKS_PER_SEC);
     free_suffix_array(sa);
 
+    begin = clock();
+    sa = sa_is_mem_construction(remapped_string, alphabet_size);
+    end = clock();
+    printf("SA-IS-MEM Equal %u %f\n", size, (double)(end - begin) / CLOCKS_PER_SEC);
+    free_suffix_array(sa);
+
+
     free(s);
     
     s = build_random(size);
@@ -103,7 +125,6 @@ static void get_performance(uint32_t size)
     end = clock();
     printf("McCreight DNA %u %f\n", size, (double)(end - begin) / CLOCKS_PER_SEC);
     free_suffix_tree(st);
-
     
     begin = clock();
     sa = qsort_sa_construction(s);
@@ -123,17 +144,16 @@ static void get_performance(uint32_t size)
     printf("SA-IS DNA %u %f\n", size, (double)(end - begin) / CLOCKS_PER_SEC);
     free_suffix_array(sa);
 
+    begin = clock();
+    sa = sa_is_mem_construction(remapped_string, alphabet_size);
+    end = clock();
+    printf("SA-IS-MEM DNA %u %f\n", size, (double)(end - begin) / CLOCKS_PER_SEC);
+    free_suffix_array(sa);
+
     free(s);
     
     s = build_random_large(size);
     alphabet_size = remap_string(remapped_string, s);
-    
-    begin = clock();
-    st = mccreight_suffix_tree(s);
-    end = clock();
-    printf("McCreight ASCII %u %f\n", size, (double)(end - begin) / CLOCKS_PER_SEC);
-    free_suffix_tree(st);
-
     
     begin = clock();
     sa = qsort_sa_construction(s);
@@ -153,6 +173,12 @@ static void get_performance(uint32_t size)
     printf("SA-IS ASCII %u %f\n", size, (double)(end - begin) / CLOCKS_PER_SEC);
     free_suffix_array(sa);
 
+    begin = clock();
+    sa = sa_is_mem_construction(remapped_string, alphabet_size);
+    end = clock();
+    printf("SA-IS-MEM ASCII %u %f\n", size, (double)(end - begin) / CLOCKS_PER_SEC);
+    free_suffix_array(sa);
+
     free(s);
 
 }
@@ -161,7 +187,7 @@ int main(int argc, const char **argv)
 {
     srand(time(NULL));
     
-    for (uint32_t n = 1000; n < 10000; n += 1000) {
+    for (uint32_t n = 1000; n < 6000; n += 1000) {
         for (int rep = 0; rep < 5; ++rep) {
             get_equal_qsort_performance(n);
         }
@@ -172,7 +198,13 @@ int main(int argc, const char **argv)
             get_performance(n);
         }
     }
-    
+
+    for (uint32_t n = 1000; n < 12000; n += 1000) {
+        for (int rep = 0; rep < 5; ++rep) {
+            get_ascii_mccreight_performance(n);
+        }
+    }
+
     return EXIT_SUCCESS;
 }
 

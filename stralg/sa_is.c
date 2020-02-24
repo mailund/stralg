@@ -157,14 +157,7 @@ static bool is_LMS_index(
     uint32_t n,
     uint32_t i
 ) {
-    // For the empty string the first suffix should
-    // be LMS (the sentinel always is). Otherwise,
-    // the first index should never be -- there
-    // is no L before it. If we are not looking
-    // at the first index the test is
-    // straightforward.
-    if (n == 0) return true;
-    else if (i == 0) return false;
+    if (i == 0) return false;
     else return s_index[i] == S && s_index[i - 1] == L;
 }
 
@@ -407,7 +400,7 @@ static void recursive_sorting(
     induce_S(x, n, alphabet_size, SA, s_index, buckets, bucket_endpoints);
 }
 
-void sort_SA(
+static void sort_SA(
     uint32_t *x,
     uint32_t n,
     uint32_t *SA,
@@ -449,7 +442,7 @@ void sort_SA(
     }
 }
 
-void remap_LMS(
+static void remap_LMS(
     uint32_t *x,
     uint32_t n,
     uint32_t *buckets,

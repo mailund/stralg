@@ -71,15 +71,15 @@ void compute_lcp(struct suffix_array *sa)
     sa->lcp[0] = 0;
     uint32_t l = 0;
     for (uint32_t i = 0; i < sa->length; ++i) {
-        uint32_t jj = sa->inverse[i];
+        uint32_t j = sa->inverse[i];
         
         // Don't handle index 0; lcp[0] is always zero.
-        if (jj == 0) continue;
+        if (j == 0) continue;
         
-        uint32_t k = sa->array[jj - 1];
+        uint32_t k = sa->array[j - 1];
         while (sa->string[k + l] == sa->string[i + l])
             ++l;
-        sa->lcp[jj] = l;
+        sa->lcp[j] = l;
         l = l > 0 ? l - 1 : 0;
     }
 }

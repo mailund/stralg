@@ -151,14 +151,7 @@ static bool is_LMS_index(
     uint32_t n,
     uint32_t i
 ) {
-    // For the empty string the first suffix should
-    // be LMS (the sentinel always is). Otherwise,
-    // the first index should never be -- there
-    // is no L before it. If we are not looking
-    // at the first index the test is
-    // straightforward.
-    if (n == 0) return true;
-    else if (i == 0) return false;
+    if (i == 0) return false;
     else return sget(i) == S && sget(i - 1) == L;
 }
 
@@ -454,7 +447,7 @@ void remap_LMS(
     // Move the offsets into the first part of SA, sorted
     // by the SA of the reduced problem, so we have them when we update SA
     for (uint32_t i = 0; i < reduced_length + 1; ++i) {
-        SA[i] = offsets[SA[i]]; // FIXME: check when new_SA = SA
+        SA[i] = offsets[SA[i]];
         
     }
 
@@ -474,6 +467,8 @@ void remap_LMS(
     }
 
 }
+
+
 
 struct suffix_array *
 sa_is_mem_construction(

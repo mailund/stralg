@@ -10,6 +10,7 @@ performance <- read_table2("suffix_array_construction.txt",
 performance$String <- factor(performance$String, levels = c("Equal", "DNA", "ASCII"))
 
 
+
 ggplot(performance,
        aes(x = Size, y = Time, color = Algorithm)) +
     facet_grid(String ~ ., scales = "free_y") +
