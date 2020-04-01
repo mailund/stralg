@@ -12,8 +12,10 @@ performance$String <- factor(performance$String, levels = c("Equal", "DNA", "ASC
 
 
 ggplot(performance,
-       aes(x = Size, y = Time, color = Algorithm)) +
+       aes(x = Size, y = Time, color = Algorithm), shape = Algorithm) +
     facet_grid(String ~ ., scales = "free_y") +
     geom_jitter() +
     geom_smooth(method = "loess", se = FALSE) +
+    scale_color_grey() +
     theme_minimal()
+ggsave("Suffix array construction.pdf", width = 7, height = 7)

@@ -27,6 +27,7 @@ void init_bwt_table(
 ) {
     assert(sa);
     
+    uint32_t alphabet_size = remap_table->alphabet_size;
     bwt_table->remap_table = remap_table;
     bwt_table->sa = sa;
     
@@ -152,7 +153,7 @@ void init_bwt_exact_match_iter(
     const uint8_t *remapped_pattern
 ) {
     const struct suffix_array *sa = iter->sa = bwt_table->sa;
-    
+    uint32_t alphabet_size = bwt_table->remap_table->alphabet_size;
     uint32_t n = sa->length;
     uint32_t m = (uint32_t)strlen((char *)remapped_pattern);
     
@@ -215,6 +216,7 @@ static void rec_approx_matching(
     int edits_left,
     char *edits
 ) {
+    uint32_t alphabet_size = iter->bwt_table->remap_table->alphabet_size;
     struct bwt_table *bwt_table = iter->bwt_table;
     struct remap_table *remap_table = bwt_table->remap_table;
     
@@ -289,6 +291,8 @@ void init_bwt_approx_iter(
     const uint8_t          *remapped_pattern,
     int                     max_edits)
 {
+    uint32_t alphabet_size = bwt_table->remap_table->alphabet_size;
+    
     // Initialise resources for the recursive search
     iter->bwt_table = bwt_table;
     iter->remapped_pattern = remapped_pattern;
@@ -487,6 +491,7 @@ void print_c_table(
 void print_o_table(
     const struct bwt_table *bwt_table
 ) {
+    uint32_t alphabet_size = bwt_table->remap_table->alphabet_size;
     const struct remap_table *remap_table = bwt_table->remap_table;
     const struct suffix_array *sa = bwt_table->sa;
     for (uint32_t i = 0; i < remap_table->alphabet_size; ++i) {
@@ -502,6 +507,7 @@ void print_o_table(
 void print_ro_table(
     const struct bwt_table *bwt_table
 ) {
+    uint32_t alphabet_size = bwt_table->remap_table->alphabet_size;
     const struct remap_table *remap_table = bwt_table->remap_table;
     const struct suffix_array *sa = bwt_table->sa;
     for (uint32_t i = 0; i < remap_table->alphabet_size; ++i) {

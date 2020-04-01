@@ -54,17 +54,16 @@ struct bwt_table {
  @return the number at O[a,i].
  */
 static inline uint32_t o_index(unsigned char a, uint32_t i,
-                               const struct bwt_table *table)
+                               uint32_t alphabet_size)
 {
-    return i * table->remap_table->alphabet_size + a;
-    //a * (table->sa->length + 1) + i;
+    return i * alphabet_size + a;
 }
 
-// these macros just make the notation nices, but they do require
+// these macros just make the notation nicer, but they do require
 // that the table is called bwt_table.
 #define C(a)    (bwt_table->c_table[(a)])
-#define O(a,i)  (bwt_table->o_table[o_index((a),(i),bwt_table)])
-#define RO(a,i) (bwt_table->ro_table[o_index((a),(i),bwt_table)])
+#define O(a,i)  (bwt_table->o_table[o_index((a),(i),(alphabet_size))])
+#define RO(a,i) (bwt_table->ro_table[o_index((a),(i),(alphabet_size))])
 
 
 /**

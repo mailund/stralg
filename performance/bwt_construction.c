@@ -66,6 +66,14 @@ static void get_performance(uint32_t size)
     rs = malloc(size + 1);
     remap(rs, s, &remap_table);
 
+    printf("BWT-no-D %u %lu %lu\n", size,
+           sa_end - sa_begin, bwt_end - bwt_begin);
+    
+    free_suffix_array(sa);
+    dealloc_remap_table(&remap_table);
+    dealloc_bwt_table(&bwt_table);
+
+    
     // Without D table
     
     sa_begin = clock();

@@ -129,7 +129,6 @@ static unsigned long get_performance(struct bwt_table *bwt_table,
     search_end = clock();
     
     return search_end - search_begin;
-    
 }
 
 static void perform_st_search(struct suffix_tree *st, const uint8_t *p, int edits)
