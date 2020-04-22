@@ -189,7 +189,7 @@ int main(int argc, char **argv)
     
     
   
-     for (uint32_t n = 100000; n <= 10000000; n += 100000) {
+     for (uint32_t n = 3500000; n <= 4500000; n += 100000) {
          for (uint32_t m = 100; m <= 500; m += 100) {
              for (uint32_t rep = 0; rep < 10; ++rep) {
                  uint8_t *s = build_random(n);

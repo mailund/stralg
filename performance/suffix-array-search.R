@@ -80,7 +80,7 @@ performance <- read_table2("suffix-array-search-large.txt",
                            col_names = c("Algorithm", "n", "m", "Time"))
 
 performance %>%
-    #    filter(n < 10000) %>%
+    filter(n > 3.5e6 & n < 4.5e6) %>%
     filter(m %in% c(100, 300, 500)) %>%
     ggplot(aes(x = n, y = Time, color = factor(m))) +
     geom_jitter(alpha = 0.3) +
@@ -92,7 +92,7 @@ performance %>%
 
 performance %>%
     #    filter(n %in% c(1e6, 2e6, 3e6, 4e6)) %>%
-    filter(n %in% c(2e6, 4e6, 1e6, 2e6)) %>%
+    filter(n %in% c(1e6, 2e6, 4e6)) %>%
     ggplot(aes(x = m, y = Time, color = factor(n))) +
     geom_jitter(alpha = 0.6) +
     geom_smooth(se = FALSE, method = "lm") +
