@@ -26,7 +26,7 @@ m <- performance %>%
     theme_minimal()
 
 n / m
-ggsave("Suffix array search tiny.pdf", width = 7, height = 14)
+ggsave("Suffix array search tiny.pdf", width = 7, height = 10)
 
 performance <- read_table2("suffix-array-search-small.txt",
                            col_names = c("Algorithm", "n", "m", "Time"))
@@ -53,7 +53,7 @@ m <- performance %>%
     theme_minimal()
 
 n/m
-ggsave("Suffix array search small.pdf", width = 7, height = 14)
+ggsave("Suffix array search small.pdf", width = 7, height = 10)
 
 performance <- read_table2("suffix-array-search-medium.txt",
                            col_names = c("Algorithm", "n", "m", "Time"))
@@ -81,24 +81,58 @@ m <- performance %>%
 
 n/m
 
-ggsave("Suffix array search medium.pdf", width = 7, height = 14)
+ggsave("Suffix array search medium.pdf", width = 7, height = 10)
 
 
-
+# Mesurement artifacts in the first runs
 performance_full <- read_table2("suffix-array-search-large-full.txt",
                            col_names = c("Algorithm", "n", "m", "Time"))
 performance_range <- read_table2("suffix-array-search-large-range.txt",
                                 col_names = c("Algorithm", "n", "m", "Time"))
+performance_range2 <- read_table2("suffix-array-search-large-range-2.txt",
+                                 col_names = c("Algorithm", "n", "m", "Time"))
+# This ran on another machine and the artifacts are gone. I need to
+# rescale to compensate for the different machine
+performance_range3 <- read_table2("suffix-array-search-large-range-3.txt",
+                                  col_names = c("Algorithm", "n", "m", "Time"))
 
-range <- performance_range %>% summarise(max = max(n), min = min(n))
+bwt_full_mean <- performance_full %>%
+    filter(n == 3.4e6 | n == 4.6e6) %>%
+    filter(Algorithm == "BWT") %>%
+    summarize(mean = mean(Time)) %>% unlist()
+bwt_range_mean <- performance_range3 %>%
+    filter(Algorithm == "BWT") %>%
+    summarize(mean = mean(Time)) %>% unlist()
+
+sa_full_mean <- performance_full %>%
+    filter(n == 3.3e6 | n == 4.7e6) %>%
+    filter(Algorithm == "SA") %>%
+    summarize(mean = mean(Time)) %>% unlist()
+sa_range_mean <- performance_range3 %>%
+    filter(Algorithm == "SA") %>%
+    summarize(mean = mean(Time)) %>% unlist()
+
+st_full_mean <- performance_full %>%
+    filter(n == 3.3e6 | n == 4.7e6) %>%
+    filter(Algorithm == "ST") %>%
+    summarize(mean = mean(Time)) %>% unlist()
+st_range_mean <- performance_range3 %>%
+    filter(Algorithm == "ST") %>%
+    summarize(mean = mean(Time)) %>% unlist()
+
+performance_range3 <- performance_range3 %>%
+    mutate(Time = ifelse(Algorithm == "BWT", Time * bwt_full_mean / bwt_range_mean, Time)) %>%
+    mutate(Time = ifelse(Algorithm == "SA", Time * sa_full_mean / sa_range_mean, Time)) %>%
+    mutate(Time = ifelse(Algorithm == "ST", Time * st_full_mean / st_range_mean, Time))
+
 performance_filtered <- performance_full %>% filter(n < range$min | n > range$max)
 performance_excluded <- performance_full %>% filter(!(n < range$min | n > range$max))
 
 
-performance <- rbind(performance_filtered, performance_range)
+performance <- rbind(performance_filtered, performance_range3) # performance_range
 
 n <- performance %>%
-    #    filter(n < 10000) %>%
+    #filter(n < 4e6) %>%
     filter(m %in% c(100, 300, 500)) %>%
     ggplot(aes(x = n, y = Time, color = factor(m))) +
     geom_jitter(alpha = 0.3) +
@@ -106,10 +140,13 @@ n <- performance %>%
     facet_grid(~ Algorithm) +
     scale_color_grey("m", start = 0.5, end = 0.05) +
     scale_y_continuous(limits = c(0, 0.04)) +
-    geom_vline(xintercept = range$min) +
-    geom_vline(xintercept = range$max) +
+#    geom_vline(xintercept = range$min) +
+#    geom_vline(xintercept = range$max) +
     theme_minimal() +
     theme(axis.text.x = element_text(angle = 90))
+n
+
+
 
 m <- performance %>%
     #    filter(n %in% c(1e6, 2e6, 3e6, 4e6)) %>%
@@ -123,6 +160,5 @@ m <- performance %>%
 
 n/m
 
-ggsave("Suffix array search large m.pdf", width = 7, height = 7)
-
+ggsave("Suffix array search large.pdf", width = 7, height = 10)
 

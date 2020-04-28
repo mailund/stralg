@@ -187,22 +187,34 @@ int main(int argc, char **argv)
     }
 */
     
+    if (argc != 4) {
+        printf("Incorrect number of arguments. alg n m\n");
+        return EXIT_FAILURE;
+    }
     
-  
-     for (uint32_t n = 3500000; n <= 4500000; n += 100000) {
-         for (uint32_t m = 100; m <= 500; m += 100) {
-             for (uint32_t rep = 0; rep < 10; ++rep) {
-                 uint8_t *s = build_random(n);
-                 double time = sa_performance(s, n, no_patterns, m);
-                 printf("SA %u %u %f\n", n, m, time / CLOCKS_PER_SEC);
-                 time = bwt_performance(s, n, no_patterns, m);
-                 printf("BWT %u %u %f\n", n, m, time / CLOCKS_PER_SEC);
-                 time = st_performance(s, n, no_patterns, m);
-                 printf("ST %u %u %f\n", n, m, time / CLOCKS_PER_SEC);
-                 free(s);
-             }
-         }
-     }
+    const char *alg = argv[1];
+    uint32_t n = atoi(argv[2]);
+    uint32_t m = atoi(argv[3]);
+    
+ 
+    for (uint32_t rep = 0; rep < 10; ++rep) {
+        uint8_t *s = build_random(n);
+        double time;
+        if (strcmp(alg, "SA") == 0) {
+            time = sa_performance(s, n, no_patterns, m);
+            printf("SA %u %u %f\n", n, m, time / CLOCKS_PER_SEC);
+        } else if (strcmp(alg, "BWT") == 0) {
+            time = bwt_performance(s, n, no_patterns, m);
+            printf("BWT %u %u %f\n", n, m, time / CLOCKS_PER_SEC);
+        } else if (strcmp(alg, "ST") == 0) {
+            time = st_performance(s, n, no_patterns, m);
+            printf("ST %u %u %f\n", n, m, time / CLOCKS_PER_SEC);
+        } else {
+            printf("unknow algorithm!\n");
+            return EXIT_FAILURE;
+        }
+        free(s);
+    }
 
     
     return EXIT_SUCCESS;
