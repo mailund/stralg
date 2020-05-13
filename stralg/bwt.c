@@ -31,6 +31,7 @@ void init_bwt_table(
     bwt_table->remap_table = remap_table;
     bwt_table->sa = sa;
     
+    
     // ---- COMPUTE C TABLE -----------------------------------
     uint32_t char_counts[remap_table->alphabet_size];
     memset(char_counts, 0, remap_table->alphabet_size * sizeof(uint32_t));
@@ -49,6 +50,11 @@ void init_bwt_table(
     uint32_t o_size = remap_table->alphabet_size * (sa->length + 1) *
                         sizeof(*bwt_table->o_table);
     bwt_table->o_table = malloc(o_size);
+    bwt_table->o_indices = malloc((sa->length + 1) * sizeof(*bwt_table->o_indices));
+    for (uint32_t i = 0; i < sa->length + 1; ++i) {
+        uint32_t *ptr = bwt_table->o_table + alphabet_size * i;
+        bwt_table->o_indices[i] = ptr;
+    }
     for (uint8_t a = 0; a < remap_table->alphabet_size; ++a) {
         O(a, 0) = 0;
     }
@@ -61,6 +67,11 @@ void init_bwt_table(
     if (rsa) {
         
         bwt_table->ro_table = malloc(o_size);
+        bwt_table->ro_indices = malloc((sa->length + 1) * sizeof(bwt_table->ro_indices));
+        for (uint32_t i = 0; i < sa->length + 1; ++i) {
+            bwt_table->ro_indices[i] = bwt_table->ro_table + alphabet_size * i;
+        }
+
         for (uint8_t a = 0; a < remap_table->alphabet_size; ++a) {
             RO(a, 0) = 0;
         }
@@ -73,6 +84,7 @@ void init_bwt_table(
 
     } else {
         bwt_table->ro_table = 0;
+        bwt_table->ro_indices = 0;
     }
 }
 
@@ -81,7 +93,9 @@ void dealloc_bwt_table(
 ) {
     free(bwt_table->c_table);
     free(bwt_table->o_table);
+    free(bwt_table->o_indices);
     if (bwt_table->ro_table) free(bwt_table->ro_table);
+    if (bwt_table->ro_indices) free(bwt_table->ro_indices);
 }
 
 void completely_dealloc_bwt_table(
@@ -134,7 +148,7 @@ struct bwt_table *build_complete_table(
         str_inplace_rev_n(rev_remapped_str, n);
         
         // also here use the fastest algorithm here
-        rsa = qsort_sa_construction(rev_remapped_str);
+        rsa = sa_is_construction(rev_remapped_str, remap_table->alphabet_size);
     }
     struct bwt_table *table = malloc(sizeof(struct bwt_table));
     init_bwt_table(table, sa, rsa, remap_table);
@@ -153,7 +167,7 @@ void init_bwt_exact_match_iter(
     const uint8_t *remapped_pattern
 ) {
     const struct suffix_array *sa = iter->sa = bwt_table->sa;
-    uint32_t alphabet_size = bwt_table->remap_table->alphabet_size;
+    //FIXME uint32_t alphabet_size = bwt_table->remap_table->alphabet_size;
     uint32_t n = sa->length;
     uint32_t m = (uint32_t)strlen((char *)remapped_pattern);
     
@@ -216,7 +230,7 @@ static void rec_approx_matching(
     int edits_left,
     char *edits
 ) {
-    uint32_t alphabet_size = iter->bwt_table->remap_table->alphabet_size;
+    //FIXME uint32_t alphabet_size = iter->bwt_table->remap_table->alphabet_size;
     struct bwt_table *bwt_table = iter->bwt_table;
     struct remap_table *remap_table = bwt_table->remap_table;
     
@@ -291,7 +305,7 @@ void init_bwt_approx_iter(
     const uint8_t          *remapped_pattern,
     int                     max_edits)
 {
-    uint32_t alphabet_size = bwt_table->remap_table->alphabet_size;
+    //uint32_t alphabet_size = bwt_table->remap_table->alphabet_size;
     
     // Initialise resources for the recursive search
     iter->bwt_table = bwt_table;
@@ -450,14 +464,28 @@ struct bwt_table *read_bwt_table(
     bwt_table->o_table = malloc(sizeof(*bwt_table->o_table) * o_table_length);
     fread(bwt_table->c_table, sizeof(*bwt_table->c_table), c_table_length, f);
     fread(bwt_table->o_table, sizeof(*bwt_table->o_table), o_table_length, f);
+    
+    bwt_table->o_indices = malloc(sizeof(*bwt_table->o_indices) * (sa->length + 1));
+    for (uint32_t i = 0; i < sa->length + 1; i++) {
+        bwt_table->o_indices[i] = bwt_table->o_table + i * remap_table->alphabet_size;
+    }
+    
+    
     bwt_table->ro_table = 0;
+    bwt_table->ro_indices = 0;
     bool has_ro_table;
     fread(&has_ro_table, sizeof(bool), 1, f);
+
     if (has_ro_table) {
-        assert(bwt_table->ro_table);
-        fread(bwt_table->ro_table,
+            bwt_table->ro_table = malloc(sizeof(*bwt_table->ro_table) * o_table_length);
+            fread(bwt_table->ro_table,
               sizeof(*bwt_table->ro_table),
               o_table_length, f);
+        bwt_table->ro_indices = malloc(sizeof(bwt_table->ro_indices) * (sa->length + 1));
+        for (uint32_t i = 0; i < sa->length + 1; i++) {
+            bwt_table->ro_indices[i] = bwt_table->ro_table + i * remap_table->alphabet_size;
+        }
+
     }
     
     return bwt_table;
@@ -491,7 +519,7 @@ void print_c_table(
 void print_o_table(
     const struct bwt_table *bwt_table
 ) {
-    uint32_t alphabet_size = bwt_table->remap_table->alphabet_size;
+    //uint32_t alphabet_size = bwt_table->remap_table->alphabet_size;
     const struct remap_table *remap_table = bwt_table->remap_table;
     const struct suffix_array *sa = bwt_table->sa;
     for (uint32_t i = 0; i < remap_table->alphabet_size; ++i) {
@@ -507,7 +535,7 @@ void print_o_table(
 void print_ro_table(
     const struct bwt_table *bwt_table
 ) {
-    uint32_t alphabet_size = bwt_table->remap_table->alphabet_size;
+    //uint32_t alphabet_size = bwt_table->remap_table->alphabet_size;
     const struct remap_table *remap_table = bwt_table->remap_table;
     const struct suffix_array *sa = bwt_table->sa;
     for (uint32_t i = 0; i < remap_table->alphabet_size; ++i) {

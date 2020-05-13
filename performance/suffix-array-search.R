@@ -129,10 +129,10 @@ performance_filtered <- performance_full %>% filter(n < range$min | n > range$ma
 performance_excluded <- performance_full %>% filter(!(n < range$min | n > range$max))
 
 
-performance <- rbind(performance_filtered, performance_range3) # performance_range
+performance <- performance_range3 #rbind(performance_filtered, performance_range3) # performance_range
 
 n <- performance %>%
-    #filter(n < 4e6) %>%
+    #filter(n < 8e6) %>%
     filter(m %in% c(100, 300, 500)) %>%
     ggplot(aes(x = n, y = Time, color = factor(m))) +
     geom_jitter(alpha = 0.3) +
