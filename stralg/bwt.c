@@ -67,6 +67,11 @@ void init_bwt_table(
     if (rsa) {
         
         bwt_table->ro_table = malloc(o_size);
+        bwt_table->ro_indices = malloc((sa->length + 1) * sizeof(bwt_table->ro_indices));
+        for (uint32_t i = 0; i < sa->length + 1; ++i) {
+            bwt_table->ro_indices[i] = bwt_table->ro_table + alphabet_size * i;
+        }
+
         for (uint8_t a = 0; a < remap_table->alphabet_size; ++a) {
             RO(a, 0) = 0;
         }
@@ -77,10 +82,6 @@ void init_bwt_table(
             }
         }
 
-        bwt_table->ro_indices = malloc((sa->length + 1) * sizeof(bwt_table->ro_indices));
-        for (uint32_t i = 0; i < sa->length + 1; ++i) {
-            bwt_table->ro_indices[i] = bwt_table->ro_table + alphabet_size * i;
-        }
     } else {
         bwt_table->ro_table = 0;
         bwt_table->ro_indices = 0;
@@ -431,8 +432,6 @@ void write_bwt_table(
     fwrite(bwt_table->o_table, sizeof(*bwt_table->o_table), o_table_length, f);
     bool has_ro_table = bwt_table->ro_table;
     fwrite(&has_ro_table, sizeof(bool), 1, f);
-#warning testing
-    assert(has_ro_table);
     if (bwt_table->ro_table) {
         fwrite(bwt_table->ro_table,
                sizeof(*bwt_table->ro_table),
@@ -476,9 +475,6 @@ struct bwt_table *read_bwt_table(
     bwt_table->ro_indices = 0;
     bool has_ro_table;
     fread(&has_ro_table, sizeof(bool), 1, f);
-
-#warning testing
-    assert(has_ro_table);
 
     if (has_ro_table) {
             bwt_table->ro_table = malloc(sizeof(*bwt_table->ro_table) * o_table_length);
