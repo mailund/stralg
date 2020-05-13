@@ -147,7 +147,7 @@ struct bwt_table *build_complete_table(
         str_inplace_rev_n(rev_remapped_str, n);
         
         // also here use the fastest algorithm here
-        rsa = qsort_sa_construction(rev_remapped_str);
+        rsa = sa_is_construction(rev_remapped_str, remap_table->alphabet_size);
     }
     struct bwt_table *table = malloc(sizeof(struct bwt_table));
     init_bwt_table(table, sa, rsa, remap_table);
@@ -431,6 +431,8 @@ void write_bwt_table(
     fwrite(bwt_table->o_table, sizeof(*bwt_table->o_table), o_table_length, f);
     bool has_ro_table = bwt_table->ro_table;
     fwrite(&has_ro_table, sizeof(bool), 1, f);
+#warning testing
+    assert(has_ro_table);
     if (bwt_table->ro_table) {
         fwrite(bwt_table->ro_table,
                sizeof(*bwt_table->ro_table),
@@ -474,11 +476,13 @@ struct bwt_table *read_bwt_table(
     bwt_table->ro_indices = 0;
     bool has_ro_table;
     fread(&has_ro_table, sizeof(bool), 1, f);
-    #warning for testing
+
+#warning testing
     assert(has_ro_table);
+
     if (has_ro_table) {
-        assert(bwt_table->ro_table);
-        fread(bwt_table->ro_table,
+            bwt_table->ro_table = malloc(sizeof(*bwt_table->ro_table) * o_table_length);
+            fread(bwt_table->ro_table,
               sizeof(*bwt_table->ro_table),
               o_table_length, f);
         bwt_table->ro_indices = malloc(sizeof(bwt_table->ro_indices) * (sa->length + 1));
