@@ -53,11 +53,13 @@ struct bwt_table {
  
  @return the number at O[a,i].
  */
-static inline uint32_t o_index(unsigned char a, uint32_t i,
+/*static inline uint32_t o_index(unsigned char a, uint32_t i,
                                uint32_t alphabet_size)
 {
     return i * alphabet_size + a;
 }
+ */
+#define o_index(a,i,alphabet_size) ((i) * (alphabet_size) + (a))
 
 // these macros just make the notation nicer, but they do require
 // that the table is called bwt_table.

@@ -213,7 +213,7 @@ int main(int argc, char **argv)
     argv += optind;
     
     if (should_preprocess) {
-        printf("preprocessing %s\n", fasta_fname);
+        //printf("preprocessing %s\n", fasta_fname);
         preprocess(fasta_fname);
         
     } else {
