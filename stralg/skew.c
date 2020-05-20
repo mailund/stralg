@@ -47,6 +47,9 @@ struct skew_buffers {
 #define LEX3(i) (shared_buffers->lex_remapped[map_s_s12(SA12(i))])
 
 
+#define RAWKEY(i) ((input[(i)] + offset >= n) ? 0 : s[input[(i)] + offset])
+#define KEY(i)    ((RAWKEY((i)) >> shift) & mask)
+    
 static void radix_sort(
     uint32_t *s, uint32_t n,
     uint32_t *sa, uint32_t m,
@@ -63,9 +66,6 @@ static void radix_sort(
         shared_buffers->helper_buffer0,
         shared_buffers->helper_buffer1
     };
-    
-#define RAWKEY(i) ((input[(i)] + offset >= n) ? 0 : s[input[(i)] + offset])
-#define KEY(i)    ((RAWKEY((i)) >> shift) & mask)
     
     for (uint32_t byte = 0, shift = 0;
          byte < sizeof(*s) && alph_size > 0;
@@ -241,17 +241,17 @@ static void merge_suffix_arrays(
     uint32_t i = 0, j = 0, k = 0;
     uint32_t n = m12 + m3;
     
-    // we are essentially building sa[i] (although
+    // We are essentially building sa[i] (although
     // not sorting between 12 and 3, and then doing
     // isa[sa[i]] = i. Just both at the same time.
-    for (uint32_t i = 1, j = 0; j < m12; i += 3, j += 2) {
-        ISA(SA12(j)) = i;
+    for (uint32_t h = 1, j = 0; j < m12; h += 3, j += 2) {
+        ISA(SA12(j)) = h;
     }
-    for (uint32_t i = 2, j = 1; j < m12; i += 3, j += 2) {
-        ISA(SA12(j)) = i;
+    for (uint32_t h = 2, j = 1; j < m12; h += 3, j += 2) {
+        ISA(SA12(j)) = h;
     }
-    for (uint32_t i = 0, j = 0; j < m3; i += 3, j++) {
-        ISA(SA3(j)) = i;
+    for (uint32_t h = 0, j = 0; j < m3; h += 3, j++) {
+        ISA(SA3(j)) = h;
     }
     
     while (i < m12 && j < m3) {
@@ -387,9 +387,9 @@ static void skew(
 
 struct suffix_array *
 skew_sa_construction(
-    uint8_t *string
+    uint8_t *x
 ) {
-    struct suffix_array *sa = allocate_sa_(string);
-    skew(string, sa->array);
+    struct suffix_array *sa = allocate_sa_(x);
+    skew(x, sa->array);
     return sa;
 }
