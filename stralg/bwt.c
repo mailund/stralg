@@ -470,7 +470,6 @@ struct bwt_table *read_bwt_table(
         bwt_table->o_indices[i] = bwt_table->o_table + i * remap_table->alphabet_size;
     }
     
-    
     bwt_table->ro_table = 0;
     bwt_table->ro_indices = 0;
     bool has_ro_table;

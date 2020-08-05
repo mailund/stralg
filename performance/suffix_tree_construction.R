@@ -3,7 +3,7 @@ library(readr)
 library(dplyr)
 library(ggplot2)
 
-strings = c(equal = "Equal", random = "DNA", random_large = "ASCII")
+strings = c(equal = "Equal", random = "DNA", random_large = "8-bit")
 algomap = c("EA-LCP" = "Array LCP", "EA-McCreight" = "Array McCreight", "EA-Naive" = "Array Naive",
             "LCP-build" = "LCP + construction", "EA-LCP-build" = "Array LCP + construction")
 algorithms <- Vectorize(function(alg) {
@@ -21,11 +21,12 @@ current_performance <- read_table2("suffix_tree_construction.txt",
 
 
 performance <- current_performance
-
+performance <- performance %>%
+    mutate(String = ifelse(String == "ASCII", "8-bit", String))
 performance %>%
     mutate(String = strings[String], Algorithm = algorithms(Algorithm)) %>%
     filter(Algorithm %in% c("LCP", "Naive", "McCreight")) %>%
-    mutate(String = factor(String, levels = c("Equal", "DNA", "ASCII"))) %>%
+    mutate(String = factor(String, levels = c("Equal", "DNA", "8-bit"))) %>%
     ggplot(
        aes(x = Size, y = Time, color = Algorithm)) +
     facet_grid(String ~ ., scales = "free_y") +
@@ -40,7 +41,7 @@ performance %>%
     mutate(String = strings[String], Algorithm = algorithms(Algorithm)) %>%
     filter(Algorithm %in% c("LCP", "McCreight", "Naive")) %>%
     filter(Size <= 50000) %>%
-    mutate(String = factor(String, levels = c("Equal", "DNA", "ASCII"))) %>%
+    mutate(String = factor(String, levels = c("Equal", "DNA", "8-bit"))) %>%
     filter(!(String == "Equal" & Algorithm == "Naive")) %>%
     ggplot(
         aes(x = Size, y = Time, color = Algorithm)) +

@@ -2,9 +2,12 @@ library(tidyverse)
 
 performance <- read_table2("match_search.txt",
                            col_names = c("Algorithm", "String", "n", "m", "Time"))
+performance <- performance %>%
+    mutate(String = ifelse(String == "ASCII", "8-bit", String))
+
 performance$m <- factor(performance$m)
 performance$Algorithm <- factor(performance$Algorithm, levels = c("Naive", "BMH", "BM", "Border", "KMP"))
-performance$String <- factor(performance$String, levels = c("EQUAL", "DNA", "ASCII"))
+performance$String <- factor(performance$String, levels = c("EQUAL", "DNA", "8-bit"))
 
 # Overall
 performance %>%
@@ -52,7 +55,6 @@ performance %>%
     ggplot(
         aes(x = n, y = Time, color = m)) +
     facet_grid(String ~ Algorithm, scales = "free_y") +
-    #geom_jitter() +
     geom_smooth(se = FALSE) +
     scale_color_grey() +
     ylab("Time [seconds]") +
