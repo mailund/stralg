@@ -276,8 +276,7 @@ static bool equal_LMS(
         // if one string ends before another or we
         // have different characters the strings are
         // different
-        if (i_LMS != j_LMS || x[i + k] != x[j + k]
-            || sget(i + k) != sget(j + k)) {
+        if (i_LMS != j_LMS || x[i + k] != x[j + k]) {
             return false;
         }
         k++;
