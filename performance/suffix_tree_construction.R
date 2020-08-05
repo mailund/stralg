@@ -54,6 +54,9 @@ ggsave("Linked lists without naive equal.pdf", width = 7, height = 7)
 
 
 performance %>%
+    group_by(Algorithm, String, Size) %>%
+    filter(Time < 2 * mean(Time)) %>% # crazy outliers.
+    ungroup() %>%
     filter(!(Algorithm %in% c("EA-Naive", "Naive"))) %>%
     filter(!(Algorithm %in% c("EA-LCP-build", "LCP-build"))) %>%
     mutate(String = strings[String], Algorithm = algorithms(Algorithm)) %>%
