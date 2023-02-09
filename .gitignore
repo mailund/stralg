@@ -1,3 +1,8 @@
+*.sa
+*.isa
+*.lcp
+*.idxs
+.cache
 .vscode/
 coverage.info
 coverage/

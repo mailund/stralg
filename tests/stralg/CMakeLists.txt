@@ -1,7 +1,7 @@
 
 
 
-file(GLOB test_sources *_test.c)
+file(GLOB test_sources *_test.c *.cpp)
 foreach(test_c ${test_sources})
     get_filename_component(testname ${test_c} NAME_WE)
     add_executable(${testname} ${test_c})
@@ -16,6 +16,13 @@ foreach(test_c ${test_sources})
     )
 endforeach(test_c)
 
+add_test(
+	NAME my_test
+    COMMAND 
+	#sh -c "$<TARGET_FILE:my_suffix_array_test> test-data/clusters_VGR.txt test-data/text_patterns.txt"
+	sh -c "$<TARGET_FILE:my_suffix_array_test> test-data/text_data.txt test-data/text_data_patterns.txt"
+    WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/tests/stralg"
+)
 add_test(
     NAME Match[modest-proposal]
     COMMAND

@@ -1,8 +1,11 @@
 
 cmake_minimum_required(VERSION 3.2.0)
 project(StrAlg)
+cmake_policy(SET CMP0110 NEW)
 
 set(CMAKE_C_STANDARD 11)
+set(CMAKE_CXX_STANDARD 14)
+
 set(CMAKE_MODULE_PATH
     ${CMAKE_MODULE_PATH}
     "${CMAKE_SOURCE_DIR}/Modules/"
